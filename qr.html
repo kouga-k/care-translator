@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareVoice QRコード</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<style>
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: #f5f3ee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+  }
+  .card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px 48px;
+    box-shadow: 0 8px 40px rgba(0,0,0,.12);
+    text-align: center;
+    max-width: 360px;
+    width: 90%;
+  }
+  .logo { font-size: 36px; margin-bottom: 8px; }
+  h1 { font-size: 22px; color: #2d6a4f; margin: 0 0 4px; }
+  .sub { font-size: 13px; color: #9b9890; margin-bottom: 28px; }
+  canvas { border-radius: 12px; }
+  .url {
+    margin-top: 20px;
+    background: #f5f3ee;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #444;
+    word-break: break-all;
+    font-family: monospace;
+  }
+  .hint { margin-top: 16px; font-size: 12px; color: #9b9890; line-height: 1.6; }
+  .hint strong { color: #2d6a4f; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">🌿</div>
+  <h1>CareVoice</h1>
+  <div class="sub">介護・医療現場AI通訳</div>
+  <canvas id="qr"></canvas>
+  <div class="url" id="urlText"></div>
+  <div class="hint">
+    スマホで読み取ってください<br>
+    <strong>PCと同じWi-Fi</strong> に接続が必要です
+  </div>
+</div>
+<script>
+  const url = 'http://10.170.127.99:3000/care-translator-v7.html';
+  document.getElementById('urlText').textContent = url;
+  QRCode.toCanvas(document.getElementById('qr'), url, {
+    width: 240,
+    margin: 2,
+    color: { dark: '#2d6a4f', light: '#ffffff' }
+  });
+</script>
+</body>
+</html>
