@@ -2051,13 +2051,15 @@ function toggleSubtitlePause(){
   else{restartSubtitleRecognition();btn.innerHTML='⏸ 一時停止';document.getElementById('subtitleStatus').textContent='通訳中'}
 }
 let subtitleTranslating=false,subtitlePendingText='',subtitleIsRestarting=false;
+let subtitleLastFinalText='',subtitleLastFinalTime=0;
+const SUBTITLE_DEDUP_MS=3000;
 let subtitleSessionTimer=null;
 const SUBTITLE_SESSION_MS=50000; // 50秒ごとに強制リセット
 
 function startSubtitleMic(){
   if(!('webkitSpeechRecognition'in window||'SpeechRecognition'in window)){alert('Chrome推奨です');return}
   subtitleState.isRunning=true;subtitleState.isPaused=false;
-  subtitleTranslating=false;subtitlePendingText='';subtitleIsRestarting=false;
+  subtitleTranslating=false;subtitlePendingText='';subtitleIsRestarting=false;subtitleLastFinalText='';subtitleLastFinalTime=0;
   const btn=document.getElementById('subtitleMicBtn');btn.className='subtitle-mic-btn running';btn.innerHTML='⏹ 停止';
   document.getElementById('subtitlePauseBtn').style.display='';
   document.getElementById('subtitleDot').classList.add('active');
@@ -2107,7 +2109,7 @@ function restartSubtitleRecognition(){
     for(let i=e.resultIndex;i<e.results.length;i++){const tx=e.results[i][0].transcript;e.results[i].isFinal?final+=tx:interim+=tx}
     const display=interim||final||'';
     if(display){document.getElementById('subtitleOriginal').textContent=display;document.getElementById('subtitleText').classList.add('translating');document.getElementById('subtitleText').textContent='認識中...'}
-    if(final){subtitleState.buffer+=final+' ';clearTimeout(subtitleState.timer);const delay=isAndroid?300:350;subtitleState.timer=setTimeout(()=>processSubtitleBuffer(),delay)}
+    if(final){const tf=final.trim(),now=Date.now();if(tf&&!(tf===subtitleLastFinalText&&now-subtitleLastFinalTime<SUBTITLE_DEDUP_MS)){subtitleLastFinalText=tf;subtitleLastFinalTime=now;subtitleState.buffer+=final+' ';clearTimeout(subtitleState.timer);const delay=isAndroid?300:350;subtitleState.timer=setTimeout(()=>processSubtitleBuffer(),delay)}}
   };
   r.onend=()=>{
     subtitleIsRestarting=false;
