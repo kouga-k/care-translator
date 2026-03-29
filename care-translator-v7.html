@@ -1052,6 +1052,13 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
           <textarea class="setting-input" id="firebaseConfigJson" rows="5" placeholder='{"apiKey":"...","authDomain":"...","projectId":"..."}'></textarea>
           <button onclick="applyFirebaseConfig()" style="width:100%;margin-top:8px;padding:10px;background:var(--accent);color:white;border:none;border-radius:8px;font-family:var(--font-jp);font-size:13px;font-weight:600;cursor:pointer" data-i18n="firebase_apply">接続テスト・保存</button>
           <div id="firebaseTestResult" style="font-size:12px;margin-top:6px"></div>
+          <div style="margin-top:10px;padding:10px;background:#fff8e1;border:1px solid #ffe082;border-radius:8px;font-size:12px;color:#5d4037;line-height:1.6">
+            <strong>⚠ 1対多配信を使うには追加設定が必要です</strong><br>
+            ① Firebase Console → <strong>Realtime Database</strong> を作成（まだの場合）<br>
+            ② Realtime Database → <strong>ルール</strong> タブを開き、以下に変更して「公開」:<br>
+            <code style="display:block;margin:6px 0;padding:6px;background:#f5f5f5;border-radius:4px;font-size:11px;white-space:pre-wrap">{"rules":{".read":false,".write":false,"broadcasts":{".read":true,".write":"auth != null"}}}</code>
+            ③ 「databaseURL」が不明な場合はプロジェクトIDから自動補完されます
+          </div>
         </div>
       </div>
       <div class="setting-group">
@@ -1937,13 +1944,20 @@ async function startBroadcast(){
     showToast('Firebaseを先に設定してください（⚙️設定 → Firebase設定）');return;
   }
   try{
+    // RTDB SDKロード前にapp初期化されていることを確認
     await loadFirebaseRtDb();
     broadcastRtDb=window.firebase.database(state.firebaseApp);
     broadcastSessionId=Date.now().toString(36)+Math.random().toString(36).substr(2,5);
     const title=document.getElementById('broadcastTitle').value.trim()||'研修セッション';
     await broadcastRtDb.ref(`broadcasts/${broadcastSessionId}`).set({title,active:true,startedAt:Date.now()});
-    // Firebase設定をBase64エンコードしてURLに含める（スタッフ側で設定不要に）
-    const cfgB64=btoa(unescape(encodeURIComponent(JSON.stringify(state.firebaseConfig))));
+    // Firebase設定（databaseURL補完済み）をBase64エンコードしてURLに含める
+    const cfgToEmbed = state.firebaseConfig || JSON.parse(localStorage.getItem('careVoiceFirebaseConfig')||'null');
+    if(!cfgToEmbed){showToast('Firebase設定が見つかりません。再設定してください。');return;}
+    // databaseURL がなければ補完
+    if(!cfgToEmbed.databaseURL && cfgToEmbed.projectId){
+      cfgToEmbed.databaseURL=`https://${cfgToEmbed.projectId}-default-rtdb.firebaseio.com`;
+    }
+    const cfgB64=btoa(unescape(encodeURIComponent(JSON.stringify(cfgToEmbed))));
     const receiveUrl=`${location.origin}${location.pathname}?mode=receive&session=${broadcastSessionId}&cfg=${cfgB64}`;
     showBroadcastModal(receiveUrl,title);
     startBroadcastMic();
@@ -2034,33 +2048,38 @@ async function initReceiveMode(sessionId){
   document.getElementById('receiveOverlay').classList.add('active');
   const grid=document.getElementById('receiveLangGrid');
   grid.innerHTML=receiveLangs.map(l=>`<button class="receive-lang-btn${l.code===receiveLang?' active':''}" onclick="setReceiveLang('${l.code}',this)">${l.label}</button>`).join('');
+  document.getElementById('receiveStatus').textContent='接続中...';
   try{
-    await loadFirebaseRtDb();
-    // URLのcfgパラメータからFirebase設定を取得（スタッフ側設定不要）
-    const _p=new URLSearchParams(location.search);
-    const cfgB64=_p.get('cfg');
-    if(cfgB64&&!state.firebaseApp){
-      try{
-        const cfg=JSON.parse(decodeURIComponent(escape(atob(cfgB64))));
-        await initFirebase(cfg);
-      }catch(e){}
+    // ① まずFirebase設定を取得（URLパラメータ優先 → localStorage）
+    if(!state.firebaseApp){
+      const _p=new URLSearchParams(location.search);
+      const cfgB64=_p.get('cfg');
+      if(cfgB64){
+        try{
+          const cfg=JSON.parse(decodeURIComponent(escape(atob(cfgB64))));
+          await initFirebase(cfg); // app-compat + firestore-compat をロード → app初期化
+        }catch(e2){ console.warn('cfg decode/init error:', e2.message); }
+      }
     }
-    // localStorage からも試みる
+    // ② URLになければ localStorage から試みる
     if(!state.firebaseApp){
       const fbCfgStr=localStorage.getItem('careVoiceFirebaseConfig');
       if(fbCfgStr){try{await initFirebase(JSON.parse(fbCfgStr));}catch(e){}}
     }
     if(!state.firebaseApp){
       document.getElementById('receiveStatus').textContent='⚠ Firebase未設定';
-      document.getElementById('receiveWaiting').textContent='⚠ Firebaseの設定が必要です';return;
+      document.getElementById('receiveWaiting').textContent='⚠ QRコードが古い可能性があります。講師に再生成を依頼してください。';
+      return;
     }
+    // ③ app初期化済みの後にRTDB SDKをロード
+    await loadFirebaseRtDb();
     receiveRtDb=window.firebase.database(state.firebaseApp);
     const sessionSnap=await receiveRtDb.ref(`broadcasts/${sessionId}`).get();
     if(sessionSnap.exists()){
       const d=sessionSnap.val();
       document.getElementById('receiveSessionName').textContent=d.title||'研修セッション';
     }
-    document.getElementById('receiveStatus').textContent='受信中';
+    document.getElementById('receiveStatus').textContent='✅ 受信中';
     receiveRtDb.ref(`broadcasts/${sessionId}/latest`).on('value',(snap)=>{
       if(!snap.exists())return;
       const d=snap.val();if(!d.translations)return;
@@ -2076,8 +2095,9 @@ async function initReceiveMode(sessionId){
       }
     });
   }catch(e){
-    document.getElementById('receiveStatus').textContent='接続エラー';
-    showToast('受信エラー: '+e.message);
+    document.getElementById('receiveStatus').textContent='接続エラー: '+e.message;
+    document.getElementById('receiveWaiting').textContent='⚠ '+e.message+'\n\nFirebase Realtime Databaseのルールで読み取りが許可されているか確認してください。';
+    console.error('受信エラー:', e);
   }
 }
 
@@ -3184,12 +3204,19 @@ async function saveScoreToFirebase() {
 // ===== Firebase 初期化 =====
 async function initFirebase(config) {
   await loadFirebaseSDK();
-  if (window.firebase.apps.length) {
-    window.firebase.apps.forEach(app => app.delete());
+  if (window.firebase.apps && window.firebase.apps.length) {
+    await Promise.all(window.firebase.apps.map(app => app.delete().catch(()=>{})));
+  }
+  // databaseURL がない場合は projectId から自動補完
+  if (!config.databaseURL && config.projectId) {
+    config = Object.assign({}, config, {
+      databaseURL: `https://${config.projectId}-default-rtdb.firebaseio.com`
+    });
   }
   const app = window.firebase.initializeApp(config);
   state.firebaseApp = app;
   state.firebaseEnabled = true;
+  state.firebaseConfig = config; // databaseURL補完後の設定を保存
   // Firestore は任意（未有効でも継続）
   try {
     state.firebaseDb = window.firebase.firestore();
@@ -3202,7 +3229,8 @@ async function initFirebase(config) {
 
 function loadFirebaseSDK() {
   return new Promise((resolve, reject) => {
-    if (window.firebase?.firestore) { resolve(); return; }
+    // app-compat が既にロード済みか確認（initializeApp関数の存在で判定）
+    if (window.firebase && typeof window.firebase.initializeApp === 'function') { resolve(); return; }
     let loaded = 0;
     const srcs = [
       'https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js',
