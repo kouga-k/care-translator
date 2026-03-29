@@ -1,0 +1,2855 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CareVoice｜介護・医療現場AI通訳</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Sans:wght@300;400;500;600&family=Noto+Sans+Myanmar:wght@400;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f5f3ee;--surface:#fff;--surface2:#faf8f4;--border:#e2ddd6;
+  --accent:#2d6a4f;--accent-light:#40916c;--accent-pale:#d8f3dc;
+  --care:#1565c0;--care-pale:#e3f2fd;
+  --warn:#c1121f;--warn-bg:#fff0f0;--warn-border:#ffb3b3;
+  --train:#b45309;--train-light:#d97706;--train-pale:#fef3c7;--train-border:#fcd34d;
+  --text:#1a1a2e;--text-muted:#6b6860;--text-small:#9b9890;
+  --font-jp:'Noto Sans JP',sans-serif;--font-en:'Noto Sans',sans-serif;
+  --font-display:'DM Serif Display',serif;
+  --radius:16px;--shadow:0 4px 24px rgba(0,0,0,.06);--shadow-lg:0 8px 40px rgba(0,0,0,.1);
+  --subtitle-font-size:17px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+.app-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.05)}
+.app-logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-text{font-family:var(--font-display);font-size:20px;color:var(--accent)}
+.logo-sub{font-size:10px;color:var(--text-muted);font-weight:300;letter-spacing:1px;margin-top:-2px}
+.header-actions{display:flex;gap:6px}
+.btn-icon{width:38px;height:38px;border:1px solid var(--border);background:var(--surface2);border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s}
+.btn-icon:hover{background:var(--accent-pale);border-color:var(--accent)}
+.ui-lang-btn{padding:6px 10px;border:1px solid var(--border);background:var(--surface2);border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--accent);transition:all .2s;white-space:nowrap}
+.ui-lang-btn:hover{background:var(--accent-pale)}
+.mode-tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.mode-tab{padding:12px 14px;border:none;background:none;cursor:pointer;font-family:var(--font-jp);font-size:13px;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.mode-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.mode-tab.train-tab.active{color:var(--train);border-bottom-color:var(--train)}
+.care-mode-banner{background:var(--care-pale);border:1px solid #90caf9;border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;display:none}
+.care-mode-banner.show{display:flex;align-items:center;gap:10px}
+.care-scene-select{flex:1;border:1px solid #90caf9;background:white;border-radius:8px;padding:6px 10px;font-family:var(--font-jp);font-size:13px;font-weight:500;color:var(--care);outline:none}
+.main{max-width:700px;margin:0 auto;padding:16px}
+.lang-bar{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.lang-select{flex:1;border:none;background:none;font-family:var(--font-jp);font-size:15px;font-weight:500;color:var(--text);cursor:pointer;outline:none;-webkit-appearance:none}
+.lang-swap{width:36px;height:36px;background:var(--accent-pale);border:none;border-radius:50%;cursor:pointer;font-size:16px;transition:all .3s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.lang-swap:hover{background:var(--accent);color:white;transform:rotate(180deg)}
+.lang-label{font-size:11px;color:var(--text-small);font-weight:300;letter-spacing:.5px}
+#mode-text,#mode-conv,#mode-live,#mode-explain,#mode-subtitle,#mode-training,#mode-face{display:none}
+#mode-text.active,#mode-conv.active,#mode-live.active,#mode-explain.active,#mode-subtitle.active,#mode-training.active,#mode-face.active{display:block}
+.input-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.input-card-label{font-size:11px;font-weight:500;color:var(--text-small);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.text-input{width:100%;border:none;background:none;font-family:var(--font-jp);font-size:16px;color:var(--text);resize:none;outline:none;min-height:80px;line-height:1.7}
+.text-input::placeholder{color:var(--text-small)}
+.input-actions{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.input-tools{display:flex;gap:6px;flex-wrap:wrap}
+.tool-btn{padding:6px 10px;border:1px solid var(--border);background:var(--surface2);border-radius:8px;cursor:pointer;font-size:13px;font-family:var(--font-jp);color:var(--text-muted);transition:all .2s;display:flex;align-items:center;gap:4px}
+.tool-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-pale)}
+.tool-btn.active{background:var(--accent);color:white;border-color:var(--accent)}
+.tool-btn.care-active{background:var(--care);color:white;border-color:var(--care)}
+.translate-btn{padding:10px 20px;background:var(--accent);color:white;border:none;border-radius:10px;font-family:var(--font-jp);font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.translate-btn:hover{background:var(--accent-light);transform:translateY(-1px);box-shadow:0 4px 12px rgba(45,106,79,.3)}
+.translate-btn:disabled{background:var(--text-small);cursor:not-allowed;transform:none;box-shadow:none}
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px;animation:slideUp .3s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.result-section{padding:16px;border-bottom:1px solid var(--border)}
+.result-section:last-child{border-bottom:none}
+.result-label{font-size:11px;font-weight:500;color:var(--text-small);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.result-simplified{font-size:13px;color:var(--text-muted);line-height:1.7;font-style:italic}
+.result-main{font-size:22px;font-weight:500;color:var(--text);line-height:1.5;font-family:var(--font-en)}
+.result-back{font-size:15px;color:var(--text);line-height:1.7}
+.result-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.play-btn{padding:8px 14px;background:var(--accent-pale);border:1px solid var(--accent);border-radius:8px;cursor:pointer;font-family:var(--font-jp);font-size:13px;color:var(--accent);font-weight:500;transition:all .2s;display:flex;align-items:center;gap:5px}
+.play-btn:hover{background:var(--accent);color:white}
+.copy-btn{padding:8px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-family:var(--font-jp);font-size:13px;color:var(--text-muted);transition:all .2s;display:flex;align-items:center;gap:5px}
+.copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.badge-ok{background:var(--accent-pale);color:var(--accent)}
+.badge-warn{background:var(--warn-bg);color:var(--warn)}
+.badge-engine{background:#e8f4fd;color:#1a6fa0}
+.badge-care{background:var(--care-pale);color:var(--care)}
+.badge-glossary{background:#fff8e1;color:#e65100}
+.glossary-hits{background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:12px;color:#5d4037}
+.glossary-hit-item{display:flex;gap:6px;margin-bottom:4px}
+.glossary-hit-item:last-child{margin-bottom:0}
+.conv-container{display:flex;flex-direction:column;gap:12px}
+.conv-messages{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;min-height:200px;max-height:400px;overflow-y:auto;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:16px}
+.conv-msg{animation:slideUp .3s ease}
+.conv-msg-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.conv-msg-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0}
+.msg-jp .conv-msg-icon{background:#e3f2fd;color:#1565c0}
+.msg-foreign .conv-msg-icon{background:var(--accent-pale);color:var(--accent)}
+.conv-msg-original{font-size:12px;color:var(--text-small);margin-bottom:4px}
+.conv-msg-translated{font-size:17px;font-weight:500;color:var(--text);margin-bottom:4px}
+.conv-msg-back{font-size:12px;color:var(--text-muted)}
+.conv-input-area{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.conv-speaker-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.speaker-btn{padding:12px;border:2px solid var(--border);background:var(--surface2);border-radius:12px;cursor:pointer;font-family:var(--font-jp);font-size:13px;font-weight:500;color:var(--text-muted);transition:all .2s;text-align:center}
+.speaker-btn.active-jp{border-color:#1565c0;background:#e3f2fd;color:#1565c0}
+.speaker-btn.active-foreign{border-color:var(--accent);background:var(--accent-pale);color:var(--accent)}
+.conv-mic-area{display:flex;gap:8px;align-items:center}
+.conv-text-in{flex:1;border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-family:var(--font-jp);font-size:15px;outline:none;background:var(--surface2)}
+.conv-text-in:focus{border-color:var(--accent);background:white}
+.mic-btn{width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.mic-btn-jp{background:#e3f2fd;color:#1565c0}
+.mic-btn-jp:hover,.mic-btn-jp.recording{background:#1565c0;color:white}
+.mic-btn-foreign{background:var(--accent-pale);color:var(--accent)}
+.mic-btn-foreign:hover,.mic-btn-foreign.recording{background:var(--accent);color:white}
+.mic-btn.recording{animation:pulse 1s infinite}
+.send-btn{width:44px;height:44px;border-radius:50%;border:none;background:var(--accent);color:white;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.send-btn:hover{background:var(--accent-light)}
+.live-container{display:flex;flex-direction:column;gap:12px}
+.live-status-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow)}
+.live-indicator{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500}
+.live-dot{width:10px;height:10px;border-radius:50%;background:var(--text-small)}
+.live-dot.active{background:var(--warn);animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.live-mic-btn{padding:12px 24px;border:none;border-radius:12px;cursor:pointer;font-family:var(--font-jp);font-size:15px;font-weight:600;transition:all .2s;display:flex;align-items:center;gap:8px}
+.live-mic-btn.idle{background:var(--accent);color:white}
+.live-mic-btn.running{background:var(--warn);color:white;animation:pulse 1.5s infinite}
+.live-display{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);min-height:200px}
+.live-original{padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:12px;color:var(--text-small);min-height:40px;line-height:1.5}
+.live-translated{padding:24px 20px;font-size:26px;font-weight:500;color:var(--text);line-height:1.5;min-height:120px}
+.live-back-check{padding:12px 16px;border-top:1px solid var(--border);background:#f8fffe;display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text-muted);min-height:44px}
+.live-back-label{font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.5px;flex-shrink:0;margin-top:1px}
+.live-history{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);max-height:300px;overflow-y:auto}
+.live-history-title{font-size:12px;font-weight:500;color:var(--text-small);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.live-history-item{padding:10px 0;border-bottom:1px solid var(--border);animation:slideUp .3s ease}
+.live-history-item:last-child{border-bottom:none}
+.history-original{font-size:11px;color:var(--text-small);margin-bottom:3px}
+.history-translated{font-size:15px;color:var(--text);font-weight:500;margin-bottom:3px}
+.history-back{font-size:11px;color:var(--text-muted)}
+.uilang-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.uilang-overlay.open{display:flex}
+.uilang-modal{background:var(--surface);border-radius:20px;width:100%;max-width:360px;box-shadow:var(--shadow-lg);animation:modalIn .3s ease;overflow:hidden}
+@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.uilang-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.uilang-title{font-size:18px;font-weight:600}
+.uilang-close{width:32px;height:32px;border:none;background:var(--surface2);border-radius:8px;cursor:pointer;font-size:16px}
+.uilang-list{padding:12px}
+.uilang-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;cursor:pointer;transition:all .2s;font-size:15px}
+.uilang-item:hover{background:var(--accent-pale)}
+.uilang-item.selected{background:var(--accent-pale);color:var(--accent);font-weight:600}
+.uilang-flag{font-size:22px;flex-shrink:0}
+.glossary-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:flex-start;justify-content:center;padding:16px;backdrop-filter:blur(4px);overflow-y:auto}
+.glossary-overlay.open{display:flex}
+.glossary-modal{background:var(--surface);border-radius:20px;width:100%;max-width:540px;margin:auto;box-shadow:var(--shadow-lg);animation:modalIn .3s ease}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:18px;font-weight:600}
+.modal-close{width:32px;height:32px;border:none;background:var(--surface2);border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.modal-body{padding:20px 24px}
+.glossary-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.glossary-tab{padding:8px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-muted);background:var(--surface2);transition:all .2s}
+.glossary-tab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-pale)}
+.glossary-search{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-family:var(--font-jp);font-size:14px;outline:none;background:var(--surface2);margin-bottom:12px}
+.glossary-search:focus{border-color:var(--accent);background:white}
+.glossary-list{max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:10px}
+.glossary-item{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px}
+.glossary-item:last-child{border-bottom:none}
+.glossary-item-content{flex:1}
+.glossary-term{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
+.glossary-simple{font-size:13px;color:var(--accent);margin-bottom:2px}
+.glossary-note{font-size:12px;color:var(--text-muted)}
+.glossary-del-btn{width:28px;height:28px;border:1px solid var(--warn-border);background:var(--warn-bg);border-radius:6px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;color:var(--warn);flex-shrink:0}
+.add-glossary-form{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:16px}
+.add-glossary-title{font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:12px}
+.form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.form-input{flex:1;min-width:120px;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:var(--font-jp);font-size:13px;outline:none;background:white}
+.form-input:focus{border-color:var(--accent)}
+.form-add-btn{padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-family:var(--font-jp);font-size:13px;font-weight:500;white-space:nowrap}
+.settings-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.settings-overlay.open{display:flex}
+.settings-modal{background:var(--surface);border-radius:20px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:modalIn .3s ease}
+.setting-group{margin-bottom:24px}
+.setting-group-title{font-size:12px;font-weight:600;color:var(--text-small);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+.setting-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);gap:12px}
+.setting-item:last-child{border-bottom:none}
+.setting-label{font-size:14px;font-weight:500}
+.setting-desc{font-size:12px;color:var(--text-muted);margin-top:2px}
+.setting-input{width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:monospace;font-size:13px;outline:none;background:var(--surface2);margin-top:8px}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{display:none}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:24px;cursor:pointer;transition:.3s}
+.toggle-slider:before{content:'';position:absolute;width:18px;height:18px;background:white;border-radius:50%;top:3px;left:3px;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.toggle input:checked+.toggle-slider{background:var(--accent)}
+.toggle input:checked+.toggle-slider:before{transform:translateX(20px)}
+.engine-options{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.engine-opt{padding:8px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-muted);background:var(--surface2);transition:all .2s}
+.engine-opt.selected{border-color:var(--accent);color:var(--accent);background:var(--accent-pale)}
+.risk-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.risk-overlay.open{display:flex}
+.risk-modal{background:var(--surface);border-radius:20px;width:100%;max-width:420px;box-shadow:var(--shadow-lg);animation:modalIn .3s ease;overflow:hidden}
+.risk-modal-top{background:var(--warn-bg);border-bottom:1px solid var(--warn-border);padding:20px 24px;text-align:center}
+.risk-icon{font-size:40px;margin-bottom:8px}
+.risk-title{font-size:18px;font-weight:700;color:var(--warn);margin-bottom:4px}
+.risk-subtitle{font-size:13px;color:var(--text-muted)}
+.risk-modal-body{padding:20px 24px}
+.risk-reason{background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:10px;padding:12px;font-size:14px;color:var(--warn);margin-bottom:16px}
+.risk-modal-actions{display:flex;gap:8px}
+.risk-btn-cancel{flex:1;padding:12px;border:2px solid var(--border);background:var(--surface2);border-radius:12px;cursor:pointer;font-family:var(--font-jp);font-size:14px;font-weight:600;color:var(--text-muted)}
+.risk-btn-proceed{flex:1;padding:12px;background:var(--warn);border:none;border-radius:12px;cursor:pointer;font-family:var(--font-jp);font-size:14px;font-weight:600;color:white}
+.loading-dots{display:flex;gap:4px;align-items:center;padding:20px;justify-content:center}
+.loading-dots span{width:8px;height:8px;background:var(--accent);border-radius:50%;animation:dot 1.2s infinite}
+.loading-dots span:nth-child(2){animation-delay:.2s}
+.loading-dots span:nth-child(3){animation-delay:.4s}
+@keyframes dot{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:#1a1a2e;color:white;padding:10px 20px;border-radius:20px;font-size:13px;z-index:500;transition:transform .3s;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.footer-pad{height:24px}
+@media(max-width:480px){.result-main{font-size:19px}.live-translated{font-size:22px}}
+.subtitle-setup-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+.subtitle-setup-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.subtitle-setup-desc{font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:20px}
+.subtitle-setup-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.subtitle-setup-label{font-size:12px;font-weight:600;color:var(--text-small);letter-spacing:1px;min-width:50px}
+.subtitle-lang-select{flex:1;border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-family:var(--font-jp);font-size:14px;background:var(--surface2);outline:none;cursor:pointer}
+.subtitle-size-btns{display:flex;gap:6px}
+.subtitle-size-btn{padding:6px 14px;border:2px solid var(--border);background:var(--surface2);border-radius:8px;cursor:pointer;font-family:var(--font-jp);font-size:13px;font-weight:600;color:var(--text-muted);transition:all .2s}
+.subtitle-size-btn.active,.subtitle-size-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-pale)}
+.subtitle-start-btn{width:100%;padding:16px;background:var(--accent);color:white;border:none;border-radius:12px;font-family:var(--font-jp);font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.subtitle-start-btn:hover{background:var(--accent-light)}
+.subtitle-overlay{display:none;position:fixed;inset:0;background:#0a0a0f;z-index:1000;flex-direction:column;overflow:hidden}
+.subtitle-overlay.active{display:flex}
+.subtitle-top-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.subtitle-live-indicator{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.7);font-family:var(--font-en)}
+.subtitle-live-dot{width:8px;height:8px;border-radius:50%;background:#666}
+.subtitle-live-dot.active{background:#ff4444;animation:blink 1s infinite}
+.subtitle-lang-info{font-size:12px;color:rgba(255,255,255,.4);font-family:var(--font-en)}
+.subtitle-top-controls{display:flex;gap:6px}
+.subtitle-ctrl-btn{padding:6px 12px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;color:rgba(255,255,255,.7);transition:all .2s;font-family:var(--font-jp)}
+.subtitle-ctrl-btn:hover{background:rgba(255,255,255,.15);color:white}
+.subtitle-ctrl-btn.danger:hover{background:rgba(255,68,68,.2);border-color:#ff4444;color:#ff4444}
+/* 上エリア：正訳履歴（メイン） */
+.subtitle-history-area{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+.subtitle-history-empty{color:rgba(255,255,255,.25);font-size:15px;text-align:center;margin-top:40px;font-family:var(--font-jp)}
+.subtitle-history-item{background:rgba(255,255,255,.06);border-radius:12px;padding:14px 16px;animation:slideUp .25s ease;border-left:3px solid transparent}
+.subtitle-history-item.ok{border-left-color:#4caf50}
+.subtitle-history-item.warn{border-left-color:#ff9800}
+.subtitle-history-item.pending{border-left-color:#555;opacity:.6}
+.subtitle-history-main{font-size:var(--subtitle-font-size,17px);font-weight:600;color:#fff;line-height:1.6;word-break:break-word;font-family:var(--font-jp)}
+.subtitle-history-meta{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
+.subtitle-history-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
+.badge-ok-sub{background:rgba(76,175,80,.2);color:#81c784}
+.badge-warn-sub{background:rgba(255,152,0,.2);color:#ffb74d}
+.subtitle-history-original{font-size:12px;color:rgba(255,255,255,.3);font-family:var(--font-en)}
+/* 区切り線 */
+.subtitle-divider{display:flex;align-items:center;gap:8px;padding:0 20px;flex-shrink:0}
+.subtitle-divider::before,.subtitle-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.1)}
+.subtitle-divider-label{font-size:11px;color:rgba(255,255,255,.3);font-weight:600;letter-spacing:1px;white-space:nowrap}
+/* 下エリア：直訳速報 */
+.subtitle-live-area{flex-shrink:0;padding:12px 20px;background:rgba(255,255,255,.03);min-height:80px;display:flex;flex-direction:column;gap:6px}
+.subtitle-live-original{font-size:12px;color:rgba(255,255,255,.3);line-height:1.5;word-break:break-word;font-family:var(--font-en);min-height:18px}
+.subtitle-live-text{font-size:16px;color:rgba(255,255,255,.75);line-height:1.5;word-break:break-word;font-family:var(--font-jp);min-height:24px}
+.subtitle-live-text.translating{color:rgba(255,255,255,.3);font-style:italic}
+/* ボトムバー */
+.subtitle-bottom-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(255,255,255,.05);border-top:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.subtitle-size-controls{display:flex;gap:6px}
+.subtitle-sz-btn{width:36px;height:36px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;transition:all .2s}
+.subtitle-sz-btn:hover{background:rgba(255,255,255,.2);color:white}
+.subtitle-mic-btn{padding:12px 28px;border:none;border-radius:12px;cursor:pointer;font-family:var(--font-jp);font-size:15px;font-weight:700;transition:all .2s;display:flex;align-items:center;gap:8px}
+.subtitle-mic-btn.idle{background:#2d6a4f;color:white}
+.subtitle-mic-btn.running{background:#c1121f;color:white;animation:pulse 1.5s infinite}
+.subtitle-pause-btn{padding:12px 20px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);border-radius:12px;cursor:pointer;font-family:var(--font-jp);font-size:14px;font-weight:600;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px;transition:all .2s}
+.subtitle-pause-btn:hover{background:rgba(255,255,255,.15);color:white}
+.explain-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px;animation:slideUp .3s ease}
+.explain-section{padding:16px;border-bottom:1px solid var(--border)}
+.explain-section:last-child{border-bottom:none}
+.explain-label{font-size:11px;font-weight:600;color:var(--text-small);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.explain-main{font-size:18px;font-weight:600;color:var(--text);margin-bottom:6px}
+.explain-body{font-size:15px;color:var(--text-muted);line-height:1.7}
+.emotion-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:14px;font-weight:600;margin-bottom:8px}
+.emotion-anger{background:#fff0f0;color:#c1121f}
+.emotion-joy{background:#f0fff4;color:#2d6a4f}
+.emotion-neutral{background:#f5f3ee;color:#6b6860}
+.emotion-urgent{background:#fff3e0;color:#e65100}
+.consult-box{background:linear-gradient(135deg,#e3f2fd,#f3e5f5);border:1px solid #90caf9;border-radius:12px;padding:14px 16px;margin-top:4px}
+.consult-box-red{background:linear-gradient(135deg,#fff0f0,#fce4ec);border:1px solid #ffb3b3}
+.consult-title{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.consult-body{font-size:13px;line-height:1.7;color:var(--text)}
+
+/* ===== 研修モード CSS ===== */
+.training-banner{background:var(--train-pale);border:1px solid var(--train-border);border-radius:12px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--train)}
+.training-scene-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.training-scene-tab{padding:7px 12px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-family:var(--font-jp);font-size:12px;font-weight:600;color:var(--text-muted);background:var(--surface2);transition:all .2s;white-space:nowrap}
+.training-scene-tab.active{border-color:var(--train);color:var(--train);background:var(--train-pale)}
+.training-mode-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.training-mode-btn{padding:16px;border:2px solid var(--border);background:var(--surface);border-radius:14px;cursor:pointer;font-family:var(--font-jp);font-size:14px;font-weight:600;color:var(--text-muted);transition:all .2s;text-align:center}
+.training-mode-btn:hover{border-color:var(--train);color:var(--train);background:var(--train-pale)}
+.training-mode-btn .mode-icon{font-size:28px;display:block;margin-bottom:6px}
+.training-dir-bar{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.training-dir-label{font-size:12px;color:var(--text-small);font-weight:500;margin-right:auto}
+.dir-btn{padding:6px 12px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-family:var(--font-jp);font-size:12px;font-weight:600;color:var(--text-muted);background:var(--surface2);transition:all .2s}
+.dir-btn.active{border-color:var(--train);color:var(--train);background:var(--train-pale)}
+/* Quiz */
+.quiz-screen,.flashcard-screen,.results-screen{animation:slideUp .3s ease}
+.quiz-progress-bar-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.quiz-progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px;font-weight:600;color:var(--text-muted)}
+.quiz-progress-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.quiz-progress-fill{height:100%;background:var(--train);border-radius:3px;transition:width .4s ease}
+.quiz-question-card{background:var(--surface);border:2px solid var(--train-border);border-radius:var(--radius);padding:24px 20px;margin-bottom:14px;box-shadow:var(--shadow);text-align:center;min-height:100px;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.quiz-question-label{font-size:11px;font-weight:600;color:var(--train);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.quiz-question-text{font-size:22px;font-weight:500;color:var(--text);line-height:1.5;word-break:break-word}
+.quiz-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+@media(max-width:400px){.quiz-choices{grid-template-columns:1fr}}
+.choice-btn{padding:14px 12px;border:2px solid var(--border);background:var(--surface);border-radius:12px;cursor:pointer;font-family:var(--font-jp);font-size:14px;font-weight:500;color:var(--text);transition:all .2s;text-align:center;line-height:1.4;word-break:break-word}
+.choice-btn:hover:not(:disabled){border-color:var(--train);background:var(--train-pale);color:var(--train)}
+.choice-btn.correct{background:#d8f3dc;border-color:var(--accent);color:var(--accent)}
+.choice-btn.wrong{background:var(--warn-bg);border-color:var(--warn);color:var(--warn)}
+.choice-btn:disabled{cursor:default}
+.quiz-feedback{text-align:center;padding:12px;font-size:15px;font-weight:600;margin-bottom:12px;border-radius:10px;animation:slideUp .2s ease}
+.quiz-feedback.correct{background:#d8f3dc;color:var(--accent)}
+.quiz-feedback.wrong{background:var(--warn-bg);color:var(--warn)}
+.quiz-next-btn{width:100%;padding:14px;background:var(--train);color:white;border:none;border-radius:12px;font-family:var(--font-jp);font-size:15px;font-weight:700;cursor:pointer;transition:all .2s}
+.quiz-next-btn:hover{background:var(--train-light)}
+/* Flashcard */
+.flashcard-wrap{perspective:1000px;margin-bottom:14px;cursor:pointer}
+.flashcard{background:var(--surface);border:2px solid var(--train-border);border-radius:var(--radius);padding:32px 20px;min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;box-shadow:var(--shadow);transition:all .3s}
+.flashcard-front-text{font-size:24px;font-weight:500;color:var(--text);line-height:1.5}
+.flashcard-back-text{font-size:20px;font-weight:600;color:var(--train);line-height:1.5;margin-top:12px;padding-top:12px;border-top:2px dashed var(--train-border)}
+.flashcard-hint{font-size:12px;color:var(--text-small);margin-top:8px}
+.flashcard-rating{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.rating-btn{padding:12px;border:2px solid var(--border);background:var(--surface);border-radius:12px;cursor:pointer;font-family:var(--font-jp);font-size:14px;font-weight:600;color:var(--text-muted);transition:all .2s;text-align:center}
+.rating-btn.knew{border-color:var(--accent);color:var(--accent);background:var(--accent-pale)}
+.rating-btn.unknown{border-color:var(--warn);color:var(--warn);background:var(--warn-bg)}
+.flashcard-nav{display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:14px}
+.fc-nav-btn{padding:8px 16px;border:1px solid var(--border);background:var(--surface2);border-radius:8px;cursor:pointer;font-family:var(--font-jp);font-size:13px;font-weight:500;color:var(--text-muted);transition:all .2s}
+.fc-nav-btn:hover{border-color:var(--train);color:var(--train)}
+.fc-counter{font-size:13px;color:var(--text-small);font-weight:500;flex:1;text-align:center}
+/* Results */
+.results-score-circle{width:120px;height:120px;border-radius:50%;background:var(--train-pale);border:4px solid var(--train-border);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 16px}
+.results-score-num{font-size:36px;font-weight:700;color:var(--train);line-height:1}
+.results-score-total{font-size:14px;color:var(--text-muted)}
+.results-pct{font-size:15px;font-weight:600;color:var(--text-muted);text-align:center;margin-bottom:16px}
+.results-pct span{color:var(--train)}
+.results-action-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.results-btn-primary{padding:12px;background:var(--train);color:white;border:none;border-radius:12px;cursor:pointer;font-family:var(--font-jp);font-size:14px;font-weight:600;transition:all .2s}
+.results-btn-primary:hover{background:var(--train-light)}
+.results-btn-secondary{padding:12px;border:2px solid var(--border);background:var(--surface2);border-radius:12px;cursor:pointer;font-family:var(--font-jp);font-size:14px;font-weight:500;color:var(--text-muted);transition:all .2s}
+.results-btn-secondary:hover{border-color:var(--train);color:var(--train)}
+.results-missed{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px}
+.results-missed-title{font-size:12px;font-weight:600;color:var(--text-small);letter-spacing:1px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.results-missed-item{padding:10px 14px;border-bottom:1px solid var(--border)}
+.results-missed-item:last-child{border-bottom:none}
+.results-missed-q{font-size:13px;color:var(--text-muted);margin-bottom:3px}
+.results-missed-a{font-size:15px;font-weight:600;color:var(--train)}
+/* Firebase セクション */
+.firebase-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-top:16px}
+.firebase-section-header{padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.firebase-section-title{font-size:13px;font-weight:600;color:var(--text-muted);display:flex;align-items:center;gap:6px}
+.firebase-section-body{padding:16px;display:none}
+.firebase-section-body.open{display:block}
+.firebase-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px}
+.firebase-status.connected{background:#d8f3dc;color:var(--accent)}
+.firebase-status.disconnected{background:var(--surface2);color:var(--text-small)}
+.firebase-room-row{display:flex;gap:8px;margin-bottom:10px}
+.firebase-room-input{flex:1;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:var(--font-jp);font-size:14px;outline:none;background:var(--surface2);text-transform:uppercase;letter-spacing:2px}
+.firebase-room-input:focus{border-color:var(--accent)}
+.firebase-connect-btn{padding:9px 16px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-family:var(--font-jp);font-size:13px;font-weight:600;white-space:nowrap;transition:all .2s}
+.firebase-connect-btn:hover{background:var(--accent-light)}
+.firebase-room-info{background:var(--accent-pale);border:1px solid var(--accent);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--accent);margin-bottom:10px;display:none}
+.leaderboard{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.leaderboard-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.leaderboard-row:last-child{border-bottom:none}
+.leaderboard-rank{width:22px;font-weight:700;color:var(--text-small)}
+.leaderboard-name{flex:1;font-weight:500}
+.leaderboard-score{font-weight:700;color:var(--train)}
+/* Firebase 設定ガイド */
+.firebase-guide-section{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:8px;font-size:12px;color:var(--text-muted);line-height:1.8}
+.firebase-guide-section h4{font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px}
+.firebase-guide-section ol{padding-left:16px}
+.firebase-guide-section li{margin-bottom:4px}
+.firebase-guide-section code{background:var(--border);padding:1px 5px;border-radius:4px;font-family:monospace;font-size:11px;color:var(--text)}
+.training-disclaimer{background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:10px;padding:10px 14px;font-size:11px;color:var(--text-muted);margin-top:12px;line-height:1.7}
+
+/* ===== 対面モード CSS ===== */
+.face-divider{display:flex;align-items:center;gap:10px;margin:12px 0;font-size:12px;font-weight:600;color:var(--text-small)}
+.face-divider::before,.face-divider::after{content:'';flex:1;height:2px;background:var(--border)}
+.face-partner-card{background:var(--surface);border:2px solid var(--accent);border-radius:var(--radius);padding:20px 16px;box-shadow:var(--shadow);transform:rotate(180deg);margin-bottom:0}
+.face-partner-text{font-size:26px;font-weight:600;color:var(--text);line-height:1.5;min-height:60px;word-break:break-word}
+.face-partner-lang{font-size:11px;font-weight:600;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.face-partner-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;transform:rotate(180deg)}
+.face-status{text-align:center;font-size:13px;color:var(--text-muted);min-height:20px;margin:6px 0}
+.face-status.recording{color:var(--warn);font-weight:600}
+.face-status.ok{color:var(--accent);font-weight:600}
+.face-mic-live{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:15px;color:var(--care);min-height:36px;margin-bottom:8px;display:none}
+/* 履歴CSS */
+.history-list-item{background:var(--surface2);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13px}
+.history-item-time{font-size:11px;color:var(--text-small);margin-bottom:3px}
+.history-item-orig{color:var(--text-muted);margin-bottom:2px}
+.history-item-trans{color:var(--text);font-weight:500}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="app-logo">
+    <div class="logo-icon">🌿</div>
+    <div>
+      <div class="logo-text">CareVoice</div>
+      <div class="logo-sub" id="logoSub">介護・医療現場AI通訳</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="ui-lang-btn" onclick="openUiLang()" id="uiLangBtn">🌐 日本語</button>
+    <button class="btn-icon" onclick="openGlossary()" title="用語集">📖</button>
+    <button class="btn-icon" onclick="openSettings()" title="設定">⚙️</button>
+  </div>
+</header>
+
+<div class="mode-tabs">
+  <button class="mode-tab active" id="tab-text" onclick="switchMode('text',this)">📝 <span data-i18n="tab_text">テキスト</span></button>
+  <button class="mode-tab" id="tab-face" onclick="switchMode('face',this)">🤝 <span>対面</span></button>
+  <button class="mode-tab" id="tab-conv" onclick="switchMode('conv',this)">🎙️ <span data-i18n="tab_conv">会話</span></button>
+  <button class="mode-tab" id="tab-live" onclick="switchMode('live',this)">⚡ <span data-i18n="tab_live">同時通訳</span></button>
+  <button class="mode-tab" id="tab-explain" onclick="switchMode('explain',this)">🎓 <span data-i18n="tab_explain">日本語解説</span></button>
+  <button class="mode-tab" id="tab-subtitle" onclick="switchMode('subtitle',this)">🎬 <span data-i18n="tab_subtitle">字幕モード</span></button>
+  <button class="mode-tab train-tab" id="tab-training" onclick="switchMode('training',this)">📚 <span data-i18n="tab_training">研修</span></button>
+</div>
+
+<div class="main">
+  <!-- 言語バー -->
+  <div class="lang-bar">
+    <div>
+      <div class="lang-label" data-i18n="from">FROM</div>
+      <select class="lang-select" id="langFrom" onchange="updateLangLabels()">
+        <option value="ja">🇯🇵 日本語</option>
+        <option value="my">🇲🇲 ミャンマー語</option>
+        <option value="id">🇮🇩 インドネシア語</option>
+        <option value="vi">🇻🇳 ベトナム語</option>
+        <option value="tl">🇵🇭 タガログ語</option>
+        <option value="en">🇺🇸 英語</option>
+        <option value="zh">🇨🇳 中国語（簡体字）</option>
+        <option value="zh-TW">🇹🇼 中国語（繁体字）</option>
+        <option value="ko">🇰🇷 韓国語</option>
+        <option value="th">🇹🇭 タイ語</option>
+        <option value="ms">🇲🇾 マレー語</option>
+        <option value="km">🇰🇭 クメール語</option>
+        <option value="lo">🇱🇦 ラオス語</option>
+        <option value="pt">🇧🇷 ポルトガル語</option>
+        <option value="es">🇪🇸 スペイン語</option>
+        <option value="fr">🇫🇷 フランス語</option>
+        <option value="de">🇩🇪 ドイツ語</option>
+        <option value="it">🇮🇹 イタリア語</option>
+        <option value="ru">🇷🇺 ロシア語</option>
+        <option value="pl">🇵🇱 ポーランド語</option>
+        <option value="nl">🇳🇱 オランダ語</option>
+        <option value="sv">🇸🇪 スウェーデン語</option>
+        <option value="no">🇳🇴 ノルウェー語</option>
+        <option value="da">🇩🇰 デンマーク語</option>
+        <option value="fi">🇫🇮 フィンランド語</option>
+        <option value="cs">🇨🇿 チェコ語</option>
+        <option value="hu">🇭🇺 ハンガリー語</option>
+        <option value="ro">🇷🇴 ルーマニア語</option>
+        <option value="el">🇬🇷 ギリシャ語</option>
+        <option value="uk">🇺🇦 ウクライナ語</option>
+      </select>
+    </div>
+    <button class="lang-swap" onclick="swapLanguages()">⇄</button>
+    <div style="text-align:right">
+      <div class="lang-label" data-i18n="to">TO</div>
+      <select class="lang-select" id="langTo" style="text-align:right" onchange="updateLangLabels()">
+        <option value="my">🇲🇲 ミャンマー語</option>
+        <option value="ja">🇯🇵 日本語</option>
+        <option value="id">🇮🇩 インドネシア語</option>
+        <option value="vi">🇻🇳 ベトナム語</option>
+        <option value="tl">🇵🇭 タガログ語</option>
+        <option value="en">🇺🇸 英語</option>
+        <option value="zh">🇨🇳 中国語（簡体字）</option>
+        <option value="zh-TW">🇹🇼 中国語（繁体字）</option>
+        <option value="ko">🇰🇷 韓国語</option>
+        <option value="th">🇹🇭 タイ語</option>
+        <option value="ms">🇲🇾 マレー語</option>
+        <option value="km">🇰🇭 クメール語</option>
+        <option value="lo">🇱🇦 ラオス語</option>
+        <option value="pt">🇧🇷 ポルトガル語</option>
+        <option value="es">🇪🇸 スペイン語</option>
+        <option value="fr">🇫🇷 フランス語</option>
+        <option value="de">🇩🇪 ドイツ語</option>
+        <option value="it">🇮🇹 イタリア語</option>
+        <option value="ru">🇷🇺 ロシア語</option>
+        <option value="pl">🇵🇱 ポーランド語</option>
+        <option value="nl">🇳🇱 オランダ語</option>
+        <option value="sv">🇸🇪 スウェーデン語</option>
+        <option value="no">🇳🇴 ノルウェー語</option>
+        <option value="da">🇩🇰 デンマーク語</option>
+        <option value="fi">🇫🇮 フィンランド語</option>
+        <option value="cs">🇨🇿 チェコ語</option>
+        <option value="hu">🇭🇺 ハンガリー語</option>
+        <option value="ro">🇷🇴 ルーマニア語</option>
+        <option value="el">🇬🇷 ギリシャ語</option>
+        <option value="uk">🇺🇦 ウクライナ語</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- 介護モードバナー -->
+  <div class="care-mode-banner" id="careModeBanner">
+    <span>🏥</span>
+    <select class="care-scene-select" id="careScene" onchange="state.careScene=this.value"></select>
+  </div>
+
+  <!-- 対面モード -->
+  <div id="mode-face">
+    <!-- 相手側（180度回転） -->
+    <div class="face-partner-card">
+      <div class="face-partner-lang" id="faceTgtLabel">TO</div>
+      <div class="face-partner-text" id="faceResultText">翻訳結果がここに表示されます</div>
+      <div class="face-partner-actions">
+        <button class="play-btn" onclick="speakFaceResult()">🔊 読み上げ</button>
+        <button class="copy-btn" onclick="copyText(document.getElementById('faceResultText').textContent)">📋</button>
+      </div>
+    </div>
+
+    <div class="face-divider">▲ 相手側 ┃ 自分側 ▼</div>
+
+    <!-- 自分側 -->
+    <div class="face-status" id="faceMicStatus"></div>
+    <div class="face-mic-live" id="faceMicLive"></div>
+    <button class="translate-btn" id="faceMicBtn" onclick="toggleFaceMic()" style="width:100%;justify-content:center;margin-bottom:8px;padding:14px">🎤 マイクで話す（自動翻訳）</button>
+    <div class="input-card" style="margin-bottom:8px">
+      <div class="input-card-label">または直接入力</div>
+      <textarea class="text-input" id="faceInput" rows="2" placeholder="テキストを入力..."></textarea>
+      <div class="input-actions">
+        <div></div>
+        <button class="translate-btn" onclick="translateFaceText()"><span>翻訳</span> →</button>
+      </div>
+    </div>
+    <div id="faceBackBox" style="display:none" class="result-card">
+      <div class="result-section">
+        <div class="result-label" id="faceBackLabel">🔍 逆翻訳</div>
+        <div class="result-back" id="faceBackText"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- テキスト翻訳 -->
+  <div id="mode-text" class="active">
+    <div class="input-card">
+      <div class="input-card-label" data-i18n="input_label">入力テキスト</div>
+      <textarea class="text-input" id="textInput" rows="4"></textarea>
+      <div class="input-actions">
+        <div class="input-tools">
+          <button class="tool-btn" id="micBtn" onclick="toggleMicText()">🎤 <span data-i18n="voice">音声</span></button>
+          <button class="tool-btn" id="careModeBtn" onclick="toggleCareMode()">🏥 <span data-i18n="care_mode">介護モード</span></button>
+          <button class="tool-btn" onclick="clearText()">✕</button>
+        </div>
+        <button class="translate-btn" id="translateBtn" onclick="doTranslate()"><span data-i18n="translate">翻訳</span> →</button>
+      </div>
+    </div>
+    <div id="textResult"></div>
+  </div>
+
+  <!-- 会話モード -->
+  <div id="mode-conv">
+    <div class="conv-container">
+      <div class="conv-messages" id="convMessages">
+        <div style="text-align:center;color:var(--text-small);font-size:13px;padding:20px 0" data-i18n-el="conv_hint">話す人を選んでマイクを押してください</div>
+      </div>
+      <div class="conv-input-area">
+        <div class="conv-speaker-btns">
+          <button class="speaker-btn active-jp" id="speakerJp" onclick="selectSpeaker('jp')">🇯🇵 <span data-i18n="jp_staff">日本人スタッフ</span></button>
+          <button class="speaker-btn" id="speakerForeign" onclick="selectSpeaker('foreign')">🌏 <span id="foreignLangLabel">外国人スタッフ</span></button>
+        </div>
+        <div class="conv-mic-area">
+          <input class="conv-text-in" id="convTextIn" />
+          <button class="mic-btn mic-btn-jp" id="convMicBtn" onclick="toggleConvMic()">🎤</button>
+          <button class="send-btn" onclick="sendConvMessage()">→</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 同時通訳 -->
+  <div id="mode-live">
+    <div class="live-container">
+      <div class="live-status-bar">
+        <div class="live-indicator">
+          <div class="live-dot" id="liveDot"></div>
+          <span id="liveStatus" data-i18n="standby">待機中</span>
+        </div>
+        <button class="live-mic-btn idle" id="liveMicBtn" onclick="toggleLive()">🎤 <span data-i18n="start_interp">通訳開始</span></button>
+      </div>
+      <div class="live-display">
+        <div class="live-original" id="liveOriginal"></div>
+        <div class="live-translated" id="liveTranslated" style="color:var(--text-small);font-size:18px"></div>
+        <div class="live-back-check">
+          <span class="live-back-label" data-i18n="check">確認</span>
+          <span id="liveBackText" style="color:var(--text-small)"></span>
+          <button class="play-btn" id="livePlayBtn" onclick="playLiveAudio()" style="display:none;padding:4px 10px;font-size:12px;margin-left:auto">🔊</button>
+        </div>
+      </div>
+      <div class="live-history">
+        <div class="live-history-title">
+          <span>📋 <span data-i18n="history">通訳履歴</span></span>
+          <button onclick="clearHistory()" style="font-size:11px;border:none;background:none;color:var(--text-small);cursor:pointer" data-i18n="clear">クリア</button>
+        </div>
+        <div id="liveHistoryList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 日本語解説モード -->
+  <div id="mode-explain">
+    <div class="input-card">
+      <div class="input-card-label">🎓 日本語解説モード</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;line-height:1.6">
+        聞こえた言葉・方言・スラングの意味を解説します。<br>外国人スタッフが使える言語で説明します。
+      </div>
+      <textarea class="text-input" id="explainInput" placeholder="解説したい言葉を入力（例：ばかたれ、はよせい、おつかれ）..." rows="3"></textarea>
+      <div class="input-actions">
+        <div class="input-tools">
+          <button class="tool-btn" id="explainMicBtn" onclick="toggleMicExplain()">🎤 音声</button>
+          <button class="tool-btn" onclick="document.getElementById('explainInput').value='';document.getElementById('explainResult').innerHTML=''">✕</button>
+        </div>
+        <button class="translate-btn" id="explainBtn" onclick="doExplain()">🔍 解説する</button>
+      </div>
+    </div>
+    <div id="explainResult"></div>
+  </div>
+
+  <!-- 字幕モード -->
+  <div id="mode-subtitle">
+    <div class="subtitle-setup-card" id="subtitleSetup">
+      <div class="subtitle-setup-title">🎬 字幕モード</div>
+      <div class="subtitle-setup-desc">動画・会議・研修など長時間の一方向音声に最適です。<br>マイクをスタートすると全画面字幕に切り替わります。</div>
+      <div class="subtitle-setup-row">
+        <div class="subtitle-setup-label" data-i18n="from">FROM</div>
+        <select class="subtitle-lang-select" id="subtitleLangFrom">
+          <option value="ja">🇯🇵 日本語</option><option value="my">🇲🇲 ミャンマー語</option>
+          <option value="id">🇮🇩 インドネシア語</option><option value="vi">🇻🇳 ベトナム語</option>
+          <option value="tl">🇵🇭 タガログ語</option><option value="en">🇺🇸 英語</option>
+          <option value="zh">🇨🇳 中国語（簡体字）</option><option value="ko">🇰🇷 韓国語</option>
+          <option value="th">🇹🇭 タイ語</option><option value="ms">🇲🇾 マレー語</option>
+          <option value="pt">🇧🇷 ポルトガル語</option><option value="es">🇪🇸 スペイン語</option>
+          <option value="fr">🇫🇷 フランス語</option><option value="de">🇩🇪 ドイツ語</option>
+          <option value="it">🇮🇹 イタリア語</option><option value="ru">🇷🇺 ロシア語</option>
+        </select>
+      </div>
+      <div class="subtitle-setup-row">
+        <div class="subtitle-setup-label" data-i18n="to">TO</div>
+        <select class="subtitle-lang-select" id="subtitleLangTo">
+          <option value="my">🇲🇲 ミャンマー語</option><option value="ja">🇯🇵 日本語</option>
+          <option value="id">🇮🇩 インドネシア語</option><option value="vi">🇻🇳 ベトナム語</option>
+          <option value="tl">🇵🇭 タガログ語</option><option value="en">🇺🇸 英語</option>
+          <option value="zh">🇨🇳 中国語（簡体字）</option><option value="ko">🇰🇷 韓国語</option>
+          <option value="th">🇹🇭 タイ語</option><option value="ms">🇲🇾 マレー語</option>
+          <option value="pt">🇧🇷 ポルトガル語</option><option value="es">🇪🇸 スペイン語</option>
+          <option value="fr">🇫🇷 フランス語</option><option value="de">🇩🇪 ドイツ語</option>
+          <option value="it">🇮🇹 イタリア語</option><option value="ru">🇷🇺 ロシア語</option>
+        </select>
+      </div>
+      <div class="subtitle-setup-row">
+        <div class="subtitle-setup-label">文字サイズ</div>
+        <div class="subtitle-size-btns">
+          <button class="subtitle-size-btn" onclick="subtitleState.fontSize=28;updateSubtitleSize()">小</button>
+          <button class="subtitle-size-btn active" onclick="subtitleState.fontSize=40;updateSubtitleSize()">中</button>
+          <button class="subtitle-size-btn" onclick="subtitleState.fontSize=56;updateSubtitleSize()">大</button>
+          <button class="subtitle-size-btn" onclick="subtitleState.fontSize=72;updateSubtitleSize()">特大</button>
+        </div>
+      </div>
+      <button class="subtitle-start-btn" onclick="startSubtitleMode()">🎬 字幕モード開始</button>
+    </div>
+  </div>
+
+  <!-- ===== 研修モード ===== -->
+  <div id="mode-training">
+    <!-- Home Screen -->
+    <div id="trainingHome">
+      <div class="training-banner">
+        📚 <span data-i18n="training_banner">介護フレーズを練習しましょう</span>
+      </div>
+
+      <!-- シーン選択 -->
+      <div style="font-size:11px;font-weight:600;color:var(--text-small);letter-spacing:1px;margin-bottom:8px" data-i18n="training_scene">シーンを選択</div>
+      <div class="training-scene-tabs" id="trainingSceneTabs">
+        <button class="training-scene-tab active" onclick="selectTrainingScene('all',this)" data-i18n="scene_all">全シーン</button>
+        <button class="training-scene-tab" onclick="selectTrainingScene('general',this)" data-i18n="scene_general">介護・医療（全般）</button>
+        <button class="training-scene-tab" onclick="selectTrainingScene('meal',this)" data-i18n="scene_meal">食事介助</button>
+        <button class="training-scene-tab" onclick="selectTrainingScene('toilet',this)" data-i18n="scene_toilet">排泄介助</button>
+        <button class="training-scene-tab" onclick="selectTrainingScene('bath',this)" data-i18n="scene_bath">入浴介助</button>
+        <button class="training-scene-tab" onclick="selectTrainingScene('vital',this)" data-i18n="scene_vital">バイタル測定</button>
+        <button class="training-scene-tab" onclick="selectTrainingScene('emergency',this)" data-i18n="scene_emergency">緊急・急変</button>
+      </div>
+
+      <!-- 方向選択 -->
+      <div class="training-dir-bar">
+        <span class="training-dir-label" data-i18n="training_direction">練習方向</span>
+        <button class="dir-btn active" id="dirJaForeign" onclick="setTrainingDir('ja_foreign',this)">日→外</button>
+        <button class="dir-btn" id="dirForeignJa" onclick="setTrainingDir('foreign_ja',this)">外→日</button>
+      </div>
+
+      <!-- モード選択 -->
+      <div class="training-mode-btns">
+        <button class="training-mode-btn" onclick="startTraining('quiz')">
+          <span class="mode-icon">❓</span>
+          <span data-i18n="training_quiz">クイズ</span>
+          <div style="font-size:11px;font-weight:400;color:var(--text-small);margin-top:4px" data-i18n="training_quiz_desc">4択で正解を選ぶ</div>
+        </button>
+        <button class="training-mode-btn" onclick="startTraining('flashcard')">
+          <span class="mode-icon">🃏</span>
+          <span data-i18n="training_flashcard">フラッシュカード</span>
+          <div style="font-size:11px;font-weight:400;color:var(--text-small);margin-top:4px" data-i18n="training_fc_desc">自分のペースで学ぶ</div>
+        </button>
+      </div>
+
+      <!-- Firebase 研修室 -->
+      <div class="firebase-section">
+        <div class="firebase-section-header" onclick="toggleFirebaseSection()">
+          <div class="firebase-section-title">
+            🔥 <span data-i18n="firebase_section">施設共有モード（Firebase）</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="firebase-status disconnected" id="fbStatus" data-i18n="firebase_disconnected">未接続</span>
+            <span id="fbChevron" style="font-size:12px;color:var(--text-small)">▼</span>
+          </div>
+        </div>
+        <div class="firebase-section-body" id="firebaseSectionBody">
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;line-height:1.7" data-i18n="firebase_desc">
+            施設コードを入力すると、管理者が登録したカスタムフレーズを取得し、スコアを共有できます。
+          </div>
+          <div class="firebase-room-row">
+            <input class="firebase-room-input" id="fbRoomCode" placeholder="施設コード（例：ABC123）" maxlength="8" />
+            <button class="firebase-connect-btn" onclick="connectFirebaseRoom()" data-i18n="firebase_connect">接続</button>
+          </div>
+          <div class="firebase-room-info" id="fbRoomInfo"></div>
+          <div id="fbLeaderboard"></div>
+          <div class="firebase-guide-section" id="fbGuide" style="display:none">
+            <h4>🔧 Firebase 設定ガイド</h4>
+            <ol>
+              <li>Google アカウントで <code>console.firebase.google.com</code> にアクセス</li>
+              <li>「プロジェクトを追加」→ プロジェクト名を入力（例：care-voice）</li>
+              <li>「ウェブアプリを追加」でFirebaseの設定情報を取得</li>
+              <li>Firestoreデータベースを有効化（テストモードでOK）</li>
+              <li>左メニュー「Authentication」→「匿名」を有効化</li>
+              <li>設定（⚙️）→「Firebase設定」に設定JSONを貼り付け</li>
+              <li>施設コード（A〜Z、0〜9、6〜8文字）を決めてスタッフに共有</li>
+            </ol>
+            <div style="margin-top:8px;font-size:11px">※ Firebaseの無料枠：同時接続100人、読み取り5万回/日</div>
+          </div>
+          <button onclick="toggleFbGuide()" style="font-size:12px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:4px 0;margin-top:4px" id="fbGuideBtn">▶ Firebase 設定ガイドを見る</button>
+        </div>
+      </div>
+
+      <div class="training-disclaimer" data-i18n="training_disclaimer">
+        ⚠️ 研修用の翻訳は参考です。正確な翻訳は必ずネイティブスピーカーに確認してください。
+      </div>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="quizScreen" style="display:none">
+      <div class="quiz-progress-bar-wrap">
+        <div class="quiz-progress-header">
+          <span id="quizProgressLabel">1 / 10</span>
+          <span id="quizScoreLabel" style="color:var(--train)">✓ 0</span>
+        </div>
+        <div class="quiz-progress-track">
+          <div class="quiz-progress-fill" id="quizProgressFill" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="quiz-question-card">
+        <div class="quiz-question-label" id="quizQuestionLabel" data-i18n="quiz_question">問題</div>
+        <div class="quiz-question-text" id="quizQuestionText">—</div>
+      </div>
+      <div class="quiz-choices" id="quizChoices"></div>
+      <div class="quiz-feedback" id="quizFeedback" style="display:none"></div>
+      <button class="quiz-next-btn" id="quizNextBtn" onclick="nextQuizQuestion()" style="display:none" data-i18n="training_next">次の問題 →</button>
+    </div>
+
+    <!-- Flashcard Screen -->
+    <div id="flashcardScreen" style="display:none">
+      <div class="quiz-progress-bar-wrap">
+        <div class="quiz-progress-header">
+          <span id="fcProgressLabel">1 / 10</span>
+          <span id="fcKnewLabel" style="color:var(--accent)">✓ 0</span>
+        </div>
+        <div class="quiz-progress-track">
+          <div class="quiz-progress-fill" id="fcProgressFill" style="width:0%;background:var(--accent)"></div>
+        </div>
+      </div>
+      <div class="flashcard-wrap" onclick="revealFlashcard()">
+        <div class="flashcard" id="flashcard">
+          <div class="flashcard-front-text" id="fcFrontText">—</div>
+          <div class="flashcard-back-text" id="fcBackText" style="display:none"></div>
+          <div class="flashcard-hint" id="fcHint" data-i18n="fc_tap">タップして答えを見る</div>
+        </div>
+      </div>
+      <div class="flashcard-rating" id="fcRating" style="display:none">
+        <button class="rating-btn unknown" onclick="rateFlashcard(false)">✗ <span data-i18n="training_unknown">知らなかった</span></button>
+        <button class="rating-btn knew" onclick="rateFlashcard(true)">✓ <span data-i18n="training_knew">知ってた！</span></button>
+      </div>
+      <div class="flashcard-nav">
+        <button class="fc-nav-btn" onclick="prevFlashcard()" data-i18n="training_prev">◀ 前へ</button>
+        <span class="fc-counter" id="fcCounter"></span>
+        <button class="fc-nav-btn" onclick="skipFlashcard()" data-i18n="training_skip">スキップ ▶</button>
+      </div>
+      <button class="quiz-next-btn" onclick="exitToTrainingHome()" style="background:var(--text-muted)" data-i18n="training_home">ホームへ戻る</button>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="resultsScreen" style="display:none">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px 20px;box-shadow:var(--shadow);text-align:center;margin-bottom:12px;animation:slideUp .3s ease">
+        <div style="font-size:12px;font-weight:600;color:var(--text-small);letter-spacing:1px;margin-bottom:16px" data-i18n="quiz_result">クイズ結果</div>
+        <div class="results-score-circle">
+          <div class="results-score-num" id="resultsScoreNum">0</div>
+          <div class="results-score-total" id="resultsScoreTotal">/ 10</div>
+        </div>
+        <div class="results-pct"><span id="resultsPct">0</span>% <span data-i18n="results_accuracy">正解</span></div>
+        <div id="resultsSaveRow" style="margin-bottom:12px;display:none">
+          <input style="border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:var(--font-jp);font-size:13px;outline:none;width:180px;margin-right:8px" id="resultsNickname" placeholder="ニックネーム" maxlength="12" />
+          <button onclick="saveScoreToFirebase()" style="padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-family:var(--font-jp);font-size:13px;font-weight:600" data-i18n="firebase_save_score">スコア保存</button>
+        </div>
+        <div class="results-action-btns">
+          <button class="results-btn-primary" onclick="retryQuiz()" data-i18n="training_retry">もう一度</button>
+          <button class="results-btn-secondary" onclick="exitToTrainingHome()" data-i18n="training_home">ホームへ</button>
+        </div>
+      </div>
+      <div class="results-missed" id="resultsMissed" style="display:none">
+        <div class="results-missed-title" data-i18n="results_missed">復習フレーズ</div>
+        <div id="resultsMissedList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-pad"></div>
+</div>
+
+<!-- 字幕オーバーレイ -->
+<div class="subtitle-overlay" id="subtitleOverlay">
+  <div class="subtitle-top-bar">
+    <div class="subtitle-live-indicator">
+      <div class="subtitle-live-dot" id="subtitleDot"></div>
+      <span id="subtitleStatus">待機中</span>
+    </div>
+    <div class="subtitle-lang-info" id="subtitleLangInfo"></div>
+    <div class="subtitle-top-controls">
+      <button class="subtitle-ctrl-btn" onclick="clearSubtitles()">🗑 クリア</button>
+      <button class="subtitle-ctrl-btn danger" onclick="exitSubtitleMode()">✕ 終了</button>
+    </div>
+  </div>
+  <!-- 上エリア：正訳の蓄積リスト（メイン） -->
+  <div class="subtitle-history-area" id="subtitleHistoryArea">
+    <div class="subtitle-history-empty" id="subtitleHistoryEmpty">翻訳結果がここに蓄積されます</div>
+    <div id="subtitleHistoryList"></div>
+  </div>
+  <!-- 区切り線 -->
+  <div class="subtitle-divider">
+    <span class="subtitle-divider-label">🔄 速報</span>
+  </div>
+  <!-- 下エリア：直訳の速報（最新1件） -->
+  <div class="subtitle-live-area">
+    <div class="subtitle-live-original" id="subtitleOriginal">マイクをスタートしてください</div>
+    <div class="subtitle-live-text" id="subtitleText">—</div>
+  </div>
+  <div class="subtitle-bottom-bar">
+    <div class="subtitle-size-controls">
+      <button class="subtitle-sz-btn" onclick="changeSubtitleSize(-2)">A-</button>
+      <button class="subtitle-sz-btn" onclick="changeSubtitleSize(2)">A+</button>
+    </div>
+    <button class="subtitle-mic-btn idle" id="subtitleMicBtn" onclick="toggleSubtitleMic()">🎤 スタート</button>
+    <button class="subtitle-pause-btn" id="subtitlePauseBtn" onclick="toggleSubtitlePause()" style="display:none">⏸ 一時停止</button>
+  </div>
+</div>
+
+<!-- UI言語モーダル -->
+<div class="uilang-overlay" id="uilangModal">
+  <div class="uilang-modal">
+    <div class="uilang-header">
+      <div class="uilang-title">🌐 Display Language</div>
+      <button class="uilang-close" onclick="closeUiLang()">✕</button>
+    </div>
+    <div class="uilang-list" id="uilangList"></div>
+  </div>
+</div>
+
+<!-- 用語集モーダル -->
+<div class="glossary-overlay" id="glossaryModal">
+  <div class="glossary-modal">
+    <div class="modal-header">
+      <div class="modal-title">📖 <span data-i18n="glossary">用語集</span></div>
+      <button class="modal-close" onclick="closeGlossary()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="glossary-tabs" id="glossaryTabs">
+        <button class="glossary-tab active" onclick="switchGlossaryTab('official',this)">🏛️ <span data-i18n="g_official">公式やさしい日本語</span></button>
+        <button class="glossary-tab" onclick="switchGlossaryTab('care',this)">🏥 <span data-i18n="g_care">介護・医療</span></button>
+        <button class="glossary-tab" onclick="switchGlossaryTab('custom',this)">✏️ <span data-i18n="g_custom">施設カスタム</span></button>
+      </div>
+      <input class="glossary-search" id="glossarySearch" oninput="renderGlossaryList()" />
+      <div class="glossary-list" id="glossaryList"></div>
+      <div class="add-glossary-form" id="addGlossaryForm" style="display:none">
+        <div class="add-glossary-title" data-i18n="add_term">＋ 新しい用語を登録</div>
+        <div class="form-row">
+          <input class="form-input" id="newTerm" data-i18n-ph="term_ph" />
+          <input class="form-input" id="newSimple" data-i18n-ph="simple_ph" />
+        </div>
+        <div class="form-row">
+          <input class="form-input" id="newNote" data-i18n-ph="note_ph" style="flex:2" />
+          <button class="form-add-btn" onclick="addCustomTerm()" data-i18n="add">追加</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 設定モーダル -->
+<div class="settings-overlay" id="settingsModal">
+  <div class="settings-modal">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ <span data-i18n="settings">設定</span></div>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px">
+      <div class="setting-group">
+        <div class="setting-group-title" data-i18n="engine">翻訳エンジン</div>
+        <div class="engine-options">
+          <button class="engine-opt selected" onclick="selectEngine('mymemory',this)">🆓 MyMemory<br><span style="font-size:10px;font-weight:300" data-i18n="no_key">APIキー不要</span></button>
+          <button class="engine-opt" onclick="selectEngine('google',this)">🔍 Google<br><span style="font-size:10px;font-weight:300" data-i18n="need_key">要APIキー</span></button>
+          <button class="engine-opt" onclick="selectEngine('claude',this)">🧠 Claude AI<br><span style="font-size:10px;font-weight:300" data-i18n="need_key">要APIキー</span></button>
+          <button class="engine-opt" onclick="selectEngine('gemini',this)">✨ Gemini AI<br><span style="font-size:10px;font-weight:300">高精度・推奨</span></button>
+        </div>
+      </div>
+      <div class="setting-group" id="googleKeyGroup" style="display:none">
+        <div class="setting-group-title">Google API Key</div>
+        <input class="setting-input" id="googleApiKey" type="password" placeholder="AIza..." />
+      </div>
+      <div class="setting-group" id="claudeKeyGroup" style="display:none">
+        <div class="setting-group-title">Claude API Key</div>
+        <input class="setting-input" id="claudeApiKey" type="password" placeholder="sk-ant-..." />
+      </div>
+      <div class="setting-group" id="geminiKeyGroup" style="display:none">
+        <div class="setting-group-title">✨ Gemini API Key <span style="font-size:11px;font-weight:400;color:var(--text-muted)">（<a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com</a> で無料取得）</span></div>
+        <input class="setting-input" id="geminiApiKey" type="password" placeholder="AIzaSy..." />
+      </div>
+      <!-- Firebase 設定 -->
+      <div class="setting-group">
+        <div class="setting-group-title">🔥 Firebase（研修モード）</div>
+        <div class="setting-item">
+          <div>
+            <div class="setting-label" data-i18n="firebase_enable">Firebase を有効にする</div>
+            <div class="setting-desc" data-i18n="firebase_enable_desc">研修モードの施設共有機能を使う</div>
+          </div>
+          <label class="toggle"><input type="checkbox" id="firebaseEnabled" onchange="onFirebaseToggle()"><span class="toggle-slider"></span></label>
+        </div>
+        <div id="firebaseConfigArea" style="display:none">
+          <div style="font-size:12px;color:var(--text-muted);margin:8px 0 6px" data-i18n="firebase_config_hint">Firebase コンソールの設定JSONを貼り付けてください</div>
+          <textarea class="setting-input" id="firebaseConfigJson" rows="5" placeholder='{"apiKey":"...","authDomain":"...","projectId":"..."}'></textarea>
+          <button onclick="applyFirebaseConfig()" style="width:100%;margin-top:8px;padding:10px;background:var(--accent);color:white;border:none;border-radius:8px;font-family:var(--font-jp);font-size:13px;font-weight:600;cursor:pointer" data-i18n="firebase_apply">接続テスト・保存</button>
+          <div id="firebaseTestResult" style="font-size:12px;margin-top:6px"></div>
+        </div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-group-title" data-i18n="options">オプション</div>
+        <div class="setting-item">
+          <div><div class="setting-label" data-i18n="polite_mode">丁寧変換モード</div><div class="setting-desc" data-i18n="polite_desc">攻撃的な表現を自動で丁寧な言葉に変換</div></div>
+          <label class="toggle"><input type="checkbox" id="politeMode" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-item">
+          <div><div class="setting-label" data-i18n="risk_warn">リスク警告</div><div class="setting-desc" data-i18n="risk_desc">危険な表現を検知した場合に確認ダイアログを表示</div></div>
+          <label class="toggle"><input type="checkbox" id="riskWarning" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-item">
+          <div><div class="setting-label" data-i18n="auto_speak">自動読み上げ</div><div class="setting-desc" data-i18n="auto_speak_desc">翻訳完了後に音声で自動再生</div></div>
+          <label class="toggle"><input type="checkbox" id="autoSpeak"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-item">
+          <div><div class="setting-label" data-i18n="back_trans">逆翻訳表示</div><div class="setting-desc" data-i18n="back_desc">翻訳後に逆翻訳して意味のズレを確認</div></div>
+          <label class="toggle"><input type="checkbox" id="liveBackTranslate" checked><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-group-title">📋 翻訳履歴</div>
+        <div id="settingsHistoryList" style="max-height:180px;overflow-y:auto;margin-bottom:10px"></div>
+        <div style="display:flex;gap:8px">
+          <button onclick="exportHistoryCSV()" style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-family:var(--font-jp);font-size:13px;font-weight:600;cursor:pointer;color:var(--text-muted)">📥 CSV保存</button>
+          <button onclick="clearTransHistory()" style="flex:1;padding:10px;background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:10px;font-family:var(--font-jp);font-size:13px;font-weight:600;cursor:pointer;color:var(--warn)">🗑️ クリア</button>
+        </div>
+      </div>
+      <button onclick="saveSettings()" style="width:100%;padding:14px;background:var(--accent);color:white;border:none;border-radius:12px;font-family:var(--font-jp);font-size:15px;font-weight:600;cursor:pointer" data-i18n="save">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- リスクモーダル -->
+<div class="risk-overlay" id="riskModal">
+  <div class="risk-modal">
+    <div class="risk-modal-top">
+      <div class="risk-icon">⚠️</div>
+      <div class="risk-title" data-i18n="risk_title">リスクを検知しました</div>
+      <div class="risk-subtitle" data-i18n="risk_sub">このまま翻訳を続けますか？</div>
+    </div>
+    <div class="risk-modal-body">
+      <div class="risk-reason" id="riskReason"></div>
+      <div class="risk-modal-actions">
+        <button class="risk-btn-cancel" onclick="cancelRisk()" data-i18n="cancel">キャンセル</button>
+        <button class="risk-btn-proceed" onclick="proceedRisk()" data-i18n="proceed">このまま翻訳</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+// ===== 多言語UI辞書 =====
+const I18N = {
+  ja: {
+    flag:'🇯🇵', name:'日本語',
+    tab_text:'テキスト', tab_conv:'会話', tab_live:'同時通訳', tab_explain:'日本語解説', tab_subtitle:'字幕モード', tab_training:'研修',
+    from:'FROM', to:'TO',
+    input_label:'入力テキスト', voice:'音声', care_mode:'介護モード',
+    translate:'翻訳', standby:'待機中', interpreting:'通訳中',
+    start_interp:'通訳開始', stop_interp:'停止',
+    check:'確認', history:'通訳履歴', clear:'クリア',
+    glossary:'用語集', g_official:'公式やさしい日本語', g_care:'介護・医療', g_custom:'施設カスタム',
+    add_term:'＋ 新しい用語を登録', add:'追加',
+    term_ph:'元の用語（例：床ずれ）', simple_ph:'やさしい表現', note_ph:'説明・補足（任意）',
+    settings:'設定', engine:'翻訳エンジン', no_key:'APIキー不要', need_key:'要APIキー',
+    options:'オプション', polite_mode:'丁寧変換モード', polite_desc:'攻撃的な表現を自動で丁寧な言葉に変換',
+    risk_warn:'リスク警告', risk_desc:'危険な表現を検知した場合に確認ダイアログを表示',
+    auto_speak:'自動読み上げ', auto_speak_desc:'翻訳完了後に音声で自動再生',
+    back_trans:'逆翻訳表示', back_desc:'翻訳後に逆翻訳して意味のズレを確認',
+    save:'保存する',
+    risk_title:'リスクを検知しました', risk_sub:'このまま翻訳を続けますか？',
+    cancel:'キャンセル', proceed:'このまま翻訳',
+    jp_staff:'日本人スタッフ', conv_hint:'話す人を選んでマイクを押してください',
+    speak:'読み上げ', copy:'コピー', simplified:'やさしい日本語', meaning_check:'逆翻訳で意味確認',
+    match_ok:'✓ 意味が一致', match_warn:'⚠ 要確認',
+    logo_sub:'介護・医療現場AI通訳',
+    input_ph:'翻訳したいテキストを入力...',
+    live_hint:'翻訳結果がここに大きく表示されます', live_original_hint:'認識した音声がここに表示されます',
+    live_back_hint:'逆翻訳で意味を確認します', glossary_search:'🔍 用語を検索...',
+    saved:'設定を保存しました', copied:'コピーしました', added:'用語を登録しました', deleted:'削除しました',
+    error_input:'テキストを入力してください', error_chrome:'Chrome推奨です',
+    care_mode_on:'介護モード ON',
+    scene_general:'介護・医療（全般）', scene_meal:'食事介助', scene_toilet:'排泄介助',
+    scene_medicine:'服薬・点滴', scene_rehab:'リハビリ', scene_bath:'入浴介助',
+    scene_emergency:'緊急・急変', scene_vital:'バイタル測定', scene_night:'夜間対応', scene_discharge:'退院・退所',
+    term_required:'用語とやさしい表現は必須です',
+    // v7 研修
+    training_banner:'介護フレーズを練習しましょう',
+    training_scene:'シーンを選択',
+    scene_all:'全シーン',
+    training_direction:'練習方向',
+    training_quiz:'クイズ', training_quiz_desc:'4択で正解を選ぶ',
+    training_flashcard:'フラッシュカード', training_fc_desc:'自分のペースで学ぶ',
+    training_next:'次の問題 →', training_retry:'もう一度', training_home:'ホームへ',
+    training_knew:'知ってた！', training_unknown:'知らなかった',
+    training_prev:'◀ 前へ', training_skip:'スキップ ▶',
+    quiz_question:'問題', quiz_result:'クイズ結果',
+    results_accuracy:'正解', results_missed:'復習フレーズ',
+    fc_tap:'タップして答えを見る',
+    training_disclaimer:'⚠️ 研修用の翻訳は参考です。正確な翻訳は必ずネイティブスピーカーに確認してください。',
+    firebase_section:'施設共有モード（Firebase）',
+    firebase_disconnected:'未接続', firebase_connected:'接続中',
+    firebase_desc:'施設コードを入力すると、管理者が登録したカスタムフレーズを取得し、スコアを共有できます。',
+    firebase_connect:'接続', firebase_save_score:'スコア保存',
+    firebase_enable:'Firebase を有効にする', firebase_enable_desc:'研修モードの施設共有機能を使う',
+    firebase_config_hint:'Firebase コンソールの設定JSONを貼り付けてください',
+    firebase_apply:'接続テスト・保存',
+  },
+  my: {
+    flag:'🇲🇲', name:'မြန်မာဘာသာ',
+    tab_text:'စာသား', tab_conv:'စကားပြော', tab_live:'တစ်ချိန်တည်းဘာသာပြန်', tab_explain:'ဂျပန်စကား ရှင်းပြ', tab_subtitle:'စာတန်းထိုး', tab_training:'လေ့ကျင့်ရေး',
+    from:'မှ', to:'သို့',
+    input_label:'ထည့်သွင်းသောစာသား', voice:'အသံ', care_mode:'ကြပ်မတ်မှုမုဒ်',
+    translate:'ဘာသာပြန်', standby:'စောင့်ဆိုင်းနေသည်', interpreting:'ဘာသာပြန်နေသည်',
+    start_interp:'စတင်', stop_interp:'ရပ်',
+    check:'စစ်ဆေး', history:'မှတ်တမ်း', clear:'ရှင်းလင်း',
+    glossary:'အဘိဓာန်', g_official:'တရားဝင်', g_care:'ကျန်းမာရေး', g_custom:'စိတ်ကြိုက်',
+    add_term:'＋ စကားလုံးအသစ်ထည့်', add:'ထည့်',
+    term_ph:'မူရင်းစကားလုံး', simple_ph:'ရိုးရှင်းသောဖော်ပြချက်', note_ph:'မှတ်ချက် (ရှိလျှင်)',
+    settings:'ဆက်တင်', engine:'ဘာသာပြန်အင်ဂျင်', no_key:'API key မလို', need_key:'API key လို',
+    options:'ရွေးချယ်စရာများ', polite_mode:'ယဉ်ကျေးသောမုဒ်', polite_desc:'ကြမ်းတမ်းသောဖော်ပြချက်ကို ယဉ်ကျေးသောဘာသာစကားသို့ပြောင်းသည်',
+    risk_warn:'အန္တရာယ်သတိပေးချက်', risk_desc:'အန္တရာယ်ရှိသောစကားလုံးများတွေ့ပါက အတည်ပြုရန်',
+    auto_speak:'အလိုအလျောက်ပြောဆို', auto_speak_desc:'ဘာသာပြန်ပြီးနောက် အသံထွက်ဖတ်ပေးသည်',
+    back_trans:'နောက်ပြန်ဘာသာပြန်', back_desc:'ဘာသာပြန်ပြီး မူရင်းဘာသာသို့ပြန်ဘာသာပြန်ကာ စစ်ဆေးသည်',
+    save:'သိမ်းဆည်း',
+    risk_title:'အန္တရာယ်တွေ့ရှိသည်', risk_sub:'ဆက်လက်ဘာသာပြန်မည်လား？',
+    cancel:'မလုပ်တော့', proceed:'ဘာသာပြန်မည်',
+    jp_staff:'ဂျပန်ဝန်ထမ်း', conv_hint:'ပြောသူကိုရွေးချယ်ပြီး မိုက်ကိုနှိပ်ပါ',
+    speak:'ဖတ်ပြ', copy:'မိတ္တူကူး', simplified:'ရိုးရှင်းသောဂျပန်', meaning_check:'နောက်ပြန်စစ်ဆေး',
+    match_ok:'✓ အဓိပ္ပါယ်တူသည်', match_warn:'⚠ စစ်ဆေးရန်',
+    logo_sub:'ကျန်းမာရေးစောင့်ရှောက်မှု AI ဘာသာပြန်',
+    input_ph:'ဘာသာပြန်လိုသောစာသားထည့်ပါ...', live_hint:'ဘာသာပြန်ရလဒ်ဤနေရာတွင်ပြသမည်',
+    live_original_hint:'မှတ်မိသောအသံဤနေရာတွင်ပြသမည်', live_back_hint:'နောက်ပြန်စစ်ဆေးနေသည်',
+    glossary_search:'🔍 စကားလုံးရှာ...',
+    saved:'ဆက်တင်သိမ်းဆည်းပြီး', copied:'မိတ္တူကူးပြီး', added:'ထည့်သွင်းပြီး', deleted:'ဖျက်ပြီး',
+    error_input:'စာသားထည့်ပါ', error_chrome:'Chrome သုံးရန်အကြံပြုသည်',
+    care_mode_on:'ကြပ်မတ်မှုမုဒ် ON',
+    scene_general:'ကြပ်မတ်မှု（ယေဘုယျ）', scene_meal:'အစားအသောက်ကူညီ', scene_toilet:'အိမ်သာကူညီ',
+    scene_medicine:'ဆေးသောက်', scene_rehab:'ပြန်လည်ထူထောင်ရေး', scene_bath:'ရေချိုးကူညီ',
+    scene_emergency:'အရေးပေါ်', scene_vital:'ကျန်းမာရေးတိုင်းတာ', scene_night:'ညဆောင်ရွက်', scene_discharge:'ဆေးရုံဆင်း',
+    term_required:'စကားလုံးနှင့်ရှင်းလင်းချက်လိုအပ်သည်',
+    training_banner:'ကြပ်မတ်မှုစကားစုများ လေ့ကျင့်ကြပါစို့',
+    training_scene:'မြင်ကွင်းရွေးချယ်ပါ', scene_all:'မြင်ကွင်းအားလုံး',
+    training_direction:'လေ့ကျင့်ရေးဦးတည်ချက်',
+    training_quiz:'ဝင်ရောက်စစ်ဆေးမှု', training_quiz_desc:'ရွေးချယ်မှု ၄ ခုမှ ရွေးပါ',
+    training_flashcard:'Flash Card', training_fc_desc:'မိမိနှုန်းဖြင့် သင်ယူ',
+    training_next:'နောက်မေးခွန်း →', training_retry:'နောက်တစ်ကြိမ်', training_home:'ပင်မ',
+    training_knew:'သိသည်！', training_unknown:'မသိ', training_prev:'◀ နောက်သို့', training_skip:'ကျော်မည် ▶',
+    quiz_question:'မေးခွန်း', quiz_result:'စစ်ဆေးမှုရလဒ်',
+    results_accuracy:'မှန်သည်', results_missed:'ပြန်လည်လေ့လာသောဝေါဟာရ',
+    fc_tap:'ဖြေကြားချက်ကိုကြည့်ရန် နှိပ်ပါ',
+    training_disclaimer:'⚠️ လေ့ကျင့်ရေးဘာသာပြန်ချက်သည် အကိုးအကားသာဖြစ်သည်။',
+    firebase_section:'အဖွဲ့ဝင်မျှဝေမှုမုဒ်（Firebase）',
+    firebase_disconnected:'ချိတ်ဆက်မထားပါ', firebase_connected:'ချိတ်ဆက်ထားသည်',
+    firebase_desc:'အဖွဲ့ကုဒ်ထည့်သွင်းပြီး ကိုယ်ပိုင်စကားစုများနှင့် ရမှတ်မျှဝေနိုင်သည်',
+    firebase_connect:'ချိတ်ဆက်', firebase_save_score:'ရမှတ်သိမ်းပါ',
+    firebase_enable:'Firebase ဖွင့်ပါ', firebase_enable_desc:'သင်တန်းမုဒ် မျှဝေစနစ်ကိုသုံးပါ',
+    firebase_config_hint:'Firebase console မှ JSON ကို ကူးထည့်ပါ',
+    firebase_apply:'ချိတ်ဆက်စစ်ဆေးပြီး သိမ်းဆည်း',
+  },
+  id: {
+    flag:'🇮🇩', name:'Bahasa Indonesia',
+    tab_text:'Teks', tab_conv:'Percakapan', tab_live:'Interpretasi Langsung', tab_explain:'Penjelasan Jepang', tab_subtitle:'Mode Subtitle', tab_training:'Latihan',
+    from:'DARI', to:'KE',
+    input_label:'Teks Input', voice:'Suara', care_mode:'Mode Perawatan',
+    translate:'Terjemahkan', standby:'Siap', interpreting:'Menginterpretasi',
+    start_interp:'Mulai', stop_interp:'Berhenti',
+    check:'Periksa', history:'Riwayat', clear:'Hapus',
+    glossary:'Kamus', g_official:'Resmi', g_care:'Kesehatan', g_custom:'Kustom',
+    add_term:'＋ Tambah istilah baru', add:'Tambah',
+    term_ph:'Istilah asli', simple_ph:'Ekspresi sederhana', note_ph:'Catatan (opsional)',
+    settings:'Pengaturan', engine:'Mesin Terjemahan', no_key:'Tanpa API Key', need_key:'Butuh API Key',
+    options:'Opsi', polite_mode:'Mode Sopan', polite_desc:'Mengubah ekspresi kasar menjadi sopan',
+    risk_warn:'Peringatan Risiko', risk_desc:'Tampilkan dialog konfirmasi jika ekspresi berbahaya terdeteksi',
+    auto_speak:'Ucapan Otomatis', auto_speak_desc:'Putar suara otomatis setelah terjemahan',
+    back_trans:'Tampilkan Terjemahan Balik', back_desc:'Terjemahkan balik untuk memverifikasi makna',
+    save:'Simpan',
+    risk_title:'Risiko Terdeteksi', risk_sub:'Lanjutkan terjemahan？',
+    cancel:'Batal', proceed:'Terjemahkan',
+    jp_staff:'Staf Jepang', conv_hint:'Pilih pembicara dan tekan mikrofon',
+    speak:'Ucapkan', copy:'Salin', simplified:'Bahasa Jepang Mudah', meaning_check:'Verifikasi Makna',
+    match_ok:'✓ Makna cocok', match_warn:'⚠ Perlu diperiksa',
+    logo_sub:'Penerjemah AI Layanan Kesehatan',
+    input_ph:'Masukkan teks untuk diterjemahkan...', live_hint:'Hasil terjemahan ditampilkan di sini',
+    live_original_hint:'Suara yang dikenali ditampilkan di sini', live_back_hint:'Memverifikasi makna',
+    glossary_search:'🔍 Cari istilah...',
+    saved:'Pengaturan disimpan', copied:'Disalin', added:'Istilah ditambahkan', deleted:'Dihapus',
+    error_input:'Masukkan teks', error_chrome:'Disarankan menggunakan Chrome',
+    care_mode_on:'Mode Perawatan ON',
+    scene_general:'Perawatan（Umum）', scene_meal:'Bantuan Makan', scene_toilet:'Bantuan Toilet',
+    scene_medicine:'Obat', scene_rehab:'Rehabilitasi', scene_bath:'Bantuan Mandi',
+    scene_emergency:'Darurat', scene_vital:'Pengukuran Vital', scene_night:'Perawatan Malam', scene_discharge:'Keluar RS',
+    term_required:'Istilah dan ekspresi sederhana wajib diisi',
+    training_banner:'Mari berlatih frasa perawatan',
+    training_scene:'Pilih Adegan', scene_all:'Semua Adegan',
+    training_direction:'Arah Latihan',
+    training_quiz:'Kuis', training_quiz_desc:'Pilih dari 4 jawaban',
+    training_flashcard:'Kartu Flash', training_fc_desc:'Belajar dengan tempo sendiri',
+    training_next:'Soal Berikutnya →', training_retry:'Coba Lagi', training_home:'Ke Beranda',
+    training_knew:'Tahu！', training_unknown:'Belum tahu', training_prev:'◀ Sebelumnya', training_skip:'Lewati ▶',
+    quiz_question:'Pertanyaan', quiz_result:'Hasil Kuis',
+    results_accuracy:'Benar', results_missed:'Frasa untuk Diulang',
+    fc_tap:'Ketuk untuk melihat jawaban',
+    training_disclaimer:'⚠️ Terjemahan latihan hanya untuk referensi.',
+    firebase_section:'Mode Berbagi Fasilitas（Firebase）',
+    firebase_disconnected:'Belum terhubung', firebase_connected:'Terhubung',
+    firebase_desc:'Masukkan kode fasilitas untuk mengakses frasa kustom dan berbagi skor.',
+    firebase_connect:'Hubungkan', firebase_save_score:'Simpan Skor',
+    firebase_enable:'Aktifkan Firebase', firebase_enable_desc:'Gunakan fitur berbagi mode latihan',
+    firebase_config_hint:'Tempel JSON konfigurasi dari konsol Firebase',
+    firebase_apply:'Uji Koneksi & Simpan',
+  },
+  vi: {
+    flag:'🇻🇳', name:'Tiếng Việt',
+    tab_text:'Văn bản', tab_conv:'Hội thoại', tab_live:'Phiên dịch trực tiếp', tab_explain:'Giải thích tiếng Nhật', tab_subtitle:'Chế độ phụ đề', tab_training:'Luyện tập',
+    from:'TỪ', to:'ĐẾN',
+    input_label:'Văn bản đầu vào', voice:'Giọng nói', care_mode:'Chế độ chăm sóc',
+    translate:'Dịch', standby:'Chờ', interpreting:'Đang dịch',
+    start_interp:'Bắt đầu', stop_interp:'Dừng',
+    check:'Kiểm tra', history:'Lịch sử', clear:'Xóa',
+    glossary:'Từ điển', g_official:'Chính thức', g_care:'Y tế', g_custom:'Tùy chỉnh',
+    add_term:'＋ Thêm thuật ngữ mới', add:'Thêm',
+    term_ph:'Thuật ngữ gốc', simple_ph:'Cách diễn đạt đơn giản', note_ph:'Ghi chú (tùy chọn)',
+    settings:'Cài đặt', engine:'Công cụ dịch', no_key:'Không cần API Key', need_key:'Cần API Key',
+    options:'Tùy chọn', polite_mode:'Chế độ lịch sự', polite_desc:'Chuyển đổi cách diễn đạt thô lỗ thành lịch sự',
+    risk_warn:'Cảnh báo rủi ro', risk_desc:'Hiển thị hộp thoại xác nhận khi phát hiện biểu đạt nguy hiểm',
+    auto_speak:'Đọc tự động', auto_speak_desc:'Phát âm tự động sau khi dịch',
+    back_trans:'Hiển thị dịch ngược', back_desc:'Dịch ngược để xác minh ý nghĩa',
+    save:'Lưu',
+    risk_title:'Phát hiện rủi ro', risk_sub:'Tiếp tục dịch？',
+    cancel:'Hủy', proceed:'Dịch',
+    jp_staff:'Nhân viên Nhật', conv_hint:'Chọn người nói và nhấn micrô',
+    speak:'Đọc', copy:'Sao chép', simplified:'Tiếng Nhật đơn giản', meaning_check:'Xác minh ý nghĩa',
+    match_ok:'✓ Ý nghĩa khớp', match_warn:'⚠ Cần kiểm tra',
+    logo_sub:'Phiên dịch AI Y tế & Chăm sóc',
+    input_ph:'Nhập văn bản cần dịch...', live_hint:'Kết quả dịch hiển thị ở đây',
+    live_original_hint:'Giọng nói nhận dạng hiển thị ở đây', live_back_hint:'Đang xác minh ý nghĩa',
+    glossary_search:'🔍 Tìm thuật ngữ...',
+    saved:'Đã lưu cài đặt', copied:'Đã sao chép', added:'Đã thêm thuật ngữ', deleted:'Đã xóa',
+    error_input:'Nhập văn bản', error_chrome:'Khuyến nghị dùng Chrome',
+    care_mode_on:'Chế độ chăm sóc BẬT',
+    scene_general:'Chăm sóc（Chung）', scene_meal:'Hỗ trợ ăn uống', scene_toilet:'Hỗ trợ vệ sinh',
+    scene_medicine:'Thuốc', scene_rehab:'Phục hồi chức năng', scene_bath:'Hỗ trợ tắm',
+    scene_emergency:'Khẩn cấp', scene_vital:'Đo dấu hiệu sinh tồn', scene_night:'Chăm sóc ban đêm', scene_discharge:'Xuất viện',
+    term_required:'Thuật ngữ và cách diễn đạt đơn giản là bắt buộc',
+    training_banner:'Hãy luyện tập các cụm từ chăm sóc',
+    training_scene:'Chọn cảnh', scene_all:'Tất cả cảnh',
+    training_direction:'Hướng luyện tập',
+    training_quiz:'Trắc nghiệm', training_quiz_desc:'Chọn 1 trong 4 đáp án',
+    training_flashcard:'Thẻ ghi nhớ', training_fc_desc:'Học theo tốc độ của bạn',
+    training_next:'Câu tiếp theo →', training_retry:'Thử lại', training_home:'Về trang chủ',
+    training_knew:'Biết rồi！', training_unknown:'Chưa biết', training_prev:'◀ Trước', training_skip:'Bỏ qua ▶',
+    quiz_question:'Câu hỏi', quiz_result:'Kết quả',
+    results_accuracy:'Đúng', results_missed:'Cụm từ cần ôn lại',
+    fc_tap:'Nhấn để xem đáp án',
+    training_disclaimer:'⚠️ Bản dịch luyện tập chỉ để tham khảo.',
+    firebase_section:'Chế độ chia sẻ cơ sở（Firebase）',
+    firebase_disconnected:'Chưa kết nối', firebase_connected:'Đã kết nối',
+    firebase_desc:'Nhập mã cơ sở để truy cập cụm từ tùy chỉnh và chia sẻ điểm số.',
+    firebase_connect:'Kết nối', firebase_save_score:'Lưu điểm',
+    firebase_enable:'Bật Firebase', firebase_enable_desc:'Sử dụng tính năng chia sẻ chế độ luyện tập',
+    firebase_config_hint:'Dán JSON cấu hình từ bảng điều khiển Firebase',
+    firebase_apply:'Kiểm tra kết nối & Lưu',
+  },
+  en: {
+    flag:'🇺🇸', name:'English',
+    tab_text:'Text', tab_conv:'Conversation', tab_live:'Live Interpret', tab_explain:'Japanese Explain', tab_subtitle:'Subtitle Mode', tab_training:'Training',
+    from:'FROM', to:'TO',
+    input_label:'Input Text', voice:'Voice', care_mode:'Care Mode',
+    translate:'Translate', standby:'Standby', interpreting:'Interpreting',
+    start_interp:'Start', stop_interp:'Stop',
+    check:'Check', history:'History', clear:'Clear',
+    glossary:'Glossary', g_official:'Official', g_care:'Medical', g_custom:'Custom',
+    add_term:'＋ Add new term', add:'Add',
+    term_ph:'Original term', simple_ph:'Simple expression', note_ph:'Note (optional)',
+    settings:'Settings', engine:'Translation Engine', no_key:'No API Key', need_key:'API Key required',
+    options:'Options', polite_mode:'Polite Mode', polite_desc:'Convert aggressive expressions to polite language',
+    risk_warn:'Risk Warning', risk_desc:'Show confirmation dialog when dangerous expression detected',
+    auto_speak:'Auto Speak', auto_speak_desc:'Auto-play audio after translation',
+    back_trans:'Show Back-Translation', back_desc:'Back-translate to verify meaning',
+    save:'Save',
+    risk_title:'Risk Detected', risk_sub:'Continue translation?',
+    cancel:'Cancel', proceed:'Translate',
+    jp_staff:'Japanese Staff', conv_hint:'Select speaker and press microphone',
+    speak:'Speak', copy:'Copy', simplified:'Simple Japanese', meaning_check:'Verify Meaning',
+    match_ok:'✓ Meaning matches', match_warn:'⚠ Check needed',
+    logo_sub:'Care & Medical AI Interpreter',
+    input_ph:'Enter text to translate...', live_hint:'Translation result shown here',
+    live_original_hint:'Recognized speech shown here', live_back_hint:'Verifying meaning',
+    glossary_search:'🔍 Search terms...',
+    saved:'Settings saved', copied:'Copied', added:'Term added', deleted:'Deleted',
+    error_input:'Please enter text', error_chrome:'Chrome recommended',
+    care_mode_on:'Care Mode ON',
+    scene_general:'Care（General）', scene_meal:'Meal Assistance', scene_toilet:'Toilet Assistance',
+    scene_medicine:'Medication', scene_rehab:'Rehabilitation', scene_bath:'Bath Assistance',
+    scene_emergency:'Emergency', scene_vital:'Vital Signs', scene_night:'Night Care', scene_discharge:'Discharge',
+    term_required:'Term and simple expression are required',
+    training_banner:'Let\'s practice care phrases',
+    training_scene:'Select Scene', scene_all:'All Scenes',
+    training_direction:'Practice Direction',
+    training_quiz:'Quiz', training_quiz_desc:'Choose from 4 options',
+    training_flashcard:'Flashcard', training_fc_desc:'Learn at your own pace',
+    training_next:'Next Question →', training_retry:'Try Again', training_home:'Home',
+    training_knew:'I knew it!', training_unknown:'Didn\'t know', training_prev:'◀ Prev', training_skip:'Skip ▶',
+    quiz_question:'Question', quiz_result:'Quiz Result',
+    results_accuracy:'Correct', results_missed:'Review Phrases',
+    fc_tap:'Tap to reveal answer',
+    training_disclaimer:'⚠️ Training translations are for reference only.',
+    firebase_section:'Facility Shared Mode（Firebase）',
+    firebase_disconnected:'Not connected', firebase_connected:'Connected',
+    firebase_desc:'Enter facility code to access custom phrases and share scores.',
+    firebase_connect:'Connect', firebase_save_score:'Save Score',
+    firebase_enable:'Enable Firebase', firebase_enable_desc:'Use training mode sharing features',
+    firebase_config_hint:'Paste configuration JSON from Firebase console',
+    firebase_apply:'Test Connection & Save',
+  },
+  tl: {
+    flag:'🇵🇭', name:'Filipino',
+    tab_text:'Teksto', tab_conv:'Pag-uusap', tab_live:'Live na Pagsasalin', tab_explain:'Paliwanag sa Hapon', tab_subtitle:'Subtitle Mode', tab_training:'Pagsasanay',
+    from:'MULA', to:'SA',
+    input_label:'Input na Teksto', voice:'Boses', care_mode:'Care Mode',
+    translate:'Isalin', standby:'Naghihintay', interpreting:'Isinasalin',
+    start_interp:'Simulan', stop_interp:'Ihinto',
+    check:'Suriin', history:'Kasaysayan', clear:'I-clear',
+    glossary:'Talasalitaan', g_official:'Opisyal', g_care:'Medikal', g_custom:'Custom',
+    add_term:'＋ Magdagdag ng bagong salita', add:'Idagdag',
+    term_ph:'Orihinal na salita', simple_ph:'Simpleng pahayag', note_ph:'Tala (opsyonal)',
+    settings:'Mga Setting', engine:'Translation Engine', no_key:'Walang API Key', need_key:'Kailangan ng API Key',
+    options:'Mga Opsyon', polite_mode:'Magalang na Mode', polite_desc:'I-convert ang marahas na pahayag sa magalang na wika',
+    risk_warn:'Babala sa Panganib', risk_desc:'Ipakita ang dialog ng kumpirmasyon kapag nakita ang mapanganib na pahayag',
+    auto_speak:'Auto Speak', auto_speak_desc:'I-play ang audio pagkatapos ng pagsasalin',
+    back_trans:'Ipakita ang Back-Translation', back_desc:'I-back-translate para ma-verify ang kahulugan',
+    save:'I-save',
+    risk_title:'Napansin ang Panganib', risk_sub:'Ituloy ang pagsasalin?',
+    cancel:'Kanselahin', proceed:'Isalin',
+    jp_staff:'Japanese Staff', conv_hint:'Piliin ang nagsasalita at pindutin ang mikropono',
+    speak:'Basahin', copy:'Kopyahin', simplified:'Simpleng Hapon', meaning_check:'I-verify ang Kahulugan',
+    match_ok:'✓ Tugma ang kahulugan', match_warn:'⚠ Kailangang suriin',
+    logo_sub:'Care & Medical AI Interpreter',
+    input_ph:'Ilagay ang teksto para isalin...', live_hint:'Lumalabas dito ang resulta ng pagsasalin',
+    live_original_hint:'Lumalabas dito ang nakilalang boses', live_back_hint:'Bine-verify ang kahulugan',
+    glossary_search:'🔍 Maghanap ng salita...',
+    saved:'Na-save ang mga setting', copied:'Nakopya', added:'Naidagdag ang salita', deleted:'Natanggal',
+    error_input:'Ilagay ang teksto', error_chrome:'Inirerekomenda ang Chrome',
+    care_mode_on:'Care Mode BUKAS',
+    scene_general:'Pag-aalaga（Pangkalahatan）', scene_meal:'Tulong sa Pagkain', scene_toilet:'Tulong sa CR',
+    scene_medicine:'Gamot', scene_rehab:'Rehabilitasyon', scene_bath:'Tulong sa Paliligo',
+    scene_emergency:'Emergency', scene_vital:'Mga Vital Signs', scene_night:'Gabi na Pag-aalaga', scene_discharge:'Discharge',
+    term_required:'Ang salita at simpleng pahayag ay kinakailangan',
+    training_banner:'Magsanay tayo ng mga parirala sa pag-aalaga',
+    training_scene:'Pumili ng Eksena', scene_all:'Lahat ng Eksena',
+    training_direction:'Direksyon ng Pagsasanay',
+    training_quiz:'Quiz', training_quiz_desc:'Pumili mula sa 4 na sagot',
+    training_flashcard:'Flashcard', training_fc_desc:'Matuto sa sariling bilis',
+    training_next:'Susunod na Tanong →', training_retry:'Subukan Muli', training_home:'Bahay',
+    training_knew:'Alam ko na!', training_unknown:'Hindi ko alam', training_prev:'◀ Nakaraan', training_skip:'Laktawan ▶',
+    quiz_question:'Tanong', quiz_result:'Resulta ng Quiz',
+    results_accuracy:'Tama', results_missed:'Mga Parirala para Suriin',
+    fc_tap:'I-tap para makita ang sagot',
+    training_disclaimer:'⚠️ Ang mga pagsasalin sa pagsasanay ay para sa sanggunian lamang.',
+    firebase_section:'Shared Facility Mode（Firebase）',
+    firebase_disconnected:'Hindi nakakonekta', firebase_connected:'Nakakonekta',
+    firebase_desc:'Ilagay ang facility code para ma-access ang mga custom na parirala at ibahagi ang mga marka.',
+    firebase_connect:'Ikonekta', firebase_save_score:'I-save ang Marka',
+    firebase_enable:'I-enable ang Firebase', firebase_enable_desc:'Gamitin ang mga sharing feature ng training mode',
+    firebase_config_hint:'I-paste ang configuration JSON mula sa Firebase console',
+    firebase_apply:'Subukan ang Koneksyon at I-save',
+  },
+  zh: {
+    flag:'🇨🇳', name:'中文（简体）',
+    tab_text:'文本', tab_conv:'对话', tab_live:'同声传译', tab_explain:'日语解释', tab_subtitle:'字幕模式', tab_training:'研修',
+    from:'从', to:'到',
+    input_label:'输入文本', voice:'语音', care_mode:'护理模式',
+    translate:'翻译', standby:'待机中', interpreting:'翻译中',
+    start_interp:'开始', stop_interp:'停止',
+    check:'确认', history:'历史', clear:'清除',
+    glossary:'词汇表', g_official:'官方', g_care:'医疗护理', g_custom:'自定义',
+    add_term:'＋ 添加新术语', add:'添加',
+    term_ph:'原始术语', simple_ph:'简单表达', note_ph:'备注（可选）',
+    settings:'设置', engine:'翻译引擎', no_key:'无需API密钥', need_key:'需要API密钥',
+    options:'选项', polite_mode:'礼貌模式', polite_desc:'将粗暴表达自动转换为礼貌用语',
+    risk_warn:'风险警告', risk_desc:'检测到危险表达时显示确认对话框',
+    auto_speak:'自动朗读', auto_speak_desc:'翻译完成后自动播放语音',
+    back_trans:'显示回译', back_desc:'回译以验证含义',
+    save:'保存',
+    risk_title:'检测到风险', risk_sub:'继续翻译吗？',
+    cancel:'取消', proceed:'继续翻译',
+    jp_staff:'日本员工', conv_hint:'选择发言者并按下麦克风',
+    speak:'朗读', copy:'复制', simplified:'简单日语', meaning_check:'验证含义',
+    match_ok:'✓ 含义一致', match_warn:'⚠ 需要确认',
+    logo_sub:'医疗护理AI翻译',
+    input_ph:'输入要翻译的文本...', live_hint:'翻译结果将显示在此处',
+    live_original_hint:'识别的语音将显示在此处', live_back_hint:'正在验证含义',
+    glossary_search:'🔍 搜索术语...',
+    saved:'设置已保存', copied:'已复制', added:'术语已添加', deleted:'已删除',
+    error_input:'请输入文本', error_chrome:'建议使用Chrome浏览器',
+    care_mode_on:'护理模式 开启',
+    scene_general:'护理（一般）', scene_meal:'用餐协助', scene_toilet:'如厕协助',
+    scene_medicine:'服药', scene_rehab:'康复', scene_bath:'洗浴协助',
+    scene_emergency:'紧急', scene_vital:'生命体征测量', scene_night:'夜间护理', scene_discharge:'出院',
+    term_required:'术语和简单表达为必填项',
+    training_banner:'让我们练习护理用语',
+    training_scene:'选择场景', scene_all:'全部场景',
+    training_direction:'练习方向',
+    training_quiz:'测验', training_quiz_desc:'从4个选项中选择',
+    training_flashcard:'闪卡', training_fc_desc:'按自己的节奏学习',
+    training_next:'下一题 →', training_retry:'再来一次', training_home:'主页',
+    training_knew:'我知道！', training_unknown:'不知道', training_prev:'◀ 上一个', training_skip:'跳过 ▶',
+    quiz_question:'问题', quiz_result:'测验结果',
+    results_accuracy:'正确', results_missed:'复习词汇',
+    fc_tap:'点击查看答案',
+    training_disclaimer:'⚠️ 培训翻译仅供参考。',
+    firebase_section:'设施共享模式（Firebase）',
+    firebase_disconnected:'未连接', firebase_connected:'已连接',
+    firebase_desc:'输入设施代码以访问自定义短语并共享分数。',
+    firebase_connect:'连接', firebase_save_score:'保存分数',
+    firebase_enable:'启用Firebase', firebase_enable_desc:'使用培训模式共享功能',
+    firebase_config_hint:'粘贴Firebase控制台中的配置JSON',
+    firebase_apply:'测试连接并保存',
+  },
+};
+
+// ===== 状態 =====
+let uiLang = localStorage.getItem('careVoiceUiLang') || 'ja';
+let state = {
+  engine:'mymemory', googleKey:'', claudeKey:'', geminiKey:'',
+  politeMode:true, riskWarning:true, autoSpeak:false, liveBackTranslate:true,
+  currentMode:'text', careMode:false, careScene:'general',
+  convSpeaker:'jp', isMicActive:false, isLiveActive:false,
+  recognition:null, liveRecognition:null,
+  pendingTranslation:null, lastTranslatedText:'', lastTranslatedLang:'',
+  convMessages:[], liveHistory:[],
+  currentGlossaryTab:'official',
+  // Firebase
+  firebaseEnabled:false, firebaseConfig:null, firebaseApp:null, firebaseDb:null,
+  firebaseRoomCode:'', firebaseRoomData:null, firebaseNickname:'',
+};
+
+function t(key) { return (I18N[uiLang]||I18N.ja)[key] || (I18N.ja)[key] || key; }
+
+function applyI18n() {
+  const L = I18N[uiLang] || I18N.ja;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (L[key]) el.textContent = L[key];
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    const key = el.getAttribute('data-i18n-ph');
+    if (L[key]) el.placeholder = L[key];
+  });
+  document.querySelectorAll('[data-i18n-el]').forEach(el => {
+    const key = el.getAttribute('data-i18n-el');
+    if (L[key]) el.textContent = L[key];
+  });
+  document.getElementById('logoSub').textContent = L.logo_sub;
+  document.getElementById('textInput').placeholder = L.input_ph;
+  document.getElementById('convTextIn').placeholder = L.input_ph;
+  document.getElementById('uiLangBtn').textContent = `🌐 ${L.name}`;
+  document.getElementById('liveOriginal').textContent = L.live_original_hint;
+  document.getElementById('liveTranslated').textContent = L.live_hint;
+  document.getElementById('liveBackText').textContent = L.live_back_hint;
+  if(document.getElementById('glossarySearch')) document.getElementById('glossarySearch').placeholder = L.glossary_search;
+  const careScene = document.getElementById('careScene');
+  if (careScene) {
+    careScene.innerHTML = [
+      ['general',L.scene_general],['meal',L.scene_meal],['toilet',L.scene_toilet],
+      ['medicine',L.scene_medicine],['rehab',L.scene_rehab],['bath',L.scene_bath],
+      ['emergency',L.scene_emergency],['vital',L.scene_vital],['night',L.scene_night],['discharge',L.scene_discharge],
+    ].map(([v,n])=>`<option value="${v}">${n}</option>`).join('');
+  }
+  const cmb = document.getElementById('careModeBtn');
+  if (cmb) {
+    cmb.innerHTML = `🏥 <span>${state.careMode ? L.care_mode_on : L.care_mode}</span>`;
+    if (state.careMode) cmb.classList.add('care-active'); else cmb.classList.remove('care-active');
+  }
+  const mb = document.getElementById('micBtn');
+  if (mb && !state.isMicActive) mb.innerHTML = `🎤 <span>${L.voice}</span>`;
+  const lb = document.getElementById('liveMicBtn');
+  if (lb) lb.innerHTML = state.isLiveActive ? `⏹ <span>${L.stop_interp}</span>` : `🎤 <span>${L.start_interp}</span>`;
+  document.getElementById('liveStatus').textContent = state.isLiveActive ? L.interpreting : L.standby;
+  document.documentElement.lang = uiLang === 'zh' ? 'zh-CN' : uiLang;
+}
+
+function openUiLang() {
+  const el = document.getElementById('uilangList');
+  el.innerHTML = Object.entries(I18N).map(([code, L]) =>
+    `<div class="uilang-item ${code===uiLang?'selected':''}" onclick="setUiLang('${code}')">
+      <span class="uilang-flag">${L.flag}</span><span>${L.name}</span></div>`
+  ).join('');
+  document.getElementById('uilangModal').classList.add('open');
+}
+function closeUiLang() { document.getElementById('uilangModal').classList.remove('open'); }
+function setUiLang(code) { uiLang=code; localStorage.setItem('careVoiceUiLang',code); applyI18n(); closeUiLang(); showToast(t('saved')); }
+
+const langNames = { ja:'日本語',my:'မြန်မာဘာသာ',id:'Bahasa Indonesia',vi:'Tiếng Việt',tl:'Filipino',en:'English',zh:'中文（简体）','zh-TW':'中文（繁體）',ko:'한국어',th:'ภาษาไทย',ms:'Bahasa Melayu',km:'ភាសាខ្មែរ',lo:'ພາສາລາວ',pt:'Português',es:'Español',fr:'Français',de:'Deutsch',it:'Italiano',ru:'Русский',pl:'Polski',nl:'Nederlands',sv:'Svenska',no:'Norsk',da:'Dansk',fi:'Suomi',cs:'Čeština',hu:'Magyar',ro:'Română',el:'Ελληνικά',uk:'Українська' };
+const bcp47Map = { ja:'ja-JP',my:'my-MM',id:'id-ID',vi:'vi-VN',tl:'fil-PH',en:'en-US',zh:'zh-CN','zh-TW':'zh-TW',ko:'ko-KR',th:'th-TH',ms:'ms-MY',km:'km-KH',lo:'lo-LA',pt:'pt-BR',es:'es-ES',fr:'fr-FR',de:'de-DE',it:'it-IT',ru:'ru-RU',pl:'pl-PL',nl:'nl-NL',sv:'sv-SE',no:'no-NO',da:'da-DK',fi:'fi-FI',cs:'cs-CZ',hu:'hu-HU',ro:'ro-RO',el:'el-GR',uk:'uk-UA' };
+const mymemoryLangMap = { ja:'ja',my:'my',id:'id',vi:'vi',tl:'tl',en:'en',zh:'zh','zh-TW':'zh-TW',ko:'ko',th:'th',ms:'ms',km:'km',lo:'lo',pt:'pt',es:'es',fr:'fr',de:'de',it:'it',ru:'ru',pl:'pl',nl:'nl',sv:'sv',no:'no',da:'da',fi:'fi',cs:'cs',hu:'hu',ro:'ro',el:'el',uk:'uk' };
+
+// ===== 用語集 =====
+const OFFICIAL_GLOSSARY = [
+  {term:'在留資格',simple:'ビザの種類',note:'外務省やさしい日本語'},{term:'申請',simple:'お願いの書類を出すこと',note:'外務省やさしい日本語'},
+  {term:'窓口',simple:'相談・手続きをする場所',note:'外務省やさしい日本語'},{term:'証明書',simple:'大切な書類',note:'外務省やさしい日本語'},
+  {term:'手続き',simple:'やること・進めること',note:'外務省やさしい日本語'},{term:'保険証',simple:'病院で使うカード',note:'外務省やさしい日本語'},
+  {term:'住民票',simple:'住んでいる場所を証明する書類',note:'外務省やさしい日本語'},{term:'緊急',simple:'とても急ぐこと・危ないこと',note:'外務省やさしい日本語'},
+  {term:'避難',simple:'安全な場所へ逃げること',note:'外務省やさしい日本語'},{term:'救急車',simple:'病気・けがのときに呼ぶ車',note:'外務省やさしい日本語'},
+  {term:'感染症',simple:'うつる病気',note:'NHKやさしい日本語'},{term:'濃厚接触者',simple:'感染した人のそばにいた人',note:'NHKやさしい日本語'},
+  {term:'ワクチン',simple:'病気を防ぐ注射',note:'NHKやさしい日本語'},{term:'隔離',simple:'他の人と離れること',note:'NHKやさしい日本語'},
+];
+const CARE_GLOSSARY = [
+  {term:'誤嚥',simple:'食べ物が喉に詰まること',note:'食事介助・リスク用語'},{term:'嚥下',simple:'飲み込むこと',note:'食事介助'},
+  {term:'嚥下困難',simple:'飲み込みにくい状態',note:'食事介助'},{term:'とろみ',simple:'飲み物を飲みやすくするとろっとした状態',note:'食事介助'},
+  {term:'経管栄養',simple:'チューブで栄養を入れること',note:'食事介助'},{term:'禁食',simple:'食事をしてはいけない状態',note:'食事介助'},
+  {term:'絶飲食',simple:'食事も水も飲んではいけない状態',note:'食事介助'},{term:'排泄',simple:'トイレに行くこと',note:'排泄介助'},
+  {term:'ポータブルトイレ',simple:'部屋で使うトイレ',note:'排泄介助'},{term:'おむつ交換',simple:'おむつを換えること',note:'排泄介助'},
+  {term:'尿意',simple:'トイレに行きたい気持ち',note:'排泄介助'},{term:'便意',simple:'便をしたい気持ち',note:'排泄介助'},
+  {term:'失禁',simple:'トイレに間に合わないこと',note:'排泄介助'},{term:'バイタル',simple:'体の状態（体温・血圧・脈など）',note:'バイタル測定'},
+  {term:'血圧',simple:'血管の圧力（数字で測る）',note:'バイタル測定'},{term:'体温',simple:'体の温度',note:'バイタル測定'},
+  {term:'脈拍',simple:'心臓が1分間に動く回数',note:'バイタル測定'},{term:'褥瘡',simple:'床ずれ（長く同じ姿勢でいることで皮膚が傷む）',note:'スキンケア'},
+  {term:'拘縮',simple:'体が固まって動きにくい状態',note:'リハビリ'},{term:'移乗',simple:'ベッドと車椅子を移る動作',note:'介助技術'},
+];
+function loadCustomGlossary() { try{return JSON.parse(localStorage.getItem('careVoiceCustomGlossary')||'[]')}catch(e){return[]} }
+function saveCustomGlossary(list) { localStorage.setItem('careVoiceCustomGlossary',JSON.stringify(list)) }
+function applyGlossary(text) {
+  const all=[...OFFICIAL_GLOSSARY,...CARE_GLOSSARY,...loadCustomGlossary()];
+  return all.filter(g=>text.includes(g.term));
+}
+
+function switchMode(mode,btn) {
+  document.querySelectorAll('.mode-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('[id^="mode-"]').forEach(el=>el.classList.remove('active'));
+  document.getElementById('mode-'+mode)?.classList.add('active');
+  state.currentMode=mode;
+  const langBar = document.querySelector('.lang-bar');
+  const careB = document.getElementById('careModeBanner');
+  if(mode==='training'){
+    langBar.style.display='none';
+    if(careB) careB.style.display='none';
+    renderTrainingHome();
+  } else {
+    langBar.style.display='';
+    if(state.careMode && careB) careB.classList.add('show');
+  }
+}
+
+function toggleCareMode() {
+  state.careMode=!state.careMode;
+  const b=document.getElementById('careModeBanner');
+  if(b){if(state.careMode)b.classList.add('show');else b.classList.remove('show')}
+  applyI18n();
+}
+
+function swapLanguages() {
+  const f=document.getElementById('langFrom'),t=document.getElementById('langTo');
+  const tmp=f.value;f.value=t.value;t.value=tmp;updateLangLabels();
+}
+function updateLangLabels() {
+  const to=document.getElementById('langTo').value;
+  const el=document.getElementById('foreignLangLabel');
+  if(el) el.textContent=langNames[to]||to;
+}
+
+// ===== テキスト翻訳 =====
+async function doTranslate() {
+  const text=document.getElementById('textInput').value.trim();
+  if(!text){showToast(t('error_input'));return}
+  const from=document.getElementById('langFrom').value,to=document.getElementById('langTo').value;
+  if(state.riskWarning){const r=detectRisk(text);if(r){state.pendingTranslation={text,from,to};document.getElementById('riskReason').textContent=r;document.getElementById('riskModal').classList.add('open');return}}
+  await executeTranslation(text,from,to);
+}
+function detectRisk(text) {
+  const ps=[
+    {p:/転倒|倒れ|落ちる|滑る/,r:'転倒リスクに関連する表現が含まれています'},
+    {p:/誤嚥|詰まる|飲み込め/,r:'誤嚥リスクに関連する表現が含まれています'},
+    {p:/死|亡くなる|危篤/,r:'生命に関わるキーワードが含まれています'},
+    {p:/叩|蹴|暴力|怒鳴/,r:'攻撃的・暴力的な表現が含まれています'},
+    {p:/早くしろ|動け|立て[よ！]/,r:'強い命令口調が含まれています'},
+    {p:/急変|心肺停止|ショック/,r:'緊急事態に関するキーワードが含まれています'},
+  ];
+  for(const p of ps){if(p.p.test(text))return p.r}return null;
+}
+function cancelRisk(){document.getElementById('riskModal').classList.remove('open');state.pendingTranslation=null}
+function proceedRisk(){document.getElementById('riskModal').classList.remove('open');if(state.pendingTranslation){const{text,from,to}=state.pendingTranslation;state.pendingTranslation=null;executeTranslation(text,from,to)}}
+
+async function executeTranslation(text,from,to) {
+  const btn=document.getElementById('translateBtn');btn.disabled=true;btn.innerHTML=`<span>...</span>`;
+  const re=document.getElementById('textResult');
+  re.innerHTML='<div class="result-card"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
+  const hits=applyGlossary(text);
+  try{
+    let r;
+    if(state.engine==='gemini'&&state.geminiKey) r=await translateWithGemini(text,from,to,hits);
+    else if(state.engine==='claude'&&state.claudeKey) r=await translateWithClaude(text,from,to,hits);
+    else if(state.engine==='google'&&state.googleKey) r=await translateWithGoogle(text,from,to);
+    else r=await translateWithMyMemory(text,from,to);
+    state.lastTranslatedText=r.translated;state.lastTranslatedLang=to;
+    renderTextResult(r,from,to,hits);
+    if(state.autoSpeak&&r.translated) speak(r.translated,to);
+    addTransHistory(from,to,text,r.translated);
+  }catch(e){re.innerHTML=`<div class="result-card"><div class="result-section" style="color:var(--warn)">翻訳エラー: ${escHtml(e.message)}</div></div>`}
+  finally{btn.disabled=false;btn.innerHTML=`<span>${t('translate')}</span> →`}
+}
+function renderTextResult(r,from,to,hits) {
+  const el=document.getElementById('textResult');
+  const eng=state.engine==='claude'?'Claude AI':state.engine==='google'?'Google':state.engine==='gemini'?'Gemini AI':'MyMemory';
+  let html=`<div class="result-card">`;
+  if(hits&&hits.length>0){
+    html+=`<div class="result-section"><div class="result-label">📚 <span class="badge badge-glossary">${hits.length}</span></div>
+    <div class="glossary-hits">${hits.slice(0,5).map(h=>`<div class="glossary-hit-item"><strong>${escHtml(h.term)}</strong> → ${escHtml(h.simple)}</div>`).join('')}</div></div>`;
+  }
+  if(from==='ja'&&r.simplified&&r.simplified!==r.original){
+    html+=`<div class="result-section"><div class="result-label">🔄 ${t('simplified')} <span class="badge badge-ok">✓</span></div><div class="result-simplified">${escHtml(r.simplified)}</div></div>`;
+  }
+  html+=`<div class="result-section">
+    <div class="result-label">🌐 ${langNames[to]||to} <span class="badge badge-engine">${eng}</span></div>
+    <div class="result-main">${escHtml(r.translated)}</div>
+    <div class="result-actions">
+      <button class="play-btn" onclick="speak('${escJs(r.translated)}','${to}')">🔊 ${t('speak')}</button>
+      <button class="copy-btn" onclick="copyText('${escJs(r.translated)}')">📋 ${t('copy')}</button>
+    </div></div>`;
+  if(r.backTranslation){
+    const negMismatch=detectNegationMismatch(r.original,r.backTranslation);
+    const ok=r.backOk!==false&&!negMismatch;
+    const warnLabel=negMismatch?'⚠️ 否定語ズレ':t('match_warn');
+    html+=`<div class="result-section"><div class="result-label">🔍 ${t('meaning_check')} <span class="badge ${ok?'badge-ok':'badge-warn'}">${ok?t('match_ok'):warnLabel}</span></div><div class="result-back">${escHtml(r.backTranslation)}</div></div>`;
+  }
+  html+=`</div>`;el.innerHTML=html;
+}
+
+// ===== 対面モード =====
+let faceMicRec=null,faceMicOn=false;
+function toggleFaceMic(){
+  if(faceMicOn){faceMicOn=false;try{faceMicRec?.stop()}catch(e){}return}
+  if(!('webkitSpeechRecognition'in window||'SpeechRecognition'in window)){showToast(t('error_chrome'));return}
+  const from=document.getElementById('langFrom').value;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  faceMicRec=new SR();faceMicRec.lang=bcp47Map[from]||'ja-JP';faceMicRec.continuous=false;faceMicRec.interimResults=true;
+  faceMicRec.onstart=()=>{faceMicOn=true;document.getElementById('faceMicBtn').textContent='⏹ 停止する';document.getElementById('faceMicBtn').style.background='var(--warn)';document.getElementById('faceMicLive').style.display='block';document.getElementById('faceMicStatus').className='face-status recording';document.getElementById('faceMicStatus').textContent='🔴 録音中...'};
+  faceMicRec.onresult=e=>{let f='',i='';for(let x=e.resultIndex;x<e.results.length;x++){e.results[x].isFinal?f+=e.results[x][0].transcript:i+=e.results[x][0].transcript}const d=f||i;if(d)document.getElementById('faceMicLive').textContent=(f?'✅ ':'🎤 ')+d;if(f.trim()){document.getElementById('faceInput').value=f.trim();translateFaceText()}};
+  faceMicRec.onend=()=>{faceMicOn=false;document.getElementById('faceMicBtn').textContent='🎤 マイクで話す（自動翻訳）';document.getElementById('faceMicBtn').style.background='var(--accent)'};
+  faceMicRec.onerror=e=>{faceMicOn=false;document.getElementById('faceMicBtn').textContent='🎤 マイクで話す（自動翻訳）';document.getElementById('faceMicBtn').style.background='var(--accent)';document.getElementById('faceMicStatus').textContent='❌ '+(e.error==='not-allowed'?'マイクを許可してください':e.error)};
+  faceMicRec.start();
+}
+async function translateFaceText(){
+  const text=document.getElementById('faceInput').value.trim();if(!text)return;
+  const from=document.getElementById('langFrom').value,to=document.getElementById('langTo').value;
+  document.getElementById('faceMicStatus').className='face-status';document.getElementById('faceMicStatus').textContent='🤖 翻訳中...';
+  document.getElementById('faceTgtLabel').textContent=(langNames[to]||to).toUpperCase();
+  const hits=applyGlossary(text);
+  try{
+    let r;
+    if(state.engine==='gemini'&&state.geminiKey) r=await translateWithGemini(text,from,to,hits);
+    else if(state.engine==='claude'&&state.claudeKey) r=await translateWithClaude(text,from,to,hits);
+    else if(state.engine==='google'&&state.googleKey) r=await translateWithGoogle(text,from,to);
+    else r=await translateWithMyMemory(text,from,to);
+    document.getElementById('faceResultText').textContent=r.translated;
+    if(r.backTranslation){
+      const neg=detectNegationMismatch(text,r.backTranslation);
+      const ok=!neg;
+      const bb=document.getElementById('faceBackBox');bb.style.display='block';
+      document.getElementById('faceBackLabel').innerHTML=`🔍 逆翻訳 <span class="badge ${ok?'badge-ok':'badge-warn'}">${ok?'✅ OK':'⚠️ 否定語ズレ'}</span>`;
+      document.getElementById('faceBackText').textContent=r.backTranslation;
+    }
+    document.getElementById('faceMicStatus').className='face-status ok';document.getElementById('faceMicStatus').textContent='✅ 翻訳完了';
+    if(state.autoSpeak) speak(r.translated,to);
+    addTransHistory(from,to,text,r.translated);
+  }catch(e){document.getElementById('faceMicStatus').className='face-status';document.getElementById('faceMicStatus').textContent='❌ '+e.message}
+}
+function speakFaceResult(){speak(document.getElementById('faceResultText').textContent,document.getElementById('langTo').value)}
+
+// ===== 否定語ミス検知 =====
+function detectNegationMismatch(original, backTranslation) {
+  if(!original||!backTranslation) return false;
+  const neg=['ない','いない','しない','できない','ません','ないです','not ','no ','never','cannot','can\'t','don\'t','doesn\'t','isn\'t','won\'t','shouldn\'t','needn\'t'];
+  const o=original.toLowerCase(), b=backTranslation.toLowerCase();
+  const origHasNeg=neg.some(w=>o.includes(w));
+  const backHasNeg=neg.some(w=>b.includes(w));
+  return origHasNeg&&!backHasNeg;
+}
+
+// ===== 翻訳エンジン =====
+async function translateWithMyMemory(text,from,to,skipBack=false) {
+  const fc=mymemoryLangMap[from]||from,tc=mymemoryLangMap[to]||to;
+  const res=await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${fc}%7C${tc}`);
+  if(!res.ok) throw new Error('ネットワークエラー ('+res.status+')');
+  const data=await res.json();
+  if((data.responseStatus||200)>=400) throw new Error('MyMemory: '+(data.responseData?.translatedText||'制限超過'));
+  const translated=data.responseData?.translatedText;
+  if(!translated) throw new Error('翻訳失敗');
+  if(translated.startsWith('MYMEMORY WARNING')||translated.startsWith('QUERY LENGTH LIMIT'))
+    throw new Error('MyMemory利用制限に達しました。時間をおいて再試行するか、設定でGoogle/Claude APIキーをご利用ください。');
+  let backTranslation=null;
+  if(!skipBack){
+    try{const b=await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(translated)}&langpair=${tc}%7C${fc}`);if(b.ok){const bd=await b.json();backTranslation=bd.responseData?.translatedText||null}}catch(e){}
+  }
+  return{original:text,simplified:null,translated,backTranslation};
+}
+async function translateWithGoogle(text,from,to) {
+  const url=`https://translation.googleapis.com/language/translate/v2?key=${state.googleKey}`;
+  const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:text,source:from,target:to,format:'text'})});
+  const data=await res.json();
+  if(data.error) throw new Error(data.error.message);
+  const translated=data.data.translations[0].translatedText;
+  let backTranslation=null;
+  try{const b=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:translated,source:to,target:from,format:'text'})});const bd=await b.json();backTranslation=bd.data?.translations[0]?.translatedText||null}catch(e){}
+  return{original:text,simplified:null,translated,backTranslation};
+}
+async function translateWithClaude(text,from,to,hits) {
+  const fn=langNames[from]||from,tn=langNames[to]||to;
+  const custom=loadCustomGlossary();
+  const glossCtx=hits&&hits.length>0?`\n【参照用語集】${hits.map(h=>`「${h.term}」→「${h.simple}」`).join('、')}`:'';
+  const customCtx=custom.length>0?`\n【施設カスタム用語】${custom.slice(0,20).map(h=>`「${h.term}」＝「${h.simple}」`).join('、')}`:'';
+  const sceneCtx=state.careMode?`\n【現在のシーン】${I18N.ja['scene_'+state.careScene]||'介護・医療'}に特化した表現を使ってください`:'';
+  const sys=`あなたは日本の介護・医療現場に特化した通訳者です。以下のJSONのみ出力してください：{"simplified":"やさしい日本語（日本語入力時のみ、外国語はnull）","translated":"翻訳結果","backTranslation":"逆翻訳","backOk":true}`;
+  const usr=`${fn}から${tn}に翻訳。${state.politeMode&&from==='ja'?'①やさしい日本語化②翻訳③逆翻訳確認':'①翻訳②逆翻訳確認'}${glossCtx}${customCtx}${sceneCtx}\n\n入力:"${text}"`;
+  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':state.claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1000,system:sys,messages:[{role:'user',content:usr}]})});
+  const data=await res.json();
+  if(data.error) throw new Error(data.error.message);
+  const raw=data.content[0].text.trim().replace(/```json|```/g,'').trim();
+  const parsed=JSON.parse(raw);parsed.original=text;return parsed;
+}
+
+async function translateWithGemini(text,from,to,hits) {
+  const fn=langNames[from]||from,tn=langNames[to]||to;
+  const custom=loadCustomGlossary();
+  const glossCtx=hits&&hits.length>0?`\n【参照用語集】${hits.map(h=>`「${h.term}」→「${h.simple}」`).join('、')}`:'';
+  const customCtx=custom.length>0?`\n【施設カスタム用語】${custom.slice(0,20).map(h=>`「${h.term}」＝「${h.simple}」`).join('、')}`:'';
+  const sceneCtx=state.careMode?`\n【現在のシーン】${I18N.ja['scene_'+state.careScene]||'介護・医療'}の表現を使ってください`:'';
+  const prompt=`あなたは介護・医療現場専門の通訳者です。${fn}から${tn}に翻訳してください。${glossCtx}${customCtx}${sceneCtx}
+【ルール】話し言葉・敬語・緊急度のトーンを保つ。翻訳結果のJSONのみ出力。
+{"translated":"翻訳結果","backTranslation":"${fn}への逆翻訳"${from==='ja'&&state.politeMode?`,"simplified":"やさしい日本語版"`:''}}\n\n入力:"${text}"`;
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${state.geminiKey}`,
+    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+  const data=await res.json();
+  if(data.error) throw new Error('Gemini: '+data.error.message);
+  const raw=(data.candidates?.[0]?.content?.parts?.[0]?.text||'').trim().replace(/```json|```/g,'').trim();
+  const parsed=JSON.parse(raw);parsed.original=text;return parsed;
+}
+
+// ===== 音声入力 =====
+function toggleMicText() {
+  if(!('webkitSpeechRecognition'in window||'SpeechRecognition'in window)){showToast(t('error_chrome'));return}
+  const btn=document.getElementById('micBtn');
+  if(state.isMicActive){state.recognition?.stop();return}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const r=new SR();r.lang=bcp47Map[document.getElementById('langFrom').value]||'ja-JP';r.continuous=false;r.interimResults=false;
+  r.onresult=e=>{document.getElementById('textInput').value=e.results[0][0].transcript};
+  r.onend=()=>{state.isMicActive=false;btn.innerHTML=`🎤 <span>${t('voice')}</span>`};
+  r.onerror=()=>{state.isMicActive=false;btn.innerHTML=`🎤 <span>${t('voice')}</span>`};
+  r.start();state.recognition=r;state.isMicActive=true;btn.innerHTML=`⏹ <span>${t('stop_interp')}</span>`;
+}
+function clearText(){document.getElementById('textInput').value='';document.getElementById('textResult').innerHTML=''}
+
+// ===== 会話モード =====
+function selectSpeaker(s) {
+  state.convSpeaker=s;
+  document.getElementById('speakerJp').className='speaker-btn '+(s==='jp'?'active-jp':'');
+  document.getElementById('speakerForeign').className='speaker-btn '+(s==='foreign'?'active-foreign':'');
+  document.getElementById('convMicBtn').className=`mic-btn ${s==='jp'?'mic-btn-jp':'mic-btn-foreign'}`;
+}
+function toggleConvMic() {
+  if(!('webkitSpeechRecognition'in window||'SpeechRecognition'in window)){showToast(t('error_chrome'));return}
+  const btn=document.getElementById('convMicBtn');
+  if(state.isMicActive){state.recognition?.stop();return}
+  const lk=state.convSpeaker==='jp'?document.getElementById('langFrom').value:document.getElementById('langTo').value;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const r=new SR();r.lang=bcp47Map[lk]||'ja-JP';r.continuous=false;r.interimResults=false;
+  r.onresult=e=>{document.getElementById('convTextIn').value=e.results[0][0].transcript;sendConvMessage()};
+  r.onend=()=>{state.isMicActive=false;btn.classList.remove('recording')};
+  r.onerror=()=>{state.isMicActive=false;btn.classList.remove('recording')};
+  r.start();state.recognition=r;state.isMicActive=true;btn.classList.add('recording');
+}
+async function sendConvMessage() {
+  const text=document.getElementById('convTextIn').value.trim();if(!text)return;
+  document.getElementById('convTextIn').value='';
+  const s=state.convSpeaker;
+  const from=s==='jp'?document.getElementById('langFrom').value:document.getElementById('langTo').value;
+  const to=s==='jp'?document.getElementById('langTo').value:document.getElementById('langFrom').value;
+  const hits=applyGlossary(text);
+  addConvMsg({speaker:s,original:text,translated:'...',backTranslation:null,loading:true});
+  try{
+    let r;
+    if(state.engine==='gemini'&&state.geminiKey) r=await translateWithGemini(text,from,to,hits);
+    else if(state.engine==='claude'&&state.claudeKey) r=await translateWithClaude(text,from,to,hits);
+    else if(state.engine==='google'&&state.googleKey) r=await translateWithGoogle(text,from,to);
+    else r=await translateWithMyMemory(text,from,to);
+    updateLastConvMsg({speaker:s,original:text,translated:r.translated,backTranslation:r.backTranslation});
+    if(state.autoSpeak) speak(r.translated,to);
+    addTransHistory(from,to,text,r.translated);
+  }catch(e){updateLastConvMsg({speaker:s,original:text,translated:'Error',backTranslation:null})}
+}
+function addConvMsg(m){state.convMessages.push(m);renderConvMessages()}
+function updateLastConvMsg(m){state.convMessages[state.convMessages.length-1]=m;renderConvMessages()}
+function renderConvMessages() {
+  const el=document.getElementById('convMessages');
+  if(!state.convMessages.length){el.innerHTML=`<div style="text-align:center;color:var(--text-small);font-size:13px;padding:20px 0">${t('conv_hint')}</div>`;return}
+  el.innerHTML=state.convMessages.map(m=>{
+    const isJp=m.speaker==='jp';
+    return`<div class="conv-msg ${isJp?'msg-jp':'msg-foreign'}">
+      <div class="conv-msg-header"><div class="conv-msg-icon">${isJp?'🇯🇵':'🌏'}</div><span style="font-size:12px;color:var(--text-small)">${isJp?t('jp_staff'):langNames[document.getElementById('langTo').value]||''}</span></div>
+      <div class="conv-msg-original">${escHtml(m.original)}</div>
+      <div class="conv-msg-translated">${escHtml(m.translated)}</div>
+      ${m.backTranslation?`<div class="conv-msg-back">🔍 ${escHtml(m.backTranslation)}</div>`:''}
+      ${!m.loading&&m.translated!=='Error'?`<div style="margin-top:6px"><button class="play-btn" onclick="speak('${escJs(m.translated)}','')" style="padding:4px 10px;font-size:12px;">🔊 ${t('speak')}</button></div>`:''}
+    </div>`;
+  }).join('');
+  el.scrollTop=el.scrollHeight;
+}
+
+// ===== 日本語解説モード =====
+async function doExplain() {
+  const text = document.getElementById('explainInput').value.trim();
+  if (!text) { showToast(t('error_input')); return; }
+  const toLang = document.getElementById('langTo').value;
+  const toLangName = langNames[toLang] || toLang;
+  const btn = document.getElementById('explainBtn');
+  btn.disabled = true; btn.textContent = '解説中...';
+  const re = document.getElementById('explainResult');
+  re.innerHTML = '<div class="explain-card"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
+  if (!state.claudeKey) {
+    re.innerHTML = '<div class="explain-card"><div class="explain-section" style="color:var(--warn)">⚠️ この機能はClaude APIキーが必要です。</div></div>';
+    btn.disabled = false; btn.textContent = '🔍 解説する'; return;
+  }
+  try {
+    const sys = 'あなたは日本語と文化を'+toLangName+'で教える専門家です。以下のJSONのみ出力してください：\n{"word":"入力された言葉","reading":"読み方（ひらがな）","meaning":"意味の説明（'+toLangName+'で）","emotion":"anger|joy|surprise|neutral|urgentのいずれか","emotion_label":"感情・ニュアンスの説明（'+toLangName+'で）","standard_japanese":"標準語への言い換え（日本語）","standard_explanation":"標準語の意味（'+toLangName+'で）","dialect_region":"方言の場合は地域名（方言でない場合はnull）","word_type":"怒り・叱責|命令・指示|褒め言葉|謝罪|挨拶|ハラスメント|緊急・危険|日常会話 のいずれか","consult_level":"high|medium|low","consult_message":"相談についてのメッセージ（'+toLangName+'で）"}';
+    const usr = '以下の日本語の言葉・表現を解説してください: "'+text+'"\n- 方言・スラング・俗語・丁寧でない表現も正確に解説してください\n- consult_levelについて: ハラスメント・暴言はhigh、意味が不明瞭な命令・怒りはmedium、日常会話はlow';
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json','x-api-key':state.claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1000,system:sys,messages:[{role:'user',content:usr}]})
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const d = JSON.parse(data.content[0].text.trim().replace(/```json|```/g,'').trim());
+    renderExplainResult(d, toLang);
+  } catch(e) {
+    re.innerHTML = '<div class="explain-card"><div class="explain-section" style="color:var(--warn)">エラー: '+escHtml(e.message)+'</div></div>';
+  } finally { btn.disabled=false; btn.textContent='🔍 解説する'; }
+}
+function renderExplainResult(d, toLang) {
+  const emotionMap={anger:{icon:'😠',cls:'emotion-anger'},joy:{icon:'😊',cls:'emotion-joy'},surprise:{icon:'😲',cls:'emotion-neutral'},neutral:{icon:'😐',cls:'emotion-neutral'},urgent:{icon:'🚨',cls:'emotion-urgent'}};
+  const em=emotionMap[d.emotion]||emotionMap.neutral;
+  const consultCls=d.consult_level==='high'?'consult-box consult-box-red':'consult-box';
+  const consultIcon=d.consult_level==='high'?'🚨':d.consult_level==='medium'?'⚠️':'🤝';
+  let html='<div class="explain-card">';
+  html+=`<div class="explain-section"><div class="explain-label">📖 言葉</div><div class="explain-main">${escHtml(d.word)} <span style="font-size:14px;color:var(--text-small);font-weight:400">（${escHtml(d.reading||'')}）</span></div>${d.dialect_region?`<span class="badge badge-care">🗾 ${escHtml(d.dialect_region)}地方の方言</span>`:''}</div>`;
+  html+=`<div class="explain-section"><div class="explain-label">💬 意味</div><div class="explain-body">${escHtml(d.meaning)}</div></div>`;
+  html+=`<div class="explain-section"><div class="explain-label">🎭 感情・ニュアンス</div><div class="emotion-badge ${em.cls}">${em.icon} ${escHtml(d.emotion_label)}</div></div>`;
+  html+=`<div class="explain-section"><div class="explain-label">📝 標準語では</div><div style="font-size:17px;font-weight:600;color:var(--accent);margin-bottom:6px">${escHtml(d.standard_japanese)}</div><div class="explain-body">${escHtml(d.standard_explanation)}</div><div style="margin-top:10px"><button class="play-btn" onclick="speak('${escJs(d.standard_japanese)}','ja')">🔊 日本語で聞く</button>${d.standard_japanese?` <button class="copy-btn" onclick="copyText('${escJs(d.standard_japanese)}')">📋 コピー</button>`:''}</div></div>`;
+  html+=`<div class="explain-section"><div class="${consultCls}"><div class="consult-title">${consultIcon} 困ったときは</div><div class="consult-body">${escHtml(d.consult_message)}</div></div></div>`;
+  html+='</div>';
+  document.getElementById('explainResult').innerHTML=html;
+}
+function toggleMicExplain() {
+  if(!('webkitSpeechRecognition'in window||'SpeechRecognition'in window)){showToast(t('error_chrome'));return}
+  const btn=document.getElementById('explainMicBtn');
+  if(state.isMicActive){state.recognition?.stop();return}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const r=new SR();r.lang=bcp47Map[document.getElementById('langFrom').value]||'ja-JP';r.continuous=false;r.interimResults=false;
+  r.onresult=e=>{document.getElementById('explainInput').value=e.results[0][0].transcript};
+  r.onend=()=>{state.isMicActive=false;btn.innerHTML='🎤 音声'};
+  r.onerror=()=>{state.isMicActive=false;btn.innerHTML='🎤 音声'};
+  r.start();state.recognition=r;state.isMicActive=true;btn.innerHTML='⏹ 停止';
+}
+
+// ===== 同時通訳 =====
+let liveBuffer='',liveTimer=null,currentLiveResult={translated:'',backTranslation:''},liveTranslating=false,livePendingText='';
+function toggleLive(){state.isLiveActive?stopLive():startLive()}
+// iOS Safari判定
+const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+// Android Chrome判定（continuous=trueが5〜10秒で強制onendする）
+const isAndroid = /Android/.test(navigator.userAgent);
+
+// ===== 同時通訳 =====
+let liveBuffer='', liveTimer=null, currentLiveResult={translated:'',backTranslation:''},
+    liveTranslating=false, livePendingText='', liveIsRestarting=false;
+
+function toggleLive(){state.isLiveActive?stopLive():startLive()}
+
+function startLive() {
+  if(!('webkitSpeechRecognition'in window||'SpeechRecognition'in window)){showToast(t('error_chrome'));return}
+  state.isLiveActive=true;
+  liveBuffer='';livePendingText='';liveTranslating=false;liveIsRestarting=false;
+  document.getElementById('liveDot').classList.add('active');applyI18n();
+  restartLiveRecognition();
+}
+
+function restartLiveRecognition() {
+  if(!state.isLiveActive || liveIsRestarting) return;
+  liveIsRestarting=true;
+
+  // 前のインスタンスを破棄（onendが二重発火しないようabort）
+  if(state.liveRecognition){
+    const old=state.liveRecognition;
+    state.liveRecognition=null;
+    old.onend=null; old.onerror=null; old.onresult=null;
+    try{old.abort()}catch(e){}
+  }
+
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const r=new SR();
+  r.lang=bcp47Map[document.getElementById('langFrom').value]||'ja-JP';
+  r.continuous=!isIOS;
+  r.interimResults=!isIOS;
+  r.maxAlternatives=1;
+
+  r.onstart=()=>{ liveIsRestarting=false; };
+
+  r.onresult=e=>{
+    let interim='',final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const tx=e.results[i][0].transcript;
+      e.results[i].isFinal ? final+=tx : interim+=tx;
+    }
+    if(interim||final) document.getElementById('liveOriginal').textContent=interim||final;
+    if(final){
+      liveBuffer+=final+' ';
+      clearTimeout(liveTimer);
+      // Androidは認識が止まりやすいので300msで即処理
+      const delay=isAndroid?300:700;
+      liveTimer=setTimeout(()=>{
+        const from=document.getElementById('langFrom').value;
+        const to=document.getElementById('langTo').value;
+        processLiveBuffer(from,to);
+      }, delay);
+    }
+  };
+
+  r.onend=()=>{
+    liveIsRestarting=false;
+    if(!state.isLiveActive) return;
+    // バッファに残りがあれば即翻訳してから再起動
+    if(liveBuffer.trim()){
+      clearTimeout(liveTimer);
+      const from=document.getElementById('langFrom').value;
+      const to=document.getElementById('langTo').value;
+      processLiveBuffer(from,to);
+    }
+    // Androidは再起動を少し長めに待つ（Android側の内部リセット待ち）
+    const delay=isAndroid?600:300;
+    setTimeout(restartLiveRecognition, delay);
+  };
+
+  r.onerror=e=>{
+    liveIsRestarting=false;
+    if(e.error==='no-speech') return;
+    if(e.error==='audio-capture'){
+      showToast('マイクにアクセスできません。ブラウザのマイク許可を確認してください');
+      stopLive();return;
+    }
+    if(e.error==='not-allowed'){
+      showToast('マイクの使用が拒否されました。ブラウザ設定を確認してください');
+      stopLive();return;
+    }
+    // aborted は正常停止なので無視、それ以外は再起動
+    if(e.error!=='aborted' && state.isLiveActive) setTimeout(restartLiveRecognition,500);
+  };
+
+  try{
+    r.start();
+    state.liveRecognition=r;
+  }catch(e){
+    liveIsRestarting=false;
+    if(state.isLiveActive) setTimeout(restartLiveRecognition,1000);
+  }
+}
+
+function stopLive() {
+  state.isLiveActive=false;
+  clearTimeout(liveTimer);
+  liveBuffer='';livePendingText='';liveIsRestarting=false;
+  if(state.liveRecognition){
+    const old=state.liveRecognition;
+    state.liveRecognition=null;
+    old.onend=null;old.onerror=null;old.onresult=null;
+    try{old.abort()}catch(e){}
+  }
+  document.getElementById('liveDot').classList.remove('active');applyI18n();
+}
+async function processLiveBuffer(from,to) {
+  const text=liveBuffer.trim();
+  if(!text) return;
+  liveBuffer='';
+  // 翻訳中なら最新テキストをペンディングに保存して上書き（捨てない）
+  if(liveTranslating){livePendingText=text;return;}
+  await executeLiveTranslation(text,from,to);
+  // 翻訳完了後にペンディングがあれば続けて処理
+  if(livePendingText){
+    const pending=livePendingText;livePendingText='';
+    const f=document.getElementById('langFrom').value,t2=document.getElementById('langTo').value;
+    await executeLiveTranslation(pending,f,t2);
+  }
+}
+async function executeLiveTranslation(text,from,to) {
+  liveTranslating=true;
+  document.getElementById('liveTranslated').style.color='var(--text-small)';
+  document.getElementById('liveTranslated').textContent='...';
+  document.getElementById('liveBackText').textContent='—';
+  document.getElementById('livePlayBtn').style.display='none';
+  const hits=applyGlossary(text);
+  try{
+    let translated,backTranslation;
+    if(state.engine==='gemini'&&state.geminiKey){const r=await translateWithGemini(text,from,to,hits);translated=r.translated;backTranslation=r.backTranslation}
+    else if(state.engine==='claude'&&state.claudeKey){const r=await translateWithClaude(text,from,to,hits);translated=r.translated;backTranslation=r.backTranslation}
+    else if(state.engine==='google'&&state.googleKey){const r=await translateWithGoogle(text,from,to);translated=r.translated;backTranslation=r.backTranslation}
+    else{const r=await translateWithMyMemory(text,from,to,true);translated=r.translated;backTranslation=null}
+    currentLiveResult={translated,backTranslation};
+    document.getElementById('liveTranslated').style.color='var(--text)';
+    document.getElementById('liveTranslated').textContent=translated;
+    document.getElementById('liveBackText').textContent=(state.liveBackTranslate&&backTranslation)?backTranslation:'—';
+    document.getElementById('livePlayBtn').style.display='';
+    addLiveHistory({original:text,translated,backTranslation});
+    if(state.autoSpeak) speak(translated,to);
+  }catch(e){
+    document.getElementById('liveTranslated').style.color='var(--warn)';
+    const msg=e.message.includes('MyMemory利用制限')?'⚠ MyMemory制限超過 — 設定でAPIキーをご利用ください':'⚠ '+e.message;
+    document.getElementById('liveTranslated').textContent=msg;
+  }finally{liveTranslating=false}
+}
+function playLiveAudio(){speak(currentLiveResult.translated,document.getElementById('langTo').value)}
+function addLiveHistory(item) {
+  state.liveHistory.unshift(item);
+  const el=document.getElementById('liveHistoryList');
+  el.innerHTML=state.liveHistory.map(h=>`
+    <div class="live-history-item">
+      <div class="history-original">${escHtml(h.original)}</div>
+      <div class="history-translated">${escHtml(h.translated)}</div>
+      ${h.backTranslation?`<div class="history-back">🔍 ${escHtml(h.backTranslation)}</div>`:''}
+    </div>`).join('');
+}
+function clearHistory(){state.liveHistory=[];document.getElementById('liveHistoryList').innerHTML=''}
+
+// ===== 音声出力 =====
+function speak(text,langCode) {
+  if(!text||text==='...'||text==='Error') return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=bcp47Map[langCode]||langCode||'ja-JP';u.rate=0.9;
+  window.speechSynthesis.speak(u);
+}
+
+// ===== 字幕モード =====
+const subtitleState={isActive:false,isRunning:false,isPaused:false,recognition:null,buffer:'',timer:null,fontSize:17,currentTranslated:''};
+let subtitleHistory=[]; // 正訳の履歴リスト
+
+function startSubtitleMode() {
+  const from=document.getElementById('subtitleLangFrom').value,to=document.getElementById('subtitleLangTo').value;
+  document.getElementById('subtitleLangInfo').textContent=(langNames[from]||from)+' → '+(langNames[to]||to);
+  document.getElementById('subtitleOverlay').classList.add('active');subtitleState.isActive=true;
+}
+function exitSubtitleMode(){stopSubtitleMic();document.getElementById('subtitleOverlay').classList.remove('active');subtitleState.isActive=false}
+function clearSubtitles(){
+  subtitleHistory=[];
+  document.getElementById('subtitleHistoryList').innerHTML='';
+  document.getElementById('subtitleHistoryEmpty').style.display='';
+  document.getElementById('subtitleOriginal').textContent='マイクをスタートしてください';
+  document.getElementById('subtitleText').textContent='—';
+  document.getElementById('subtitleText').classList.remove('translating');
+}
+function changeSubtitleSize(delta){
+  subtitleState.fontSize=Math.max(12,Math.min(30,subtitleState.fontSize+delta));
+  document.getElementById('subtitleHistoryArea').style.setProperty('--subtitle-font-size',subtitleState.fontSize+'px');
+}
+function updateSubtitleSize(){document.querySelectorAll('.subtitle-size-btn').forEach(b=>b.classList.remove('active'))}
+
+// 正訳を上エリアに追加
+function addSubtitleHistoryItem(finalText, status) {
+  // status: 'ok' | 'warn' | 'pending'
+  subtitleHistory.push({text:finalText,status});
+  document.getElementById('subtitleHistoryEmpty').style.display='none';
+  const list=document.getElementById('subtitleHistoryList');
+  const badge = status==='ok'
+    ? '<span class="subtitle-history-badge badge-ok-sub">✅ 確認済</span>'
+    : status==='warn'
+    ? '<span class="subtitle-history-badge badge-warn-sub">⚠ 要確認</span>'
+    : '<span class="subtitle-history-badge" style="color:rgba(255,255,255,.3);font-size:11px">直訳</span>';
+  const item=document.createElement('div');
+  item.className='subtitle-history-item '+status;
+  item.innerHTML=`<div class="subtitle-history-main">${escHtml(finalText)}</div>
+    <div class="subtitle-history-meta">${badge}</div>`;
+  list.appendChild(item);
+  // 最新へ自動スクロール
+  const area=document.getElementById('subtitleHistoryArea');
+  area.scrollTop=area.scrollHeight;
+}
+function toggleSubtitleMic(){subtitleState.isRunning?stopSubtitleMic():startSubtitleMic()}
+function toggleSubtitlePause(){
+  subtitleState.isPaused=!subtitleState.isPaused;
+  const btn=document.getElementById('subtitlePauseBtn');
+  if(subtitleState.isPaused){subtitleState.recognition&&subtitleState.recognition.stop();btn.innerHTML='▶ 再開';document.getElementById('subtitleStatus').textContent='一時停止中'}
+  else{restartSubtitleRecognition();btn.innerHTML='⏸ 一時停止';document.getElementById('subtitleStatus').textContent='通訳中'}
+}
+let subtitleTranslating=false,subtitlePendingText='',subtitleIsRestarting=false;
+function startSubtitleMic(){
+  if(!('webkitSpeechRecognition'in window||'SpeechRecognition'in window)){alert('Chrome推奨です');return}
+  subtitleState.isRunning=true;subtitleState.isPaused=false;
+  subtitleTranslating=false;subtitlePendingText='';subtitleIsRestarting=false;
+  const btn=document.getElementById('subtitleMicBtn');btn.className='subtitle-mic-btn running';btn.innerHTML='⏹ 停止';
+  document.getElementById('subtitlePauseBtn').style.display='';
+  document.getElementById('subtitleDot').classList.add('active');
+  document.getElementById('subtitleStatus').textContent='通訳中';
+  restartSubtitleRecognition();
+}
+function stopSubtitleMic(){
+  subtitleState.isRunning=false;subtitleState.isPaused=false;
+  clearTimeout(subtitleState.timer);
+  subtitleState.buffer='';subtitleTranslating=false;subtitlePendingText='';subtitleIsRestarting=false;
+  if(subtitleState.recognition){
+    const old=subtitleState.recognition;subtitleState.recognition=null;
+    old.onend=null;old.onerror=null;old.onresult=null;
+    try{old.abort()}catch(e){}
+  }
+  const btn=document.getElementById('subtitleMicBtn');btn.className='subtitle-mic-btn idle';btn.innerHTML='🎤 スタート';
+  document.getElementById('subtitlePauseBtn').style.display='none';
+  document.getElementById('subtitleDot').classList.remove('active');document.getElementById('subtitleStatus').textContent='待機中';
+}
+function restartSubtitleRecognition(){
+  if(!subtitleState.isRunning||subtitleState.isPaused||subtitleIsRestarting) return;
+  subtitleIsRestarting=true;
+  if(subtitleState.recognition){
+    const old=subtitleState.recognition;subtitleState.recognition=null;
+    old.onend=null;old.onerror=null;old.onresult=null;
+    try{old.abort()}catch(e){}
+  }
+  const from=document.getElementById('subtitleLangFrom').value;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const r=new SR();r.lang=bcp47Map[from]||'ja-JP';r.continuous=!isIOS;r.interimResults=!isIOS;r.maxAlternatives=1;
+  r.onstart=()=>{ subtitleIsRestarting=false; };
+  r.onresult=(e)=>{
+    if(subtitleState.isPaused)return;
+    let interim='',final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){const tx=e.results[i][0].transcript;e.results[i].isFinal?final+=tx:interim+=tx}
+    const display=interim||final||'';
+    if(display){document.getElementById('subtitleOriginal').textContent=display;document.getElementById('subtitleText').classList.add('translating');document.getElementById('subtitleText').textContent='認識中...'}
+    if(final){subtitleState.buffer+=final+' ';clearTimeout(subtitleState.timer);const delay=isAndroid?300:700;subtitleState.timer=setTimeout(()=>processSubtitleBuffer(),delay)}
+  };
+  r.onend=()=>{
+    subtitleIsRestarting=false;
+    if(!subtitleState.isRunning||subtitleState.isPaused) return;
+    if(subtitleState.buffer.trim()){clearTimeout(subtitleState.timer);processSubtitleBuffer();}
+    const delay=isAndroid?600:200;
+    setTimeout(()=>{if(subtitleState.isRunning&&!subtitleState.isPaused)restartSubtitleRecognition()},delay);
+  };
+  r.onerror=(e)=>{
+    subtitleIsRestarting=false;
+    if(e.error==='no-speech') return;
+    if(e.error==='audio-capture'){document.getElementById('subtitleText').textContent='マイクにアクセスできません';document.getElementById('subtitleText').style.color='#ff6b6b';stopSubtitleMic();return;}
+    if(e.error==='not-allowed'){document.getElementById('subtitleText').textContent='マイク許可が必要です';document.getElementById('subtitleText').style.color='#ff6b6b';stopSubtitleMic();return;}
+    if(e.error!=='aborted'&&subtitleState.isRunning&&!subtitleState.isPaused)setTimeout(()=>restartSubtitleRecognition(),500);
+  };
+  try{r.start();subtitleState.recognition=r;}catch(e){subtitleIsRestarting=false;if(subtitleState.isRunning&&!subtitleState.isPaused)setTimeout(()=>restartSubtitleRecognition(),1000);}
+}
+async function processSubtitleBuffer(){
+  const text=subtitleState.buffer.trim();
+  if(!text) return;
+  subtitleState.buffer='';
+  // 翻訳中なら最新テキストをペンディングに保存（捨てない）
+  if(subtitleTranslating){subtitlePendingText=text;return;}
+  await executeSubtitleTranslation(text);
+  // 完了後にペンディングがあれば続けて処理
+  if(subtitlePendingText){
+    const pending=subtitlePendingText;subtitlePendingText='';
+    await executeSubtitleTranslation(pending);
+  }
+}
+async function executeSubtitleTranslation(text){
+  subtitleTranslating=true;
+  const from=document.getElementById('subtitleLangFrom').value,to=document.getElementById('subtitleLangTo').value;
+  const hits=applyGlossary(text);
+  const liveEl=document.getElementById('subtitleText');
+  const origEl=document.getElementById('subtitleOriginal');
+
+  // 下エリア：直訳速報を「翻訳中...」で表示
+  liveEl.classList.add('translating');
+  liveEl.textContent='翻訳中...';
+
+  try{
+    let translated, backTranslation, backOk, finalText;
+    const canVerifyAndFix = (state.engine==='claude'&&state.claudeKey)||(state.engine==='gemini'&&state.geminiKey);
+
+    if(state.engine==='gemini'&&state.geminiKey){
+      const r=await translateWithGemini(text,from,to,hits);
+      translated=r.translated; backTranslation=r.backTranslation; backOk=r.backOk!==false;
+    } else if(state.engine==='claude'&&state.claudeKey){
+      const r=await translateWithClaude(text,from,to,hits);
+      translated=r.translated; backTranslation=r.backTranslation; backOk=r.backOk!==false;
+    } else if(state.engine==='google'&&state.googleKey){
+      const r=await translateWithGoogle(text,from,to);
+      translated=r.translated; backTranslation=r.backTranslation;
+      const negMismatch=detectNegationMismatch(text,backTranslation||'');
+      backOk=!negMismatch;
+    } else {
+      const r=await translateWithMyMemory(text,from,to,false); // skipBack=false で逆翻訳あり
+      translated=r.translated; backTranslation=r.backTranslation;
+      const negMismatch=detectNegationMismatch(text,backTranslation||'');
+      backOk=backTranslation?!negMismatch:true;
+    }
+
+    subtitleState.currentTranslated=translated;
+
+    // 下エリア：直訳を速報表示
+    liveEl.classList.remove('translating');
+    liveEl.textContent=translated;
+
+    // Claude/Gemini：修正済み正訳をbackTranslationから判定して上に追加
+    // MyMemory/Google：ズレ検出結果をそのまま上に追加
+    if(canVerifyAndFix){
+      // Claude/GeminiはbackOkで既に検証・修正済み
+      finalText = translated;
+      addSubtitleHistoryItem(finalText, backOk?'ok':'warn');
+    } else {
+      // MyMemory/Google：逆翻訳でズレ検出のみ
+      finalText = translated;
+      addSubtitleHistoryItem(finalText, backOk?'ok':'warn');
+    }
+
+    if(state.autoSpeak) speak(finalText, to);
+
+  }catch(e){
+    liveEl.classList.remove('translating');
+    liveEl.style.color='#ff6b6b';
+    liveEl.textContent='翻訳エラー: '+e.message;
+  }finally{subtitleTranslating=false}
+}
+
+// ===== 用語集 =====
+function openGlossary(){renderGlossaryList();document.getElementById('glossaryModal').classList.add('open')}
+function closeGlossary(){document.getElementById('glossaryModal').classList.remove('open')}
+function switchGlossaryTab(tab,btn){
+  state.currentGlossaryTab=tab;
+  document.querySelectorAll('.glossary-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  document.getElementById('addGlossaryForm').style.display=tab==='custom'?'block':'none';
+  document.getElementById('glossarySearch').value='';renderGlossaryList();
+}
+function renderGlossaryList(){
+  const q=document.getElementById('glossarySearch').value.toLowerCase();
+  let list=state.currentGlossaryTab==='official'?OFFICIAL_GLOSSARY:state.currentGlossaryTab==='care'?CARE_GLOSSARY:loadCustomGlossary();
+  if(q)list=list.filter(i=>i.term.includes(q)||i.simple.includes(q)||(i.note||'').includes(q));
+  const isCust=state.currentGlossaryTab==='custom';
+  const el=document.getElementById('glossaryList');
+  if(!list.length){el.innerHTML=`<div style="padding:20px;text-align:center;color:var(--text-small);font-size:13px">—</div>`;return}
+  el.innerHTML=list.map((item,idx)=>`
+    <div class="glossary-item">
+      <div class="glossary-item-content">
+        <div class="glossary-term">${escHtml(item.term)}</div>
+        <div class="glossary-simple">→ ${escHtml(item.simple)}</div>
+        ${item.note?`<div class="glossary-note">${escHtml(item.note)}</div>`:''}
+      </div>
+      ${isCust?`<button class="glossary-del-btn" onclick="deleteCustomTerm(${idx})">🗑</button>`:''}
+    </div>`).join('');
+}
+function addCustomTerm(){
+  const term=document.getElementById('newTerm').value.trim(),simple=document.getElementById('newSimple').value.trim(),note=document.getElementById('newNote').value.trim();
+  if(!term||!simple){showToast(t('term_required'));return}
+  const list=loadCustomGlossary();list.unshift({term,simple,note});saveCustomGlossary(list);
+  document.getElementById('newTerm').value='';document.getElementById('newSimple').value='';document.getElementById('newNote').value='';
+  renderGlossaryList();showToast(t('added'));
+}
+function deleteCustomTerm(idx){const list=loadCustomGlossary();list.splice(idx,1);saveCustomGlossary(list);renderGlossaryList();showToast(t('deleted'))}
+
+// ===== 設定 =====
+function openSettings(){loadSettingsUI();document.getElementById('settingsModal').classList.add('open')}
+function closeSettings(){document.getElementById('settingsModal').classList.remove('open')}
+function selectEngine(e,btn){
+  state.engine=e;
+  document.querySelectorAll('.engine-opt').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');
+  document.getElementById('googleKeyGroup').style.display=e==='google'?'block':'none';
+  document.getElementById('claudeKeyGroup').style.display=e==='claude'?'block':'none';
+  document.getElementById('geminiKeyGroup').style.display=e==='gemini'?'block':'none';
+}
+function saveSettings(){
+  state.googleKey=document.getElementById('googleApiKey').value;
+  state.claudeKey=document.getElementById('claudeApiKey').value;
+  state.geminiKey=document.getElementById('geminiApiKey').value;
+  state.politeMode=document.getElementById('politeMode').checked;
+  state.riskWarning=document.getElementById('riskWarning').checked;
+  state.autoSpeak=document.getElementById('autoSpeak').checked;
+  state.liveBackTranslate=document.getElementById('liveBackTranslate').checked;
+  if(state.googleKey) localStorage.setItem('careVoiceGoogleKey',state.googleKey);
+  if(state.claudeKey) localStorage.setItem('careVoiceClaudeKey',state.claudeKey);
+  if(state.geminiKey) localStorage.setItem('careVoiceGeminiKey',state.geminiKey);
+  localStorage.setItem('careVoiceEngine',state.engine);
+  localStorage.setItem('careVoicePolite',state.politeMode);
+  localStorage.setItem('careVoiceRisk',state.riskWarning);
+  localStorage.setItem('careVoiceAutoSpeak',state.autoSpeak);
+  localStorage.setItem('careVoiceLiveBack',state.liveBackTranslate);
+  closeSettings();showToast(t('saved'));
+}
+function loadSettingsUI(){
+  document.getElementById('politeMode').checked=state.politeMode;
+  document.getElementById('riskWarning').checked=state.riskWarning;
+  document.getElementById('autoSpeak').checked=state.autoSpeak;
+  document.getElementById('liveBackTranslate').checked=state.liveBackTranslate;
+  document.getElementById('googleApiKey').value=state.googleKey;
+  document.getElementById('claudeApiKey').value=state.claudeKey;
+  document.getElementById('geminiApiKey').value=state.geminiKey;
+  document.querySelectorAll('.engine-opt').forEach(b=>b.classList.remove('selected'));
+  const idx={mymemory:0,google:1,claude:2,gemini:3}[state.engine]??0;
+  document.querySelectorAll('.engine-opt')[idx]?.classList.add('selected');
+  document.getElementById('googleKeyGroup').style.display=state.engine==='google'?'block':'none';
+  document.getElementById('claudeKeyGroup').style.display=state.engine==='claude'?'block':'none';
+  document.getElementById('geminiKeyGroup').style.display=state.engine==='gemini'?'block':'none';
+  renderSettingsHistory();
+  // Firebase
+  document.getElementById('firebaseEnabled').checked=state.firebaseEnabled;
+  document.getElementById('firebaseConfigArea').style.display=state.firebaseEnabled?'block':'none';
+  if(state.firebaseConfig) document.getElementById('firebaseConfigJson').value=JSON.stringify(state.firebaseConfig,null,2);
+}
+function onFirebaseToggle(){
+  const enabled=document.getElementById('firebaseEnabled').checked;
+  document.getElementById('firebaseConfigArea').style.display=enabled?'block':'none';
+}
+async function applyFirebaseConfig(){
+  const jsonStr=document.getElementById('firebaseConfigJson').value.trim();
+  const resultEl=document.getElementById('firebaseTestResult');
+  try{
+    const cfg=JSON.parse(jsonStr);
+    if(!cfg.apiKey||!cfg.projectId) throw new Error('apiKeyとprojectIdが必要です');
+    state.firebaseConfig=cfg;state.firebaseEnabled=true;
+    localStorage.setItem('careVoiceFirebaseConfig',jsonStr);
+    localStorage.setItem('careVoiceFirebaseEnabled','true');
+    await initFirebase(cfg);
+    resultEl.innerHTML='<span style="color:var(--accent)">✓ 接続成功</span>';
+    // Firebase接続ステータス表示も更新
+    const fbStatusEl = document.getElementById('fbStatus');
+    if (fbStatusEl) { fbStatusEl.textContent = t('firebase_connected'); fbStatusEl.className = 'firebase-status connected'; }
+    showToast(t('saved'));
+  }catch(e){
+    resultEl.innerHTML=`<span style="color:var(--warn)">✗ エラー: ${escHtml(e.message)}</span>`;
+  }
+}
+
+// ===== 翻訳履歴 =====
+let transHistory=JSON.parse(localStorage.getItem('careVoiceHistory')||'[]');
+function addTransHistory(from,to,original,translated){
+  transHistory.unshift({time:new Date().toLocaleTimeString('ja-JP'),from,to,original,translated});
+  if(transHistory.length>50) transHistory=transHistory.slice(0,50);
+  localStorage.setItem('careVoiceHistory',JSON.stringify(transHistory));
+}
+function renderSettingsHistory(){
+  const el=document.getElementById('settingsHistoryList');
+  if(!el) return;
+  if(!transHistory.length){el.innerHTML='<div style="color:var(--text-small);font-size:12px;padding:6px 0">履歴はありません</div>';return}
+  el.innerHTML=transHistory.slice(0,10).map(h=>`
+    <div class="history-list-item">
+      <div class="history-item-time">${h.time} &nbsp; ${langNames[h.from]||h.from} → ${langNames[h.to]||h.to}</div>
+      <div class="history-item-orig">${escHtml(h.original)}</div>
+      <div class="history-item-trans">${escHtml(h.translated)}</div>
+    </div>`).join('');
+}
+function exportHistoryCSV(){
+  if(!transHistory.length){showToast('履歴がありません');return}
+  const bom='\uFEFF';
+  const csv=bom+'時刻,元言語,対象言語,原文,翻訳\n'+
+    transHistory.map(h=>[h.time,h.from,h.to,'"'+h.original.replace(/"/g,'""')+'"','"'+h.translated.replace(/"/g,'""')+'"'].join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='careVoice_history_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  showToast('CSVを保存しました');
+}
+function clearTransHistory(){
+  transHistory=[];localStorage.removeItem('careVoiceHistory');
+  renderSettingsHistory();showToast('履歴をクリアしました');
+}
+
+// ===== ユーティリティ =====
+function copyText(tx){navigator.clipboard.writeText(tx).then(()=>showToast(t('copied')))}
+function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500)}
+function escHtml(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function escJs(s){if(!s)return'';return s.replace(/'/g,"\\'").replace(/\n/g,'\\n')}
+
+</script>
+<script>
+// ===== 研修フレーズデータ（60フレーズ × 8言語） =====
+const TRAINING_PHRASES = [
+  // 全般 (general)
+  {scene:'general',ja:'おはようございます',en:'Good morning',my:'မင်္ဂလာနံနက်ခင်းပါ',id:'Selamat pagi',vi:'Chào buổi sáng',tl:'Magandang umaga',zh:'早上好',ko:'좋은 아침이에요'},
+  {scene:'general',ja:'こんにちは',en:'Hello',my:'မင်္ဂလာပါ',id:'Halo',vi:'Xin chào',tl:'Kumusta',zh:'你好',ko:'안녕하세요'},
+  {scene:'general',ja:'お元気ですか？',en:'How are you?',my:'ကျန်းမာပါသလား？',id:'Apa kabar?',vi:'Bạn có khỏe không?',tl:'Kumusta po kayo?',zh:'你好吗？',ko:'잘 지내세요?'},
+  {scene:'general',ja:'気分はいかがですか？',en:'How are you feeling?',my:'ခုဘယ်လိုခံစားရသလဲ？',id:'Bagaimana perasaan Anda?',vi:'Bạn cảm thấy thế nào?',tl:'Paano ang inyong pakiramdam?',zh:'你感觉怎么样？',ko:'기분이 어떠세요?'},
+  {scene:'general',ja:'お手伝いできることはありますか？',en:'Is there anything I can help you with?',my:'ကူညီပေးနိုင်မလား？',id:'Apakah ada yang bisa saya bantu?',vi:'Tôi có thể giúp gì cho bạn không?',tl:'May maitutulong ba ako sa inyo?',zh:'有什么我可以帮助您的吗？',ko:'도움이 필요하신가요?'},
+  {scene:'general',ja:'少し待ってください',en:'Please wait a moment',my:'ခဏစောင့်ပေးပါ',id:'Mohon tunggu sebentar',vi:'Vui lòng chờ một chút',tl:'Sandali lang po',zh:'请稍等',ko:'잠시만 기다려 주세요'},
+  {scene:'general',ja:'もう一度言ってください',en:'Please say that again',my:'တစ်ခါထပ်ပြောပေးပါ',id:'Tolong ulangi lagi',vi:'Vui lòng nói lại',tl:'Pakiulit po',zh:'请再说一遍',ko:'다시 한번 말씀해 주세요'},
+  {scene:'general',ja:'わかりましたか？',en:'Do you understand?',my:'နားလည်ပါသလား？',id:'Apakah Anda mengerti?',vi:'Bạn có hiểu không?',tl:'Naiintindihan po ba ninyo?',zh:'您明白了吗？',ko:'이해하셨나요?'},
+  {scene:'general',ja:'薬を飲む時間です',en:"It's time to take your medicine",my:'ဆေးသောက်ချိန်ရောက်ပြီ',id:'Waktunya minum obat',vi:'Đến giờ uống thuốc rồi',tl:'Oras na pong uminom ng gamot',zh:'该吃药了',ko:'약 먹을 시간이에요'},
+  {scene:'general',ja:'よく眠れましたか？',en:'Did you sleep well?',my:'အိပ်ရေးဝပါသလား？',id:'Apakah Anda tidur nyenyak?',vi:'Bạn ngủ ngon không?',tl:'Nakatulog po ba kayo nang maayos?',zh:'睡得好吗？',ko:'잘 주무셨나요?'},
+  {scene:'general',ja:'痛いところはありますか？',en:'Are you in any pain?',my:'နာကျင်မှုရှိပါသလား？',id:'Apakah ada bagian yang sakit?',vi:'Bạn có bị đau ở đâu không?',tl:'May masakit po ba kayo?',zh:'有哪里疼吗？',ko:'어디 아픈 데 있으세요?'},
+  {scene:'general',ja:'ゆっくり休んでください',en:'Please rest well',my:'ကောင်းကောင်းနားပါ',id:'Silakan beristirahat',vi:'Vui lòng nghỉ ngơi',tl:'Magpahinga po kayo',zh:'请好好休息',ko:'편히 쉬세요'},
+  {scene:'general',ja:'何か困っていることはありますか？',en:'Is there anything troubling you?',my:'ဘာပြဿနာရှိပါသလား？',id:'Apakah ada yang menjadi masalah?',vi:'Bạn có gặp khó khăn gì không?',tl:'May problema po ba kayo?',zh:'有什么烦心事吗？',ko:'무엇이 걱정되시나요?'},
+  {scene:'general',ja:'ご家族に連絡しますか？',en:'Shall I contact your family?',my:'မိသားစုကိုဆက်သွယ်ပေးရမလား？',id:'Apakah saya perlu menghubungi keluarga Anda?',vi:'Tôi có cần liên hệ với gia đình bạn không?',tl:'Makikipag-ugnayan ba ako sa inyong pamilya?',zh:'要联系您的家人吗？',ko:'가족에게 연락할까요?'},
+  {scene:'general',ja:'おやすみなさい',en:'Good night',my:'နားနေပါ',id:'Selamat malam',vi:'Chúc ngủ ngon',tl:'Magpahinga na po kayo',zh:'晚安',ko:'안녕히 주무세요'},
+  // 食事介助 (meal)
+  {scene:'meal',ja:'お食事のお時間です',en:"It's mealtime",my:'ထမင်းစားချိန်ဖြစ်သည်',id:'Waktunya makan',vi:'Đến giờ ăn rồi',tl:'Oras na pong kumain',zh:'到吃饭时间了',ko:'식사 시간입니다'},
+  {scene:'meal',ja:'ゆっくり噛んでください',en:'Please chew slowly',my:'ဖြည်းဖြည်းချင်းကိုက်ပါ',id:'Mohon kunyah perlahan',vi:'Vui lòng nhai chậm chậm',tl:'Dahan-dahan po ngumunguya',zh:'请慢慢咀嚼',ko:'천천히 씹으세요'},
+  {scene:'meal',ja:'熱いので気をつけてください',en:"Please be careful, it's hot",my:'ပူသောကြောင့် သတိထားပါ',id:'Hati-hati, ini panas',vi:'Cẩn thận, nóng lắm',tl:'Mag-ingat po, mainit ito',zh:'很烫，请小心',ko:'뜨거우니 조심하세요'},
+  {scene:'meal',ja:'水分を取ってください',en:'Please drink some water',my:'ရေသောက်ပါ',id:'Tolong minum air',vi:'Vui lòng uống nước',tl:'Uminom po ng tubig',zh:'请补充水分',ko:'수분을 섭취해 주세요'},
+  {scene:'meal',ja:'アレルギーはありますか？',en:'Do you have any allergies?',my:'ဓာတ်မတည့်မှုရှိသလား？',id:'Apakah Anda punya alergi?',vi:'Bạn có bị dị ứng không?',tl:'Mayroon po bang allergy kayo?',zh:'您有过敏症吗？',ko:'알레르기가 있으신가요?'},
+  {scene:'meal',ja:'お口をあけてください',en:'Please open your mouth',my:'ပါးစပ်ဖွင့်ပေးပါ',id:'Tolong buka mulut Anda',vi:'Vui lòng mở miệng',tl:'Buksan po ang bibig ninyo',zh:'请张嘴',ko:'입을 벌려 주세요'},
+  {scene:'meal',ja:'もう少し食べられますか？',en:'Can you eat a little more?',my:'ကြိုးစားဆက်စားနိုင်မလား？',id:'Bisakah Anda makan sedikit lagi?',vi:'Bạn có thể ăn thêm một chút không?',tl:'Kaya pa bang kumain ng kaunti?',zh:'还能再吃一点吗？',ko:'조금 더 드실 수 있으신가요?'},
+  {scene:'meal',ja:'ストローを使いますか？',en:'Would you like to use a straw?',my:'ဆောင်ဖြင့်သောက်မလား？',id:'Apakah Anda mau menggunakan sedotan?',vi:'Bạn có muốn dùng ống hút không?',tl:'Gusto po ba ninyong gumamit ng straw?',zh:'要用吸管吗？',ko:'빨대를 사용하시겠어요?'},
+  {scene:'meal',ja:'食欲はありますか？',en:'Do you have an appetite?',my:'ဆာသလား？',id:'Apakah Anda punya nafsu makan?',vi:'Bạn có muốn ăn không?',tl:'May gana po ba kayong kumain?',zh:'有食欲吗？',ko:'식욕이 있으신가요?'},
+  {scene:'meal',ja:'食事の準備ができました',en:'Your meal is ready',my:'ထမင်းပြင်ဆင်ပြီးပြီ',id:'Makanan Anda sudah siap',vi:'Bữa ăn của bạn đã sẵn sàng',tl:'Handa na po ang inyong pagkain',zh:'您的饭菜已经准备好了',ko:'식사 준비가 됐습니다'},
+  {scene:'meal',ja:'とろみをつけています',en:"I've added thickener",my:'ထူမှုပစ္စည်းထည့်ထားသည်',id:'Sudah ditambahkan pengental',vi:'Tôi đã thêm chất làm đặc',tl:'May nagdagdag na po ng pampalapot',zh:'已经加了增稠剂',ko:'점도 증진제를 넣었습니다'},
+  {scene:'meal',ja:'食事を片付けます',en:"I'll clear away your meal",my:'ထမင်းပန်းကန်သိမ်းမည်',id:'Saya akan membereskan makanan',vi:'Tôi sẽ dọn bữa ăn',tl:'Aalisin ko na po ang inyong pagkain',zh:'我来收拾餐具',ko:'식사를 치우겠습니다'},
+  // 排泄介助 (toilet)
+  {scene:'toilet',ja:'トイレに行きたいですか？',en:'Do you need to use the toilet?',my:'အိမ်သာသွားချင်သလား？',id:'Apakah Anda ingin ke toilet?',vi:'Bạn có muốn đi vệ sinh không?',tl:'Gusto po ba ninyong pumunta sa CR?',zh:'您需要上厕所吗？',ko:'화장실에 가고 싶으신가요?'},
+  {scene:'toilet',ja:'おむつを換えます',en:"I'll change your diaper",my:'ဒိုင်ပါ(ဖြာ)လဲပေးမည်',id:'Saya akan mengganti popok Anda',vi:'Tôi sẽ thay bỉm cho bạn',tl:'Papalitan ko na po ang inyong diaper',zh:'我来换尿布',ko:'기저귀를 갈아드릴게요'},
+  {scene:'toilet',ja:'尿意はありますか？',en:'Do you feel the urge to urinate?',my:'ဆီးသွားချင်သလား？',id:'Apakah Anda ingin buang air kecil?',vi:'Bạn có muốn đi tiểu không?',tl:'Gusto po ba ninyong umihi?',zh:'您有尿意吗？',ko:'소변이 마렵으신가요?'},
+  {scene:'toilet',ja:'排便はありましたか？',en:'Have you had a bowel movement?',my:'ဝမ်းသွားပြီးပြီလား？',id:'Apakah Anda sudah buang air besar?',vi:'Bạn đã đi đại tiện chưa?',tl:'Nakapag-dumi na po ba kayo?',zh:'您有排便吗？',ko:'배변은 하셨나요?'},
+  {scene:'toilet',ja:'下着を換えます',en:"I'll change your underwear",my:'အတွင်းဝတ်(ဖြာ)လဲပေးမည်',id:'Saya akan mengganti pakaian dalam Anda',vi:'Tôi sẽ thay đồ lót cho bạn',tl:'Papalitan ko na po ang inyong damit-pang-ilalim',zh:'我来换内衣',ko:'속옷을 갈아드릴게요'},
+  {scene:'toilet',ja:'ポータブルトイレを持ってきます',en:"I'll bring the portable toilet",my:'ခုတင်ဘေးသုံးအိမ်သာယူလာမည်',id:'Saya akan membawa toilet portabel',vi:'Tôi sẽ mang bô đến',tl:'Dadalhin ko na po ang portable na CR',zh:'我去拿便携式马桶',ko:'간이 변기를 가져오겠습니다'},
+  {scene:'toilet',ja:'清拭します',en:"I'll clean you up",my:'သန့်ရှင်းပေးမည်',id:'Saya akan membersihkan Anda',vi:'Tôi sẽ lau sạch cho bạn',tl:'Lilinisin ko po kayo',zh:'我来帮您擦拭清洁',ko:'닦아드리겠습니다'},
+  {scene:'toilet',ja:'トイレが終わったら呼んでください',en:'Please call me when you are done',my:'အပြီးတော့ ခေါ်ပေးပါ',id:'Tolong panggil saya kalau sudah selesai',vi:'Vui lòng gọi tôi khi bạn xong',tl:'Tawagan ninyo ako pagkatapos',zh:'结束后请叫我',ko:'끝나시면 불러 주세요'},
+  {scene:'toilet',ja:'お手伝いします',en:"I'll help you",my:'ကူညီမည်',id:'Saya akan membantu',vi:'Tôi sẽ giúp bạn',tl:'Tutulungan ko po kayo',zh:'我来帮您',ko:'도와드리겠습니다'},
+  {scene:'toilet',ja:'失禁はありましたか？',en:'Did you have any incontinence?',my:'မထင်မှတ်ဘဲ ဆီးသွားသွားသလား？',id:'Apakah ada inkontinensia?',vi:'Bạn có bị tiểu không tự chủ không?',tl:'Mayroon po bang nangyaring aksidenteng pag-ihi?',zh:'有失禁情况吗？',ko:'실금이 있으셨나요?'},
+  {scene:'toilet',ja:'リハビリパンツを着けます',en:"I'll put on the rehab pants",my:'ကုသမှုဘောင်းဘီ ဝတ်ပေးမည်',id:'Saya akan memakaikan celana rehabilitasi',vi:'Tôi sẽ mặc quần phục hồi chức năng cho bạn',tl:'Isusuot ko na po ang rehab pants ninyo',zh:'我来帮您穿康复裤',ko:'재활 바지를 입혀드릴게요'},
+  // 入浴介助 (bath)
+  {scene:'bath',ja:'お風呂に入りましょう',en:"Let's take a bath",my:'ရေချိုးကြပါစို့',id:'Mari mandi',vi:'Hãy tắm nào',tl:'Maligo na tayo',zh:'我们去洗澡吧',ko:'목욕하러 가요'},
+  {scene:'bath',ja:'シャワーにしますか？',en:'Would you prefer a shower?',my:'ရေပိုက်ဆောင်ဖြင့်ချိုးမလား？',id:'Apakah Anda lebih suka shower?',vi:'Bạn có muốn tắm vòi sen không?',tl:'Shower na lang po ba kayo?',zh:'您更喜欢淋浴吗？',ko:'샤워로 하시겠어요?'},
+  {scene:'bath',ja:'お湯の温度はいかがですか？',en:'How is the water temperature?',my:'ရေပူ အပူချိန်ဘယ်လိုလဲ？',id:'Bagaimana suhu airnya?',vi:'Nhiệt độ nước thế nào?',tl:'Kumusta ang temperatura ng tubig?',zh:'水温怎么样？',ko:'물 온도는 어떠세요?'},
+  {scene:'bath',ja:'身体を洗います',en:"I'll wash your body",my:'ကိုယ်ကိုဆေးကြောပေးမည်',id:'Saya akan memandikan Anda',vi:'Tôi sẽ tắm cho bạn',tl:'Liliguhin ko po kayo',zh:'我来帮您洗澡',ko:'몸을 씻겨드릴게요'},
+  {scene:'bath',ja:'頭を洗います',en:"I'll wash your hair",my:'ဆံပင်ဆေးကြောပေးမည်',id:'Saya akan keramas untuk Anda',vi:'Tôi sẽ gội đầu cho bạn',tl:'Huhugasan ko na po ang inyong buhok',zh:'我来帮您洗头',ko:'머리를 감겨드릴게요'},
+  {scene:'bath',ja:'タオルで拭きます',en:"I'll dry you with a towel",my:'သန့်ပတ်ဖြင့်သုတ်ပေးမည်',id:'Saya akan mengeringkan Anda dengan handuk',vi:'Tôi sẽ lau khô cho bạn bằng khăn',tl:'Papunasan ko po kayo ng tuwalya',zh:'我用毛巾帮您擦',ko:'수건으로 닦아드릴게요'},
+  {scene:'bath',ja:'着替えを手伝います',en:"I'll help you get dressed",my:'ဝတ်စားဆင်ယင်ရာ ကူညီမည်',id:'Saya akan membantu Anda berganti pakaian',vi:'Tôi sẽ giúp bạn thay quần áo',tl:'Tutulong ako sa pagbibihis ninyo',zh:'我来帮您换衣服',ko:'옷 갈아입는 것을 도와드릴게요'},
+  {scene:'bath',ja:'気持ちよかったですか？',en:'Did that feel good?',my:'ကောင်းကောင်းခံစားရသလား？',id:'Apakah itu terasa nyaman?',vi:'Có thoải mái không?',tl:'Nakaramdam po ba kayo ng ginhawa?',zh:'感觉舒服吗？',ko:'기분이 좋으셨나요?'},
+  {scene:'bath',ja:'石鹸を使います',en:"I'll use soap",my:'ဆပ်ပြာသုံးမည်',id:'Saya akan menggunakan sabun',vi:'Tôi sẽ dùng xà phòng',tl:'Gagamit ako ng sabon',zh:'我来用香皂',ko:'비누를 사용할게요'},
+  // バイタル (vital)
+  {scene:'vital',ja:'体温を測ります',en:"I'll take your temperature",my:'ကိုယ်အပူချိန်တိုင်းမည်',id:'Saya akan mengukur suhu tubuh Anda',vi:'Tôi sẽ đo nhiệt độ cơ thể bạn',tl:'Susukatín ko po ang inyong temperatura',zh:'我来量体温',ko:'체온을 재겠습니다'},
+  {scene:'vital',ja:'血圧を測ります',en:"I'll measure your blood pressure",my:'သွေးဖိအားတိုင်းမည်',id:'Saya akan mengukur tekanan darah Anda',vi:'Tôi sẽ đo huyết áp của bạn',tl:'Susukatín ko po ang inyong blood pressure',zh:'我来量血压',ko:'혈압을 측정하겠습니다'},
+  {scene:'vital',ja:'脈拍を測ります',en:"I'll check your pulse",my:'နှလုံးခုန်နှုန်းစစ်ဆေးမည်',id:'Saya akan memeriksa denyut nadi Anda',vi:'Tôi sẽ kiểm tra mạch của bạn',tl:'Susuriin ko po ang inyong pulso',zh:'我来测量脉搏',ko:'맥박을 측정하겠습니다'},
+  {scene:'vital',ja:'腕を出してください',en:'Please extend your arm',my:'လက်မောင်းထုတ်ပေးပါ',id:'Tolong luruskan lengan Anda',vi:'Vui lòng đưa tay ra',tl:'Pakiilabas po ang inyong braso',zh:'请把手臂伸出来',ko:'팔을 내주세요'},
+  {scene:'vital',ja:'少し動かないでください',en:'Please stay still for a moment',my:'ခဏမှုလှုပ်မနေပါနဲ့',id:'Mohon jangan bergerak sebentar',vi:'Vui lòng đứng im một chút',tl:'Sandali pong huwag gumalaw',zh:'请暂时不要动',ko:'잠시 움직이지 마세요'},
+  {scene:'vital',ja:'体重を測ります',en:"I'll weigh you",my:'ကိုယ်အလေးချိန်တိုင်းမည်',id:'Saya akan menimbang badan Anda',vi:'Tôi sẽ cân bạn',tl:'Timbangin ko na po kayo',zh:'我来量体重',ko:'몸무게를 재겠습니다'},
+  {scene:'vital',ja:'酸素濃度を測ります',en:"I'll measure your oxygen saturation",my:'အောက်စီဂျင်ပမာဏတိုင်းမည်',id:'Saya akan mengukur saturasi oksigen Anda',vi:'Tôi sẽ đo nồng độ oxy của bạn',tl:'Susukatín ko po ang inyong oxygen level',zh:'我来测量血氧浓度',ko:'산소포화도를 측정하겠습니다'},
+  {scene:'vital',ja:'熱があります',en:'You have a fever',my:'အဖျားတက်နေသည်',id:'Anda demam',vi:'Bạn bị sốt',tl:'Mayroon po kayong lagnat',zh:'您发烧了',ko:'열이 있으세요'},
+  {scene:'vital',ja:'血糖値を測ります',en:"I'll check your blood sugar",my:'သကြားဓာတ်စစ်ဆေးမည်',id:'Saya akan mengecek gula darah Anda',vi:'Tôi sẽ kiểm tra đường huyết của bạn',tl:'Susuriin ko po ang inyong blood sugar',zh:'我来测血糖',ko:'혈당을 측정하겠습니다'},
+  // 緊急 (emergency)
+  {scene:'emergency',ja:'大丈夫ですか？',en:'Are you okay?',my:'အဆင်ပြေပါသလား？',id:'Apakah Anda baik-baik saja?',vi:'Bạn có ổn không?',tl:'Okay po ba kayo?',zh:'您还好吗？',ko:'괜찮으세요?'},
+  {scene:'emergency',ja:'医師を呼びます',en:"I'll call the doctor",my:'ဆရာဝန်ခေါ်မည်',id:'Saya akan memanggil dokter',vi:'Tôi sẽ gọi bác sĩ',tl:'Tatawagin ko na po ang doktor',zh:'我去叫医生',ko:'의사를 부르겠습니다'},
+  {scene:'emergency',ja:'痛みはありますか？',en:'Are you in pain?',my:'နာကျင်မှုရှိပါသလား？',id:'Apakah Anda merasa sakit?',vi:'Bạn có đau không?',tl:'Mayroon po bang kirot kayo?',zh:'您感到疼痛吗？',ko:'통증이 있으신가요?'},
+  {scene:'emergency',ja:'どこが痛いですか？',en:'Where does it hurt?',my:'ဘယ်နေရာနာသလဲ？',id:'Di mana yang sakit?',vi:'Bạn đau ở đâu?',tl:'Saan po masakit?',zh:'哪里疼？',ko:'어디가 아프세요?'},
+  {scene:'emergency',ja:'救急車を呼びます',en:"I'll call an ambulance",my:'အရေးပေါ်ကားခေါ်မည်',id:'Saya akan memanggil ambulans',vi:'Tôi sẽ gọi xe cấp cứu',tl:'Tatawagin ko na po ang ambulansya',zh:'我去叫救护车',ko:'구급차를 부르겠습니다'},
+  {scene:'emergency',ja:'意識はありますか？',en:'Are you conscious?',my:'သတိရှိပါသလား？',id:'Apakah Anda sadar?',vi:'Bạn có tỉnh táo không?',tl:'Malay po ba kayo?',zh:'您有意识吗？',ko:'의식이 있으세요?'},
+  {scene:'emergency',ja:'安静にしていてください',en:'Please remain still',my:'ငြိမ်ငြိမ်နေပါ',id:'Mohon tetap tenang dan jangan bergerak',vi:'Vui lòng nằm yên',tl:'Huwag pong gumalaw',zh:'请保持安静不要动',ko:'안정을 유지해 주세요'},
+];
+
+// ===== 研修 状態 =====
+let trainingState = {
+  mode: 'quiz',         // 'quiz' | 'flashcard'
+  scene: 'all',
+  direction: 'ja_foreign', // 'ja_foreign' | 'foreign_ja'
+  phrases: [],          // current session phrases
+  current: 0,
+  score: 0,
+  incorrect: [],        // missed phrases
+  answered: false,
+  fcRevealed: false,
+  fcKnew: 0,
+  fcKnewSet: new Set(), // インデックスで「知ってた」を管理（前へ戻り対応）
+  targetLang: 'my',     // determined from langTo
+  fbCustomPhrases: [],  // phrases from Firebase
+};
+
+// ===== 研修ホーム =====
+function renderTrainingHome() {
+  trainingState.targetLang = document.getElementById('langTo')?.value || 'my';
+}
+function selectTrainingScene(scene, btn) {
+  trainingState.scene = scene;
+  document.querySelectorAll('.training-scene-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function setTrainingDir(dir, btn) {
+  trainingState.direction = dir;
+  document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function getPhraseText(phrase, lang) {
+  // supported pre-translated langs
+  const map = {ja:'ja',my:'my',id:'id',vi:'vi',tl:'tl',en:'en',zh:'zh',ko:'ko'};
+  return phrase[map[lang]] || phrase.en || phrase.ja;
+}
+
+function getSessionPhrases(scene) {
+  let pool = scene === 'all' ? TRAINING_PHRASES : TRAINING_PHRASES.filter(p => p.scene === scene);
+  // merge Firebase custom phrases
+  if (trainingState.fbCustomPhrases.length) pool = [...pool, ...trainingState.fbCustomPhrases];
+  // shuffle and take up to 10
+  return shuffle([...pool]).slice(0, 10);
+}
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ===== クイズ開始 =====
+function startTraining(mode) {
+  trainingState.targetLang = document.getElementById('langTo')?.value || 'my';
+  trainingState.mode = mode;
+  trainingState.phrases = getSessionPhrases(trainingState.scene);
+  trainingState.current = 0;
+  trainingState.score = 0;
+  trainingState.incorrect = [];
+  trainingState.fcKnew = 0;
+  trainingState.fcKnewSet = new Set();
+
+  document.getElementById('trainingHome').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'none';
+  document.getElementById('flashcardScreen').style.display = 'none';
+  document.getElementById('resultsScreen').style.display = 'none';
+
+  if (mode === 'quiz') {
+    document.getElementById('quizScreen').style.display = 'block';
+    renderQuizQuestion();
+  } else {
+    document.getElementById('flashcardScreen').style.display = 'block';
+    renderFlashcard();
+  }
+}
+
+function exitToTrainingHome() {
+  document.getElementById('trainingHome').style.display = '';
+  document.getElementById('quizScreen').style.display = 'none';
+  document.getElementById('flashcardScreen').style.display = 'none';
+  document.getElementById('resultsScreen').style.display = 'none';
+}
+
+// ===== クイズ =====
+function renderQuizQuestion() {
+  const q = trainingState.phrases[trainingState.current];
+  const total = trainingState.phrases.length;
+  const pct = (trainingState.current / total) * 100;
+  document.getElementById('quizProgressLabel').textContent = `${trainingState.current + 1} / ${total}`;
+  document.getElementById('quizScoreLabel').textContent = `✓ ${trainingState.score}`;
+  document.getElementById('quizProgressFill').style.width = pct + '%';
+  document.getElementById('quizFeedback').style.display = 'none';
+  document.getElementById('quizNextBtn').style.display = 'none';
+  trainingState.answered = false;
+
+  const dir = trainingState.direction;
+  const tLang = trainingState.targetLang;
+  const questionText = dir === 'ja_foreign' ? q.ja : getPhraseText(q, tLang);
+  document.getElementById('quizQuestionLabel').textContent = dir === 'ja_foreign' ? '🇯🇵 日本語' : `🌐 ${langNames[tLang] || tLang}`;
+  document.getElementById('quizQuestionText').textContent = questionText;
+
+  // Build choices: correct + 3 random wrong
+  const correctAnswer = dir === 'ja_foreign' ? getPhraseText(q, tLang) : q.ja;
+  const pool = TRAINING_PHRASES.filter(p => p !== q);
+  const wrongChoices = shuffle(pool).slice(0, 3).map(p => dir === 'ja_foreign' ? getPhraseText(p, tLang) : p.ja);
+  const allChoices = shuffle([correctAnswer, ...wrongChoices]);
+  trainingState.choices = allChoices;
+
+  const choicesEl = document.getElementById('quizChoices');
+  choicesEl.innerHTML = allChoices.map((c, i) =>
+    `<button class="choice-btn" onclick="selectAnswer(${i})">${escHtml(c)}</button>`
+  ).join('');
+}
+
+function selectAnswer(idx) {
+  if (trainingState.answered) return;
+  trainingState.answered = true;
+  const q = trainingState.phrases[trainingState.current];
+  const dir = trainingState.direction;
+  const tLang = trainingState.targetLang;
+  const correctAnswer = dir === 'ja_foreign' ? getPhraseText(q, tLang) : q.ja;
+  const chosen = trainingState.choices[idx];
+  const isCorrect = chosen === correctAnswer;
+
+  const btns = document.querySelectorAll('.choice-btn');
+  btns.forEach((btn, i) => {
+    btn.disabled = true;
+    if (trainingState.choices[i] === correctAnswer) btn.classList.add('correct');
+    else if (i === idx && !isCorrect) btn.classList.add('wrong');
+  });
+
+  const fb = document.getElementById('quizFeedback');
+  if (isCorrect) {
+    trainingState.score++;
+    fb.textContent = '✓ ' + t('training_knew');
+    fb.className = 'quiz-feedback correct';
+    speak(correctAnswer, dir === 'ja_foreign' ? tLang : 'ja');
+  } else {
+    trainingState.incorrect.push(q);
+    fb.textContent = '✗ ' + correctAnswer;
+    fb.className = 'quiz-feedback wrong';
+  }
+  fb.style.display = 'block';
+  document.getElementById('quizNextBtn').style.display = 'block';
+  document.getElementById('quizScoreLabel').textContent = `✓ ${trainingState.score}`;
+}
+
+function nextQuizQuestion() {
+  trainingState.current++;
+  if (trainingState.current >= trainingState.phrases.length) {
+    showQuizResults();
+  } else {
+    renderQuizQuestion();
+  }
+}
+
+function showQuizResults() {
+  document.getElementById('quizScreen').style.display = 'none';
+  document.getElementById('resultsScreen').style.display = 'block';
+  const score = trainingState.score;
+  const total = trainingState.phrases.length;
+  const pct = Math.round((score / total) * 100);
+  document.getElementById('resultsScoreNum').textContent = score;
+  document.getElementById('resultsScoreTotal').textContent = '/ ' + total;
+  document.getElementById('resultsPct').textContent = pct;
+
+  // Firebase save row
+  const saveRow = document.getElementById('resultsSaveRow');
+  if (state.firebaseDb && state.firebaseRoomCode) {
+    saveRow.style.display = 'block';
+    document.getElementById('resultsNickname').value = state.firebaseNickname || '';
+  } else {
+    saveRow.style.display = 'none';
+  }
+
+  // Missed phrases
+  const missedEl = document.getElementById('resultsMissed');
+  const missedList = document.getElementById('resultsMissedList');
+  if (trainingState.incorrect.length > 0) {
+    missedEl.style.display = 'block';
+    const tLang = trainingState.targetLang;
+    const dir = trainingState.direction;
+    missedList.innerHTML = trainingState.incorrect.map(p =>
+      `<div class="results-missed-item">
+        <div class="results-missed-q">${escHtml(dir==='ja_foreign'?p.ja:getPhraseText(p,tLang))}</div>
+        <div class="results-missed-a">${escHtml(dir==='ja_foreign'?getPhraseText(p,tLang):p.ja)}</div>
+      </div>`
+    ).join('');
+  } else {
+    missedEl.style.display = 'none';
+  }
+}
+
+function retryQuiz() {
+  document.getElementById('resultsScreen').style.display = 'none';
+  trainingState.current = 0;
+  trainingState.score = 0;
+  trainingState.incorrect = [];
+  trainingState.fcKnew = 0;
+  trainingState.fcKnewSet = new Set();
+  trainingState.phrases = getSessionPhrases(trainingState.scene);
+  document.getElementById('quizScreen').style.display = 'block';
+  renderQuizQuestion();
+}
+
+// ===== フラッシュカード =====
+function renderFlashcard() {
+  const q = trainingState.phrases[trainingState.current];
+  const total = trainingState.phrases.length;
+  trainingState.fcRevealed = false;
+
+  document.getElementById('fcProgressLabel').textContent = `${trainingState.current + 1} / ${total}`;
+  document.getElementById('fcKnewLabel').textContent = `✓ ${trainingState.fcKnew}`;
+  document.getElementById('fcProgressFill').style.width = ((trainingState.current / total) * 100) + '%';
+  document.getElementById('fcCounter').textContent = `${trainingState.current + 1} / ${total}`;
+
+  const dir = trainingState.direction;
+  const tLang = trainingState.targetLang;
+  document.getElementById('fcFrontText').textContent = dir === 'ja_foreign' ? q.ja : getPhraseText(q, tLang);
+  document.getElementById('fcBackText').textContent = dir === 'ja_foreign' ? getPhraseText(q, tLang) : q.ja;
+  document.getElementById('fcBackText').style.display = 'none';
+  document.getElementById('fcHint').textContent = t('fc_tap');
+  document.getElementById('fcRating').style.display = 'none';
+  document.getElementById('flashcard').style.background = 'var(--surface)';
+}
+
+function revealFlashcard() {
+  if (trainingState.fcRevealed) return;
+  trainingState.fcRevealed = true;
+  const backEl = document.getElementById('fcBackText');
+  backEl.style.display = 'block';
+  document.getElementById('fcHint').textContent = '';
+  document.getElementById('fcRating').style.display = 'grid';
+  speak(backEl.textContent, trainingState.direction === 'ja_foreign' ? trainingState.targetLang : 'ja');
+}
+
+function rateFlashcard(knew) {
+  const idx = trainingState.current;
+  if (knew) {
+    trainingState.fcKnewSet.add(idx);
+    document.getElementById('flashcard').style.background = '#d8f3dc';
+  } else {
+    trainingState.fcKnewSet.delete(idx);
+    document.getElementById('flashcard').style.background = '#fff0f0';
+  }
+  trainingState.fcKnew = trainingState.fcKnewSet.size;
+  setTimeout(() => {
+    trainingState.current++;
+    if (trainingState.current >= trainingState.phrases.length) {
+      showFlashcardResults();
+    } else {
+      renderFlashcard();
+    }
+  }, 400);
+}
+
+function skipFlashcard() {
+  trainingState.current++;
+  if (trainingState.current >= trainingState.phrases.length) {
+    showFlashcardResults();
+  } else {
+    renderFlashcard();
+  }
+}
+
+function prevFlashcard() {
+  if (trainingState.current > 0) {
+    trainingState.current--;
+    renderFlashcard();
+  }
+}
+
+function showFlashcardResults() {
+  document.getElementById('flashcardScreen').style.display = 'none';
+  document.getElementById('resultsScreen').style.display = 'block';
+  const score = trainingState.fcKnew;
+  const total = trainingState.phrases.length;
+  const pct = Math.round((score / total) * 100);
+  document.getElementById('resultsScoreNum').textContent = score;
+  document.getElementById('resultsScoreTotal').textContent = '/ ' + total;
+  document.getElementById('resultsPct').textContent = pct;
+  document.getElementById('resultsSaveRow').style.display = 'none';
+  document.getElementById('resultsMissed').style.display = 'none';
+}
+
+// ===== Firebase セクション UI =====
+function toggleFirebaseSection() {
+  const body = document.getElementById('firebaseSectionBody');
+  const chev = document.getElementById('fbChevron');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chev.textContent = isOpen ? '▼' : '▲';
+}
+function toggleFbGuide() {
+  const guide = document.getElementById('fbGuide');
+  const btn = document.getElementById('fbGuideBtn');
+  const isHidden = guide.style.display === 'none';
+  guide.style.display = isHidden ? 'block' : 'none';
+  btn.textContent = isHidden ? '▼ Firebase 設定ガイドを閉じる' : '▶ Firebase 設定ガイドを見る';
+}
+
+async function connectFirebaseRoom() {
+  const code = document.getElementById('fbRoomCode').value.trim().toUpperCase();
+  if (!code || code.length < 4) { showToast('施設コードを入力してください'); return; }
+  if (!state.firebaseDb) { showToast('Firebaseが設定されていません。設定（⚙️）からFirebaseを有効にしてください。'); return; }
+  state.firebaseRoomCode = code;
+  const btn = document.querySelector('.firebase-connect-btn');
+  btn.textContent = '接続中...'; btn.disabled = true;
+  try {
+    const doc = await state.firebaseDb.collection('careVoice_rooms').doc(code).get();
+    const infoEl = document.getElementById('fbRoomInfo');
+    if (doc.exists) {
+      const data = doc.data();
+      state.firebaseRoomData = data;
+      trainingState.fbCustomPhrases = (data.phrases || []).map(p => ({...p, scene: p.scene || 'general'}));
+      infoEl.style.display = 'block';
+      infoEl.textContent = `✓ 施設「${data.facilityName || code}」に接続しました（フレーズ: ${trainingState.fbCustomPhrases.length}件）`;
+      document.getElementById('fbStatus').textContent = t('firebase_connected');
+      document.getElementById('fbStatus').className = 'firebase-status connected';
+      document.getElementById('resultsSaveRow').style.display = 'none';
+      fetchLeaderboard(code);
+    } else {
+      // Create new room
+      await state.firebaseDb.collection('careVoice_rooms').doc(code).set({
+        facilityName: code, phrases: [], createdAt: new Date().toISOString()
+      });
+      infoEl.style.display = 'block';
+      infoEl.textContent = `✓ 新しい施設コード「${code}」を作成しました`;
+      document.getElementById('fbStatus').textContent = t('firebase_connected');
+      document.getElementById('fbStatus').className = 'firebase-status connected';
+    }
+    localStorage.setItem('careVoiceFbRoom', code);
+  } catch(e) {
+    showToast('接続エラー: ' + e.message);
+  } finally {
+    btn.textContent = t('firebase_connect'); btn.disabled = false;
+  }
+}
+
+async function fetchLeaderboard(code) {
+  if (!state.firebaseDb) return;
+  try {
+    const snap = await state.firebaseDb.collection('careVoice_scores')
+      .where('roomCode', '==', code)
+      .orderBy('pct', 'desc').limit(5).get();
+    if (snap.empty) return;
+    const rows = snap.docs.map(d => d.data());
+    const el = document.getElementById('fbLeaderboard');
+    el.innerHTML = `<div style="font-size:11px;font-weight:600;color:var(--text-small);letter-spacing:1px;margin-bottom:6px;margin-top:10px">🏆 ランキング</div>
+      <div class="leaderboard">
+        ${rows.map((r, i) => `<div class="leaderboard-row">
+          <span class="leaderboard-rank">${i + 1}</span>
+          <span class="leaderboard-name">${escHtml(r.nickname || '—')}</span>
+          <span class="leaderboard-score">${r.score}/${r.total} (${r.pct}%)</span>
+        </div>`).join('')}
+      </div>`;
+  } catch(e) { /* no index yet, ignore */ }
+}
+
+async function saveScoreToFirebase() {
+  if (!state.firebaseDb || !state.firebaseRoomCode) return;
+  const nickname = document.getElementById('resultsNickname').value.trim() || '匿名';
+  state.firebaseNickname = nickname;
+  localStorage.setItem('careVoiceFbNickname', nickname);
+  const score = trainingState.score;
+  const total = trainingState.phrases.length;
+  const pct = Math.round((score / total) * 100);
+  try {
+    await state.firebaseDb.collection('careVoice_scores').add({
+      roomCode: state.firebaseRoomCode,
+      nickname, score, total, pct,
+      scene: trainingState.scene,
+      timestamp: new Date().toISOString()
+    });
+    showToast('スコアを保存しました！');
+    document.getElementById('resultsSaveRow').style.display = 'none';
+    fetchLeaderboard(state.firebaseRoomCode);
+  } catch(e) { showToast('保存エラー: ' + e.message); }
+}
+
+// ===== Firebase 初期化 =====
+async function initFirebase(config) {
+  await loadFirebaseSDK();
+  if (window.firebase.apps.length) {
+    window.firebase.apps.forEach(app => app.delete());
+  }
+  const app = window.firebase.initializeApp(config);
+  state.firebaseApp = app;
+  state.firebaseDb = window.firebase.firestore();
+  // connection test
+  await state.firebaseDb.collection('careVoice_rooms').limit(1).get();
+  return true;
+}
+
+function loadFirebaseSDK() {
+  return new Promise((resolve, reject) => {
+    if (window.firebase?.firestore) { resolve(); return; }
+    let loaded = 0;
+    const srcs = [
+      'https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js',
+      'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js',
+    ];
+    srcs.forEach(src => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = () => { loaded++; if (loaded === srcs.length) resolve(); };
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  });
+}
+
+// ===== 初期化 =====
+(function init(){
+  const se=localStorage.getItem('careVoiceEngine');if(se)state.engine=se;
+  const gk=localStorage.getItem('careVoiceGoogleKey');if(gk)state.googleKey=gk;
+  const ck=localStorage.getItem('careVoiceClaudeKey');if(ck)state.claudeKey=ck;
+  const gmk=localStorage.getItem('careVoiceGeminiKey');if(gmk)state.geminiKey=gmk;
+  if(localStorage.getItem('careVoicePolite')!==null)state.politeMode=localStorage.getItem('careVoicePolite')==='true';
+  if(localStorage.getItem('careVoiceRisk')!==null)state.riskWarning=localStorage.getItem('careVoiceRisk')==='true';
+  if(localStorage.getItem('careVoiceAutoSpeak')!==null)state.autoSpeak=localStorage.getItem('careVoiceAutoSpeak')==='true';
+  if(localStorage.getItem('careVoiceLiveBack')!==null)state.liveBackTranslate=localStorage.getItem('careVoiceLiveBack')==='true';
+
+  // Firebase restore
+  const fbEnabled=localStorage.getItem('careVoiceFirebaseEnabled')==='true';
+  const fbCfgStr=localStorage.getItem('careVoiceFirebaseConfig');
+  if(fbEnabled&&fbCfgStr){
+    try{
+      state.firebaseEnabled=true;state.firebaseConfig=JSON.parse(fbCfgStr);
+      initFirebase(state.firebaseConfig).catch(()=>{});
+    }catch(e){}
+  }
+  const fbRoom=localStorage.getItem('careVoiceFbRoom');
+  if(fbRoom){state.firebaseRoomCode=fbRoom;document.getElementById('fbRoomCode').value=fbRoom;}
+  state.firebaseNickname=localStorage.getItem('careVoiceFbNickname')||'';
+
+  applyI18n();updateLangLabels();
+
+  // 音声認識対応チェック
+  if(!('webkitSpeechRecognition'in window||'SpeechRecognition'in window)){
+    ['liveMicBtn','subtitleMicBtn','micBtn','convMicBtn','explainMicBtn','faceMicBtn'].forEach(id=>{
+      const el=document.getElementById(id);if(el){el.disabled=true;el.title='このブラウザは音声認識非対応です（Chrome推奨）';}
+    });
+    showToast('音声認識非対応のブラウザです。Chrome(PC/Android)をご利用ください');
+  } else if(isIOS){
+    showToast('iOS Safariは音声認識に制限があります。動作が不安定な場合はテキスト入力をご利用ください');
+  }
+
+  document.getElementById('settingsModal').addEventListener('click',e=>{if(e.target===document.getElementById('settingsModal'))closeSettings()});
+  document.getElementById('riskModal').addEventListener('click',e=>{if(e.target===document.getElementById('riskModal'))cancelRisk()});
+  document.getElementById('glossaryModal').addEventListener('click',e=>{if(e.target===document.getElementById('glossaryModal'))closeGlossary()});
+  document.getElementById('uilangModal').addEventListener('click',e=>{if(e.target===document.getElementById('uilangModal'))closeUiLang()});
+  document.getElementById('textInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doTranslate()}});
+  document.getElementById('convTextIn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendConvMessage()}});
+  document.getElementById('careScene').addEventListener('change',e=>{state.careScene=e.target.value});
+})();
+</script>
+</body>
+</html>
