@@ -34,6 +34,7 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
 .mode-tab{padding:12px 14px;border:none;background:none;cursor:pointer;font-family:var(--font-jp);font-size:13px;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:5px}
 .mode-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 .mode-tab.train-tab.active{color:var(--train);border-bottom-color:var(--train)}
+.mode-tab.broadcast-tab.active{color:#e94560;border-bottom-color:#e94560}
 .care-mode-banner{background:var(--care-pale);border:1px solid #90caf9;border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;display:none}
 .care-mode-banner.show{display:flex;align-items:center;gap:10px}
 .care-scene-select{flex:1;border:1px solid #90caf9;background:white;border-radius:8px;padding:6px 10px;font-family:var(--font-jp);font-size:13px;font-weight:500;color:var(--care);outline:none}
@@ -43,8 +44,8 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
 .lang-swap{width:36px;height:36px;background:var(--accent-pale);border:none;border-radius:50%;cursor:pointer;font-size:16px;transition:all .3s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .lang-swap:hover{background:var(--accent);color:white;transform:rotate(180deg)}
 .lang-label{font-size:11px;color:var(--text-small);font-weight:300;letter-spacing:.5px}
-#mode-text,#mode-conv,#mode-live,#mode-explain,#mode-subtitle,#mode-training,#mode-face{display:none}
-#mode-text.active,#mode-conv.active,#mode-live.active,#mode-explain.active,#mode-subtitle.active,#mode-training.active,#mode-face.active{display:block}
+#mode-text,#mode-conv,#mode-live,#mode-explain,#mode-subtitle,#mode-training,#mode-face,#mode-broadcast{display:none}
+#mode-text.active,#mode-conv.active,#mode-live.active,#mode-explain.active,#mode-subtitle.active,#mode-training.active,#mode-face.active,#mode-broadcast.active{display:block}
 .input-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
 .input-card-label{font-size:11px;font-weight:500;color:var(--text-small);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
 .text-input{width:100%;border:none;background:none;font-family:var(--font-jp);font-size:16px;color:var(--text);resize:none;outline:none;min-height:80px;line-height:1.7}
@@ -460,6 +461,7 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
   <button class="mode-tab" id="tab-explain" onclick="switchMode('explain',this)">🎓 <span data-i18n="tab_explain">日本語解説</span></button>
   <button class="mode-tab" id="tab-subtitle" onclick="switchMode('subtitle',this)">🎬 <span data-i18n="tab_subtitle">字幕モード</span></button>
   <button class="mode-tab train-tab" id="tab-training" onclick="switchMode('training',this)">📚 <span data-i18n="tab_training">研修</span></button>
+  <button class="mode-tab broadcast-tab" id="tab-broadcast" onclick="switchMode('broadcast',this)">📡 <span>配信</span></button>
 </div>
 
 <div class="main">
@@ -794,14 +796,6 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
         </div>
       </div>
 
-      <!-- 1対多字幕配信 -->
-      <div class="broadcast-section">
-        <div class="broadcast-section-title">📡 1対多字幕配信（朝礼・研修）</div>
-        <div class="broadcast-desc">講師がマイクに話すと、QRコードを読み取った全スタッフのスマホにリアルタイムで字幕が届きます。Firebase設定済みの場合に利用できます。</div>
-        <input class="broadcast-input" id="broadcastTitle" placeholder="セッション名（例：朝礼 / 介護基礎研修）" />
-        <button class="broadcast-start-btn" onclick="startBroadcast()">📡 配信開始 → QRコード表示</button>
-      </div>
-
       <div class="training-disclaimer" data-i18n="training_disclaimer">
         ⚠️ 研修用の翻訳は参考です。正確な翻訳は必ずネイティブスピーカーに確認してください。
       </div>
@@ -878,6 +872,23 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
       <div class="results-missed" id="resultsMissed" style="display:none">
         <div class="results-missed-title" data-i18n="results_missed">復習フレーズ</div>
         <div id="resultsMissedList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 配信モード ===== -->
+  <div id="mode-broadcast">
+    <div class="broadcast-section" style="margin-top:0">
+      <div class="broadcast-section-title">📡 1対多字幕配信（朝礼・研修）</div>
+      <div class="broadcast-desc">講師がマイクに話すと、QRコードを読み取った全スタッフのスマホにリアルタイムで字幕が届きます。Firebase設定（⚙️）が必要です。</div>
+      <input class="broadcast-input" id="broadcastTitle" placeholder="セッション名（例：朝礼 / 介護基礎研修）" />
+      <button class="broadcast-start-btn" onclick="startBroadcast()">📡 配信開始 → QRコード表示</button>
+      <div style="margin-top:14px;padding:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:10px;font-size:12px;color:rgba(255,255,255,.6);line-height:1.8">
+        <strong style="color:rgba(255,255,255,.85)">使い方</strong><br>
+        ① 右上の ⚙️ → Firebase設定 を保存<br>
+        ② セッション名を入力して「配信開始」<br>
+        ③ 表示されたQRコードをスタッフに読み取ってもらう<br>
+        ④ 講師がマイクに向かって話すと全員のスマホに字幕が届く
       </div>
     </div>
   </div>
@@ -1601,6 +1612,9 @@ function switchMode(mode,btn) {
     langBar.style.display='none';
     if(careB) careB.style.display='none';
     renderTrainingHome();
+  } else if(mode==='broadcast'){
+    langBar.style.display='none';
+    if(careB) careB.style.display='none';
   } else {
     langBar.style.display='';
     if(state.careMode && careB) careB.classList.add('show');
@@ -1972,9 +1986,9 @@ function showBroadcastModal(url,title){
   const qrEl=document.getElementById('broadcastQR');
   qrEl.innerHTML='';
   if(window.QRCode){
-    new QRCode(qrEl,{text:url,width:180,height:180,colorDark:'#000000',colorLight:'#ffffff'});
+    new QRCode(qrEl,{text:url,width:260,height:260,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.L});
   }else{
-    qrEl.innerHTML=`<div style="font-size:10px;word-break:break-all;max-width:180px;color:#333">${url}</div>`;
+    qrEl.innerHTML=`<div style="font-size:10px;word-break:break-all;max-width:260px;color:#333">${url}</div>`;
   }
 }
 
