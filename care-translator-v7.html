@@ -1852,7 +1852,7 @@ function toggleMicExplain() {
 }
 
 // ===== 同時通訳 =====
-let liveBuffer='',liveTimer=null,currentLiveResult={translated:'',backTranslation:''},liveTranslating=false;
+let liveBuffer='',liveTimer=null,liveBufferStartTime=null,currentLiveResult={translated:'',backTranslation:''},liveTranslating=false;
 function toggleLive(){state.isLiveActive?stopLive():startLive()}
 function startLive() {
   if(!('webkitSpeechRecognition'in window||'SpeechRecognition'in window)){showToast(t('error_chrome'));return}
@@ -1869,7 +1869,12 @@ function restartLiveRecognition() {
     let interim='',final='';
     for(let i=e.resultIndex;i<e.results.length;i++){const tx=e.results[i][0].transcript;e.results[i].isFinal?final+=tx:interim+=tx}
     document.getElementById('liveOriginal').textContent=interim||final||'...';
-    if(final){liveBuffer+=final+' ';clearTimeout(liveTimer);liveTimer=setTimeout(()=>processLiveBuffer(from,to),500)}
+    if(final){
+      if(!liveBufferStartTime)liveBufferStartTime=Date.now();
+      liveBuffer+=final+' ';clearTimeout(liveTimer);
+      const waited=Date.now()-liveBufferStartTime;
+      liveTimer=setTimeout(()=>processLiveBuffer(from,to),waited>5000?0:1500);
+    }
   };
   r.onend=()=>{if(state.isLiveActive) setTimeout(restartLiveRecognition,300)};
   r.onerror=e=>{if(e.error==='no-speech')return;if(state.isLiveActive) setTimeout(restartLiveRecognition,500)};
@@ -1881,9 +1886,10 @@ function stopLive() {
   document.getElementById('liveDot').classList.remove('active');applyI18n();
 }
 async function processLiveBuffer(from,to) {
-  const text=liveBuffer.trim();if(!text)return;
-  if(liveTranslating){liveTimer=setTimeout(()=>processLiveBuffer(from,to),400);return}
-  liveBuffer='';
+  const text=liveBuffer.trim();
+  if(!text||text.length<4){liveBuffer='';liveBufferStartTime=null;return}
+  if(liveTranslating){liveTimer=setTimeout(()=>processLiveBuffer(from,to),500);return}
+  liveBuffer='';liveBufferStartTime=null;
   liveTranslating=true;
   document.getElementById('liveTranslated').style.color='var(--text-small)';
   document.getElementById('liveTranslated').textContent='...';
@@ -1931,7 +1937,7 @@ function speak(text,langCode) {
 }
 
 // ===== 字幕モード =====
-const subtitleState={isActive:false,isRunning:false,isPaused:false,recognition:null,buffer:'',timer:null,fontSize:40,currentTranslated:''};
+const subtitleState={isActive:false,isRunning:false,isPaused:false,recognition:null,buffer:'',timer:null,fontSize:40,currentTranslated:'',bufferStartTime:null};
 let subtitleTranslating=false;
 function startSubtitleMode() {
   const from=document.getElementById('subtitleLangFrom').value,to=document.getElementById('subtitleLangTo').value;
@@ -1942,7 +1948,7 @@ function startSubtitleMode() {
 function exitSubtitleMode(){stopSubtitleMic();document.getElementById('subtitleOverlay').classList.remove('active');subtitleState.isActive=false}
 function clearSubtitles(){
   document.getElementById('subtitleHistory').innerHTML='';
-  subtitleState.currentTranslated='';
+  subtitleState.currentTranslated='';subtitleState.bufferStartTime=null;
   document.getElementById('subtitleOriginal').textContent='マイクをスタートしてください';
   document.getElementById('subtitleText').textContent='字幕がここに表示されます';
   document.getElementById('subtitleText').style.color='white';
@@ -1987,19 +1993,29 @@ function restartSubtitleRecognition(){
       // 前の翻訳は消さず、薄くするだけ（「翻訳中...」は表示しない）
       document.getElementById('subtitleText').classList.add('translating');
     }
-    if(final){subtitleState.buffer+=final+' ';clearTimeout(subtitleState.timer);subtitleState.timer=setTimeout(()=>processSubtitleBuffer(),600)}
+    if(final){
+      if(!subtitleState.bufferStartTime)subtitleState.bufferStartTime=Date.now();
+      subtitleState.buffer+=final+' ';
+      clearTimeout(subtitleState.timer);
+      // 溜まり始めて5秒超えたら即翻訳、そうでなければ2秒待つ
+      const waited=Date.now()-subtitleState.bufferStartTime;
+      const delay=waited>5000?0:2000;
+      subtitleState.timer=setTimeout(()=>processSubtitleBuffer(),delay);
+    }
   };
   r.onend=()=>{if(subtitleState.isRunning&&!subtitleState.isPaused)setTimeout(()=>{if(subtitleState.isRunning&&!subtitleState.isPaused)restartSubtitleRecognition()},200)};
   r.onerror=(e)=>{if(e.error==='no-speech')return;if(subtitleState.isRunning&&!subtitleState.isPaused)setTimeout(()=>restartSubtitleRecognition(),500)};
   r.start();subtitleState.recognition=r;
 }
 async function processSubtitleBuffer(){
-  const text=subtitleState.buffer.trim();if(!text)return;
-  if(subtitleTranslating){subtitleState.timer=setTimeout(processSubtitleBuffer,400);return}
-  subtitleState.buffer='';
+  const text=subtitleState.buffer.trim();
+  // 短すぎる断片はスキップ（「今回」「えー」などを翻訳しない）
+  if(!text||text.length<6){subtitleState.buffer='';subtitleState.bufferStartTime=null;return}
+  if(subtitleTranslating){subtitleState.timer=setTimeout(processSubtitleBuffer,500);return}
+  subtitleState.buffer='';subtitleState.bufferStartTime=null;
   subtitleTranslating=true;
-  // 30秒タイムアウト保険（フラグが詰まらないように）
-  const _safetyTimer=setTimeout(()=>{subtitleTranslating=false;document.getElementById('subtitleTranslatingBadge').classList.remove('show')},30000);
+  // 15秒タイムアウト保険（フラグが詰まらないように）
+  const _safetyTimer=setTimeout(()=>{subtitleTranslating=false;document.getElementById('subtitleTranslatingBadge').classList.remove('show')},15000);
   document.getElementById('subtitleTranslatingBadge').classList.add('show');
   const from=document.getElementById('subtitleLangFrom').value,to=document.getElementById('subtitleLangTo').value;
   const hits=applyGlossary(text);
