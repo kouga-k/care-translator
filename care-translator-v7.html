@@ -370,6 +370,53 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
 .firebase-guide-section code{background:var(--border);padding:1px 5px;border-radius:4px;font-family:monospace;font-size:11px;color:var(--text)}
 .training-disclaimer{background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:10px;padding:10px 14px;font-size:11px;color:var(--text-muted);margin-top:12px;line-height:1.7}
 
+/* ===== 1対多配信モード ===== */
+.broadcast-section{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);border:2px solid #0f3460;border-radius:var(--radius);padding:16px;margin-top:12px}
+.broadcast-section-title{font-size:14px;font-weight:700;color:#e94560;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.broadcast-desc{font-size:12px;color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:12px}
+.broadcast-input{width:100%;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:10px 12px;font-family:var(--font-jp);font-size:14px;outline:none;background:rgba(255,255,255,.1);color:white;margin-bottom:10px}
+.broadcast-input::placeholder{color:rgba(255,255,255,.4)}
+.broadcast-start-btn{width:100%;padding:14px;background:linear-gradient(135deg,#e94560,#c62a47);color:white;border:none;border-radius:12px;font-family:var(--font-jp);font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.broadcast-start-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(233,69,96,.4)}
+.broadcast-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:500;flex-direction:column;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)}
+.broadcast-modal-overlay.open{display:flex}
+.broadcast-modal-box{background:#0a0a1a;border:2px solid #e94560;border-radius:20px;width:100%;max-width:420px;padding:24px;text-align:center;box-shadow:0 0 40px rgba(233,69,96,.3)}
+.broadcast-modal-title{font-size:20px;font-weight:700;color:#e94560;margin-bottom:4px}
+.broadcast-modal-subtitle{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:20px}
+.broadcast-qr-wrap{background:white;border-radius:12px;padding:16px;display:inline-block;margin-bottom:16px}
+.broadcast-url-box{font-size:11px;color:rgba(255,255,255,.4);word-break:break-all;margin-bottom:16px;padding:8px;background:rgba(255,255,255,.05);border-radius:8px;text-align:left}
+.broadcast-live-label{font-size:11px;color:#e94560;font-weight:600;letter-spacing:1px;margin-bottom:6px;text-align:left}
+.broadcast-live-text{background:rgba(233,69,96,.1);border:1px solid rgba(233,69,96,.3);border-radius:10px;padding:12px;min-height:60px;font-size:16px;color:white;line-height:1.5;margin-bottom:16px;text-align:left}
+.broadcast-stop-btn{padding:12px 32px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3);color:white;border-radius:10px;cursor:pointer;font-family:var(--font-jp);font-size:14px;font-weight:600;transition:all .2s}
+.broadcast-stop-btn:hover{background:rgba(255,255,255,.2)}
+.receive-overlay{display:none;position:fixed;inset:0;background:#080810;z-index:2000;flex-direction:column}
+.receive-overlay.active{display:flex}
+.receive-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.1);flex-shrink:0}
+.receive-header-left{display:flex;flex-direction:column;gap:3px}
+.receive-header-title{font-size:16px;font-weight:700;color:#e94560;display:flex;align-items:center;gap:8px}
+.receive-dot{width:8px;height:8px;border-radius:50%;background:#e94560;animation:blink 1s infinite;flex-shrink:0}
+.receive-session-name{font-size:12px;color:rgba(255,255,255,.4)}
+.receive-status-text{font-size:12px;color:rgba(255,255,255,.4)}
+.receive-lang-area{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
+.receive-lang-label{font-size:10px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.receive-lang-grid{display:flex;flex-wrap:wrap;gap:6px}
+.receive-lang-btn{padding:7px 12px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);color:rgba(255,255,255,.6);border-radius:20px;cursor:pointer;font-size:12px;font-family:var(--font-jp);transition:all .2s}
+.receive-lang-btn.active{border-color:#e94560;background:rgba(233,69,96,.15);color:white;font-weight:600}
+.receive-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;overflow:hidden}
+.receive-waiting{font-size:16px;color:rgba(255,255,255,.25);text-align:center;line-height:2}
+.receive-text-display{font-size:32px;font-weight:600;color:white;line-height:1.5;text-align:center;width:100%;word-break:break-word;animation:slideUp .3s ease}
+.receive-original-text{font-size:13px;color:rgba(255,255,255,.35);text-align:center;margin-top:16px;line-height:1.5}
+.receive-bottom{padding:12px 16px;background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.receive-size-btns{display:flex;gap:6px}
+.receive-ctrl-btn{padding:7px 14px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);border-radius:8px;cursor:pointer;font-size:13px;font-family:var(--font-jp);transition:all .2s}
+.receive-ctrl-btn:hover{background:rgba(255,255,255,.1);color:white}
+/* Whisper UI */
+.whisper-bar{display:flex;align-items:center;gap:10px;background:#1a0a2e;border:1px solid #6c3fc8;border-radius:10px;padding:10px 14px;margin-bottom:10px}
+.whisper-bar-label{font-size:13px;color:#c4a5f5;font-weight:500;flex:1}
+.whisper-toggle-btn{padding:7px 14px;border:none;border-radius:8px;cursor:pointer;font-family:var(--font-jp);font-size:13px;font-weight:600;transition:all .2s}
+.whisper-on{background:#6c3fc8;color:white}
+.whisper-off{background:rgba(108,63,200,.2);color:#c4a5f5;border:1px solid rgba(108,63,200,.4)}
+
 /* ===== 対面モード CSS ===== */
 .face-divider{display:flex;align-items:center;gap:10px;margin:12px 0;font-size:12px;font-weight:600;color:var(--text-small)}
 .face-divider::before,.face-divider::after{content:'';flex:1;height:2px;background:var(--border)}
@@ -387,6 +434,7 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
 .history-item-orig{color:var(--text-muted);margin-bottom:2px}
 .history-item-trans{color:var(--text);font-weight:500}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 <header class="app-header">
@@ -655,6 +703,14 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
           <button class="subtitle-size-btn" onclick="subtitleState.fontSize=72;updateSubtitleSize()">特大</button>
         </div>
       </div>
+      <!-- Whisper PC音声 -->
+      <div class="whisper-bar" id="whisperBar" style="display:none">
+        <div>
+          <div class="whisper-bar-label">🖥️ PC内部音声（YouTube・動画）</div>
+          <div style="font-size:11px;color:rgba(200,180,255,.5);margin-top:2px">画面共有で音声を取得 → Whisper APIで文字起こし</div>
+        </div>
+        <button class="whisper-toggle-btn whisper-off" id="whisperToggleBtn" onclick="toggleWhisperCapture()">OFF</button>
+      </div>
       <button class="subtitle-start-btn" onclick="startSubtitleMode()">🎬 字幕モード開始</button>
     </div>
   </div>
@@ -736,6 +792,14 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
           </div>
           <button onclick="toggleFbGuide()" style="font-size:12px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:4px 0;margin-top:4px" id="fbGuideBtn">▶ Firebase 設定ガイドを見る</button>
         </div>
+      </div>
+
+      <!-- 1対多字幕配信 -->
+      <div class="broadcast-section">
+        <div class="broadcast-section-title">📡 1対多字幕配信（朝礼・研修）</div>
+        <div class="broadcast-desc">講師がマイクに話すと、QRコードを読み取った全スタッフのスマホにリアルタイムで字幕が届きます。Firebase設定済みの場合に利用できます。</div>
+        <input class="broadcast-input" id="broadcastTitle" placeholder="セッション名（例：朝礼 / 介護基礎研修）" />
+        <button class="broadcast-start-btn" onclick="startBroadcast()">📡 配信開始 → QRコード表示</button>
       </div>
 
       <div class="training-disclaimer" data-i18n="training_disclaimer">
@@ -858,6 +922,46 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
   </div>
 </div>
 
+<!-- 配信中モーダル -->
+<div class="broadcast-modal-overlay" id="broadcastModal">
+  <div class="broadcast-modal-box">
+    <div class="broadcast-modal-title">📡 配信中</div>
+    <div class="broadcast-modal-subtitle" id="broadcastModalSubtitle">QRコードをスタッフに読み取ってもらってください</div>
+    <div class="broadcast-qr-wrap" id="broadcastQR"></div>
+    <div class="broadcast-url-box" id="broadcastUrlText"></div>
+    <div class="broadcast-live-label">🎤 最新テキスト</div>
+    <div class="broadcast-live-text" id="broadcastCurrentText">マイクに向かって話してください...</div>
+    <button class="broadcast-stop-btn" onclick="stopBroadcast()">⏹ 配信終了</button>
+  </div>
+</div>
+
+<!-- スタッフ受信オーバーレイ -->
+<div class="receive-overlay" id="receiveOverlay">
+  <div class="receive-header">
+    <div class="receive-header-left">
+      <div class="receive-header-title"><span class="receive-dot"></span>CareVoice 字幕受信中</div>
+      <div class="receive-session-name" id="receiveSessionName"></div>
+    </div>
+    <div class="receive-status-text" id="receiveStatus">接続中...</div>
+  </div>
+  <div class="receive-lang-area">
+    <div class="receive-lang-label">言語を選択 / Select Language</div>
+    <div class="receive-lang-grid" id="receiveLangGrid"></div>
+  </div>
+  <div class="receive-main">
+    <div class="receive-waiting" id="receiveWaiting">📡 講師が話すと<br>字幕が表示されます</div>
+    <div class="receive-text-display" id="receiveTextDisplay" style="display:none"></div>
+    <div class="receive-original-text" id="receiveOriginalText"></div>
+  </div>
+  <div class="receive-bottom">
+    <div class="receive-size-btns">
+      <button class="receive-ctrl-btn" onclick="changeReceiveFontSize(-4)">A－</button>
+      <button class="receive-ctrl-btn" onclick="changeReceiveFontSize(4)">A＋</button>
+    </div>
+    <button class="receive-ctrl-btn" id="receiveSoundBtn" onclick="toggleReceiveSound()">🔇 音声OFF</button>
+  </div>
+</div>
+
 <!-- UI言語モーダル -->
 <div class="uilang-overlay" id="uilangModal">
   <div class="uilang-modal">
@@ -923,6 +1027,11 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
       <div class="setting-group" id="claudeKeyGroup" style="display:none">
         <div class="setting-group-title">Claude API Key</div>
         <input class="setting-input" id="claudeApiKey" type="password" placeholder="sk-ant-..." />
+      </div>
+      <div class="setting-group" id="whisperKeyGroup">
+        <div class="setting-group-title">🖥️ OpenAI Whisper API Key <span style="font-size:11px;font-weight:400;color:var(--text-muted)">（PC内部音声・YouTube翻訳用）</span></div>
+        <input class="setting-input" id="whisperApiKey" type="password" placeholder="sk-..." />
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">約0.9円/分 ・ <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--accent)">platform.openai.com</a> で取得</div>
       </div>
       <div class="setting-group" id="geminiKeyGroup" style="display:none">
         <div class="setting-group-title">✨ Gemini API Key <span style="font-size:11px;font-weight:400;color:var(--text-muted)">（<a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com</a> で無料取得）</span></div>
@@ -1371,7 +1480,7 @@ const I18N = {
 // ===== 状態 =====
 let uiLang = localStorage.getItem('careVoiceUiLang') || 'ja';
 let state = {
-  engine:'mymemory', googleKey:'', claudeKey:'', geminiKey:'',
+  engine:'mymemory', googleKey:'', claudeKey:'', geminiKey:'', whisperKey:'',
   politeMode:true, riskWarning:true, autoSpeak:false, liveBackTranslate:true,
   currentMode:'text', careMode:false, careScene:'general',
   convSpeaker:'jp', isMicActive:false, isLiveActive:false,
@@ -1808,6 +1917,257 @@ function toggleMicExplain() {
   r.onend=()=>{state.isMicActive=false;btn.innerHTML='🎤 音声'};
   r.onerror=()=>{state.isMicActive=false;btn.innerHTML='🎤 音声'};
   r.start();state.recognition=r;state.isMicActive=true;btn.innerHTML='⏹ 停止';
+}
+
+// ===== 1対多配信モード =====
+let broadcastSessionId=null,broadcastRec=null,broadcastActive=false,broadcastRtDb=null;
+let broadcastBuffer='',broadcastTimer=null,broadcastLastFinal='',broadcastLastFinalTime=0;
+
+function loadFirebaseRtDb(){
+  return new Promise((resolve,reject)=>{
+    if(window.firebase&&window.firebase.database){resolve();return;}
+    const s=document.createElement('script');
+    s.src='https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js';
+    s.onload=resolve;s.onerror=reject;document.head.appendChild(s);
+  });
+}
+
+async function startBroadcast(){
+  if(!state.firebaseEnabled||!state.firebaseApp){
+    showToast('Firebaseを先に設定してください（⚙️設定 → Firebase設定）');return;
+  }
+  try{
+    await loadFirebaseRtDb();
+    broadcastRtDb=window.firebase.database(state.firebaseApp);
+    broadcastSessionId=Date.now().toString(36)+Math.random().toString(36).substr(2,5);
+    const title=document.getElementById('broadcastTitle').value.trim()||'研修セッション';
+    await broadcastRtDb.ref(`broadcasts/${broadcastSessionId}`).set({title,active:true,startedAt:Date.now()});
+    const receiveUrl=`${location.origin}${location.pathname}?mode=receive&session=${broadcastSessionId}`;
+    showBroadcastModal(receiveUrl,title);
+    startBroadcastMic();
+    broadcastActive=true;
+  }catch(e){showToast('配信開始エラー: '+e.message);}
+}
+
+function showBroadcastModal(url,title){
+  document.getElementById('broadcastModal').classList.add('open');
+  document.getElementById('broadcastModalSubtitle').textContent=`「${title}」- QRをスタッフに読み取ってもらってください`;
+  document.getElementById('broadcastUrlText').textContent=url;
+  const qrEl=document.getElementById('broadcastQR');
+  qrEl.innerHTML='';
+  if(window.QRCode){
+    new QRCode(qrEl,{text:url,width:180,height:180,colorDark:'#000000',colorLight:'#ffffff'});
+  }else{
+    qrEl.innerHTML=`<div style="font-size:10px;word-break:break-all;max-width:180px;color:#333">${url}</div>`;
+  }
+}
+
+function startBroadcastMic(){
+  if(!('webkitSpeechRecognition'in window||'SpeechRecognition'in window)){showToast('音声認識非対応');return;}
+  const from=document.getElementById('langFrom').value||'ja';
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  broadcastRec=new SR();
+  broadcastRec.lang=bcp47Map[from]||'ja-JP';
+  broadcastRec.continuous=!isIOS;broadcastRec.interimResults=true;broadcastRec.maxAlternatives=1;
+  broadcastRec.onresult=(e)=>{
+    let interim='',final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){const tx=e.results[i][0].transcript;e.results[i].isFinal?final+=tx:interim+=tx;}
+    if(interim||final)document.getElementById('broadcastCurrentText').textContent=interim||final;
+    if(final){
+      const tf=final.trim(),now=Date.now();
+      if(tf&&!(tf===broadcastLastFinal&&now-broadcastLastFinalTime<3000)){
+        broadcastLastFinal=tf;broadcastLastFinalTime=now;
+        broadcastBuffer+=final+' ';clearTimeout(broadcastTimer);
+        broadcastTimer=setTimeout(()=>processBroadcastBuffer(from),600);
+      }
+    }
+  };
+  broadcastRec.onend=()=>{if(broadcastActive)setTimeout(startBroadcastMic,400);};
+  broadcastRec.onerror=(e)=>{if(e.error!=='aborted'&&e.error!=='no-speech'&&broadcastActive)setTimeout(startBroadcastMic,600);};
+  try{broadcastRec.start();}catch(e){}
+}
+
+async function processBroadcastBuffer(from){
+  const text=broadcastBuffer.trim();if(!text)return;
+  broadcastBuffer='';
+  document.getElementById('broadcastCurrentText').textContent='翻訳送信中: '+text;
+  const langs=['ja','my','id','vi','tl','zh','ko','en'];
+  const translations={};
+  await Promise.all(langs.map(async(lang)=>{
+    if(lang===from){translations[lang]=text;return;}
+    try{
+      let r;
+      if(state.engine==='gemini'&&state.geminiKey){const res=await translateWithGemini(text,from,lang,[]);r=res.translated;}
+      else if(state.engine==='claude'&&state.claudeKey){const res=await translateWithClaude(text,from,lang,[]);r=res.translated;}
+      else{const res=await translateWithMyMemory(text,from,lang,true);r=res.translated;}
+      translations[lang]=r||text;
+    }catch(e){translations[lang]=text;}
+  }));
+  if(broadcastRtDb&&broadcastSessionId){
+    try{await broadcastRtDb.ref(`broadcasts/${broadcastSessionId}/latest`).set({original:text,from,translations,timestamp:Date.now()});}catch(e){}
+  }
+  document.getElementById('broadcastCurrentText').textContent=translations[from]||text;
+}
+
+async function stopBroadcast(){
+  broadcastActive=false;
+  if(broadcastRec){try{broadcastRec.abort();}catch(e){}broadcastRec=null;}
+  if(broadcastRtDb&&broadcastSessionId){
+    try{await broadcastRtDb.ref(`broadcasts/${broadcastSessionId}/active`).set(false);}catch(e){}
+  }
+  document.getElementById('broadcastModal').classList.remove('open');
+  broadcastSessionId=null;broadcastRtDb=null;
+}
+
+// ===== スタッフ受信モード =====
+let receiveRtDb=null,receiveLang='ja',receiveSoundOn=false,receiveFontSize=32;
+const receiveLangs=[
+  {code:'ja',label:'🇯🇵 日本語'},{code:'my',label:'🇲🇲 ミャンマー語'},
+  {code:'id',label:'🇮🇩 インドネシア語'},{code:'vi',label:'🇻🇳 ベトナム語'},
+  {code:'tl',label:'🇵🇭 タガログ語'},{code:'zh',label:'🇨🇳 中国語'},
+  {code:'ko',label:'🇰🇷 韓国語'},{code:'en',label:'🇬🇧 English'}
+];
+
+async function initReceiveMode(sessionId){
+  document.getElementById('receiveOverlay').classList.add('active');
+  const grid=document.getElementById('receiveLangGrid');
+  grid.innerHTML=receiveLangs.map(l=>`<button class="receive-lang-btn${l.code===receiveLang?' active':''}" onclick="setReceiveLang('${l.code}',this)">${l.label}</button>`).join('');
+  try{
+    await loadFirebaseRtDb();
+    const fbEnabled=localStorage.getItem('careVoiceFirebaseEnabled')==='true';
+    const fbCfgStr=localStorage.getItem('careVoiceFirebaseConfig');
+    if(fbEnabled&&fbCfgStr&&!state.firebaseApp){
+      try{await initFirebase(JSON.parse(fbCfgStr));}catch(e){}
+    }
+    if(!state.firebaseApp){
+      document.getElementById('receiveStatus').textContent='⚠ Firebase未設定';
+      document.getElementById('receiveWaiting').textContent='⚠ Firebaseの設定が必要です';return;
+    }
+    receiveRtDb=window.firebase.database(state.firebaseApp);
+    const sessionSnap=await receiveRtDb.ref(`broadcasts/${sessionId}`).get();
+    if(sessionSnap.exists()){
+      const d=sessionSnap.val();
+      document.getElementById('receiveSessionName').textContent=d.title||'研修セッション';
+    }
+    document.getElementById('receiveStatus').textContent='受信中';
+    receiveRtDb.ref(`broadcasts/${sessionId}/latest`).on('value',(snap)=>{
+      if(!snap.exists())return;
+      const d=snap.val();if(!d.translations)return;
+      const txt=d.translations[receiveLang]||d.original;
+      displayReceivedText(txt,d.original,d.from);
+    });
+    receiveRtDb.ref(`broadcasts/${sessionId}/active`).on('value',(snap)=>{
+      if(snap.exists()&&snap.val()===false){
+        document.getElementById('receiveStatus').textContent='配信終了';
+        document.getElementById('receiveWaiting').style.display='';
+        document.getElementById('receiveWaiting').textContent='📋 配信が終了しました';
+        document.getElementById('receiveTextDisplay').style.display='none';
+      }
+    });
+  }catch(e){
+    document.getElementById('receiveStatus').textContent='接続エラー';
+    showToast('受信エラー: '+e.message);
+  }
+}
+
+function displayReceivedText(translated,original,from){
+  document.getElementById('receiveWaiting').style.display='none';
+  const el=document.getElementById('receiveTextDisplay');
+  el.style.display='';el.textContent=translated;
+  document.getElementById('receiveOriginalText').textContent=(original!==translated)?original:'';
+  if(receiveSoundOn&&translated)speak(translated,receiveLang);
+}
+
+function setReceiveLang(code,btn){
+  receiveLang=code;
+  document.querySelectorAll('.receive-lang-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function changeReceiveFontSize(delta){
+  receiveFontSize=Math.max(16,Math.min(60,receiveFontSize+delta));
+  document.getElementById('receiveTextDisplay').style.fontSize=receiveFontSize+'px';
+}
+function toggleReceiveSound(){
+  receiveSoundOn=!receiveSoundOn;
+  document.getElementById('receiveSoundBtn').textContent=receiveSoundOn?'🔊 音声ON':'🔇 音声OFF';
+}
+
+// ===== Whisper API（PC内部音声） =====
+let whisperStream=null,whisperRecorder=null,whisperActive=false;
+const WHISPER_CHUNK_MS=5000;
+
+async function toggleWhisperCapture(){
+  if(whisperActive){stopWhisperCapture();return;}
+  if(!state.whisperKey){showToast('OpenAI APIキーを設定してください（⚙️設定）');return;}
+  await startWhisperCapture();
+}
+
+async function startWhisperCapture(){
+  try{
+    whisperStream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});
+    const audioTracks=whisperStream.getAudioTracks();
+    if(!audioTracks.length){showToast('音声トラックが取得できませんでした。共有時に「タブの音声を共有」を選択してください');stopWhisperCapture();return;}
+    const audioStream=new MediaStream(audioTracks);
+    const mimeType=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';
+    whisperRecorder=new MediaRecorder(audioStream,{mimeType});
+    whisperRecorder.ondataavailable=async(e)=>{
+      if(e.data.size<1000)return;
+      const blob=new Blob([e.data],{type:mimeType});
+      try{
+        const transcript=await transcribeWithWhisper(blob);
+        if(transcript&&transcript.trim()){
+          if(state.currentMode==='subtitle'){
+            subtitleState.buffer+=transcript+' ';
+            clearTimeout(subtitleState.timer);
+            subtitleState.timer=setTimeout(()=>processSubtitleBuffer(),300);
+          }else if(state.currentMode==='live'){
+            liveBuffer+=transcript+' ';
+            const from=document.getElementById('langFrom').value;
+            const to=document.getElementById('langTo').value;
+            processLiveBuffer(from,to);
+          }
+        }
+      }catch(e){console.warn('Whisper error:',e.message);}
+    };
+    whisperRecorder.start(WHISPER_CHUNK_MS);
+    whisperActive=true;
+    const btn=document.getElementById('whisperToggleBtn');
+    if(btn){btn.textContent='ON';btn.className='whisper-toggle-btn whisper-on';}
+    // ユーザーが画面共有停止
+    whisperStream.getVideoTracks()[0]?.addEventListener('ended',()=>stopWhisperCapture());
+    whisperStream.getAudioTracks()[0]?.addEventListener('ended',()=>stopWhisperCapture());
+    showToast('PC音声キャプチャ開始。翻訳したいタブを共有してください');
+  }catch(e){
+    if(e.name==='NotAllowedError')showToast('画面共有が拒否されました');
+    else showToast('音声キャプチャエラー: '+e.message);
+    stopWhisperCapture();
+  }
+}
+
+async function transcribeWithWhisper(audioBlob){
+  const from=state.currentMode==='subtitle'?document.getElementById('subtitleLangFrom').value:document.getElementById('langFrom').value;
+  const langMap={ja:'ja',zh:'zh',ko:'ko',en:'en',my:'my',id:'id',vi:'vi',tl:'tl'};
+  const lang=langMap[from]||'ja';
+  const formData=new FormData();
+  formData.append('file',audioBlob,'audio.webm');
+  formData.append('model','whisper-1');
+  formData.append('language',lang);
+  formData.append('response_format','text');
+  const res=await fetch('https://api.openai.com/v1/audio/transcriptions',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+state.whisperKey},
+    body:formData
+  });
+  if(!res.ok)throw new Error('Whisper API error: '+res.status);
+  return await res.text();
+}
+
+function stopWhisperCapture(){
+  whisperActive=false;
+  if(whisperRecorder&&whisperRecorder.state!=='inactive'){try{whisperRecorder.stop();}catch(e){}}
+  if(whisperStream){whisperStream.getTracks().forEach(t=>t.stop());whisperStream=null;}
+  const btn=document.getElementById('whisperToggleBtn');
+  if(btn){btn.textContent='OFF';btn.className='whisper-toggle-btn whisper-off';}
 }
 
 // ===== 同時通訳 =====
@@ -2249,6 +2609,10 @@ function saveSettings(){
   state.googleKey=document.getElementById('googleApiKey').value;
   state.claudeKey=document.getElementById('claudeApiKey').value;
   state.geminiKey=document.getElementById('geminiApiKey').value;
+  state.whisperKey=document.getElementById('whisperApiKey').value;
+  if(state.whisperKey)localStorage.setItem('careVoiceWhisperKey',state.whisperKey);
+  // Whisperバー表示
+  const wb=document.getElementById('whisperBar');if(wb)wb.style.display=state.whisperKey?'flex':'none';
   state.politeMode=document.getElementById('politeMode').checked;
   state.riskWarning=document.getElementById('riskWarning').checked;
   state.autoSpeak=document.getElementById('autoSpeak').checked;
@@ -2271,6 +2635,8 @@ function loadSettingsUI(){
   document.getElementById('googleApiKey').value=state.googleKey;
   document.getElementById('claudeApiKey').value=state.claudeKey;
   document.getElementById('geminiApiKey').value=state.geminiKey;
+  document.getElementById('whisperApiKey').value=state.whisperKey;
+  const wb=document.getElementById('whisperBar');if(wb)wb.style.display=state.whisperKey?'flex':'none';
   document.querySelectorAll('.engine-opt').forEach(b=>b.classList.remove('selected'));
   const idx={mymemory:0,google:1,claude:2,gemini:3}[state.engine]??0;
   document.querySelectorAll('.engine-opt')[idx]?.classList.add('selected');
@@ -2859,6 +3225,13 @@ function loadFirebaseSDK() {
   const fbRoom=localStorage.getItem('careVoiceFbRoom');
   if(fbRoom){state.firebaseRoomCode=fbRoom;document.getElementById('fbRoomCode').value=fbRoom;}
   state.firebaseNickname=localStorage.getItem('careVoiceFbNickname')||'';
+  // Whisper key restore
+  const wk=localStorage.getItem('careVoiceWhisperKey');if(wk){state.whisperKey=wk;const wb=document.getElementById('whisperBar');if(wb)wb.style.display='flex';}
+  // 受信モード検出（URLパラメータ）
+  const _urlParams=new URLSearchParams(location.search);
+  if(_urlParams.get('mode')==='receive'&&_urlParams.get('session')){
+    initReceiveMode(_urlParams.get('session'));
+  }
 
   applyI18n();updateLangLabels();
 
