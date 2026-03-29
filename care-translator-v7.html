@@ -620,6 +620,14 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
   <!-- 同時通訳 -->
   <div id="mode-live">
     <div class="live-container">
+      <!-- Whisper PC音声（同時通訳用） -->
+      <div class="whisper-bar" id="whisperBarLive" style="display:none">
+        <div>
+          <div class="whisper-bar-label">🖥️ PC内部音声（YouTube・動画）</div>
+          <div style="font-size:11px;color:rgba(200,180,255,.5);margin-top:2px">画面共有で音声を取得 → Whisper APIで文字起こし</div>
+        </div>
+        <button class="whisper-toggle-btn whisper-off" id="whisperToggleBtnLive" onclick="toggleWhisperCapture()">OFF</button>
+      </div>
       <div class="live-status-bar">
         <div class="live-indicator">
           <div class="live-dot" id="liveDot"></div>
@@ -930,6 +938,7 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
     </div>
     <button class="subtitle-mic-btn idle" id="subtitleMicBtn" onclick="toggleSubtitleMic()">🎤 スタート</button>
     <button class="subtitle-pause-btn" id="subtitlePauseBtn" onclick="toggleSubtitlePause()" style="display:none">⏸ 一時停止</button>
+    <button id="subtitleWhisperBtn" onclick="toggleWhisperCapture()" style="display:none;padding:7px 12px;background:rgba(108,63,200,.3);border:1px solid rgba(108,63,200,.6);color:#c4a5f5;border-radius:8px;cursor:pointer;font-family:var(--font-jp);font-size:12px;font-weight:600;transition:all .2s">🖥 PC音声</button>
   </div>
 </div>
 
@@ -2156,7 +2165,7 @@ async function startWhisperCapture(){
     const mimeType=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';
     whisperRecorder=new MediaRecorder(audioStream,{mimeType});
     whisperRecorder.ondataavailable=async(e)=>{
-      if(e.data.size<1000)return;
+      if(e.data.size<200)return;
       const blob=new Blob([e.data],{type:mimeType});
       try{
         const transcript=await transcribeWithWhisper(blob);
@@ -2172,16 +2181,15 @@ async function startWhisperCapture(){
             processLiveBuffer(from,to);
           }
         }
-      }catch(e){console.warn('Whisper error:',e.message);}
+      }catch(err){console.warn('Whisper error:',err.message);showToast('⚠ Whisper: '+err.message);}
     };
     whisperRecorder.start(WHISPER_CHUNK_MS);
     whisperActive=true;
-    const btn=document.getElementById('whisperToggleBtn');
-    if(btn){btn.textContent='ON';btn.className='whisper-toggle-btn whisper-on';}
+    updateWhisperBtns(true);
     // ユーザーが画面共有停止
     whisperStream.getVideoTracks()[0]?.addEventListener('ended',()=>stopWhisperCapture());
     whisperStream.getAudioTracks()[0]?.addEventListener('ended',()=>stopWhisperCapture());
-    showToast('PC音声キャプチャ開始。翻訳したいタブを共有してください');
+    showToast('🖥 PC音声キャプチャ開始！動画を再生してください（5秒ごとに翻訳）');
   }catch(e){
     if(e.name==='NotAllowedError')showToast('画面共有が拒否されました');
     else showToast('音声キャプチャエラー: '+e.message);
@@ -2211,8 +2219,27 @@ function stopWhisperCapture(){
   whisperActive=false;
   if(whisperRecorder&&whisperRecorder.state!=='inactive'){try{whisperRecorder.stop();}catch(e){}}
   if(whisperStream){whisperStream.getTracks().forEach(t=>t.stop());whisperStream=null;}
-  const btn=document.getElementById('whisperToggleBtn');
-  if(btn){btn.textContent='OFF';btn.className='whisper-toggle-btn whisper-off';}
+  updateWhisperBtns(false);
+}
+
+function showWhisperBars(show){
+  const d=show?'flex':'none';
+  const b=show?'block':'none';
+  const wb=document.getElementById('whisperBar');if(wb)wb.style.display=d;
+  const wbl=document.getElementById('whisperBarLive');if(wbl)wbl.style.display=d;
+  const wsb=document.getElementById('subtitleWhisperBtn');if(wsb)wsb.style.display=b;
+}
+
+function updateWhisperBtns(on){
+  // 字幕セットアップのボタン
+  const b1=document.getElementById('whisperToggleBtn');
+  if(b1){b1.textContent=on?'ON':'OFF';b1.className='whisper-toggle-btn '+(on?'whisper-on':'whisper-off');}
+  // 同時通訳のボタン
+  const b2=document.getElementById('whisperToggleBtnLive');
+  if(b2){b2.textContent=on?'ON':'OFF';b2.className='whisper-toggle-btn '+(on?'whisper-on':'whisper-off');}
+  // 字幕オーバーレイのボタン
+  const b3=document.getElementById('subtitleWhisperBtn');
+  if(b3){b3.textContent=on?'🖥 PC音声 ON':'🖥 PC音声';b3.style.background=on?'rgba(108,63,200,.7)':'rgba(108,63,200,.3)';}
 }
 
 // ===== 同時通訳 =====
@@ -2656,8 +2683,8 @@ function saveSettings(){
   state.geminiKey=document.getElementById('geminiApiKey').value;
   state.whisperKey=document.getElementById('whisperApiKey').value;
   if(state.whisperKey)localStorage.setItem('careVoiceWhisperKey',state.whisperKey);
-  // Whisperバー表示
-  const wb=document.getElementById('whisperBar');if(wb)wb.style.display=state.whisperKey?'flex':'none';
+  // Whisperバー表示（全箇所）
+  showWhisperBars(!!state.whisperKey);
   state.politeMode=document.getElementById('politeMode').checked;
   state.riskWarning=document.getElementById('riskWarning').checked;
   state.autoSpeak=document.getElementById('autoSpeak').checked;
@@ -2681,7 +2708,7 @@ function loadSettingsUI(){
   document.getElementById('claudeApiKey').value=state.claudeKey;
   document.getElementById('geminiApiKey').value=state.geminiKey;
   document.getElementById('whisperApiKey').value=state.whisperKey;
-  const wb=document.getElementById('whisperBar');if(wb)wb.style.display=state.whisperKey?'flex':'none';
+  showWhisperBars(!!state.whisperKey);
   document.querySelectorAll('.engine-opt').forEach(b=>b.classList.remove('selected'));
   const idx={mymemory:0,google:1,claude:2,gemini:3}[state.engine]??0;
   document.querySelectorAll('.engine-opt')[idx]?.classList.add('selected');
@@ -3284,7 +3311,7 @@ function loadFirebaseSDK() {
   if(fbRoom){state.firebaseRoomCode=fbRoom;document.getElementById('fbRoomCode').value=fbRoom;}
   state.firebaseNickname=localStorage.getItem('careVoiceFbNickname')||'';
   // Whisper key restore
-  const wk=localStorage.getItem('careVoiceWhisperKey');if(wk){state.whisperKey=wk;const wb=document.getElementById('whisperBar');if(wb)wb.style.display='flex';}
+  const wk=localStorage.getItem('careVoiceWhisperKey');if(wk){state.whisperKey=wk;showWhisperBars(true);}
   // 受信モード検出（URLパラメータ）
   const _urlParams=new URLSearchParams(location.search);
   if(_urlParams.get('mode')==='receive'&&_urlParams.get('session')){
