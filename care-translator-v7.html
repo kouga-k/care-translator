@@ -1942,7 +1942,9 @@ async function startBroadcast(){
     broadcastSessionId=Date.now().toString(36)+Math.random().toString(36).substr(2,5);
     const title=document.getElementById('broadcastTitle').value.trim()||'研修セッション';
     await broadcastRtDb.ref(`broadcasts/${broadcastSessionId}`).set({title,active:true,startedAt:Date.now()});
-    const receiveUrl=`${location.origin}${location.pathname}?mode=receive&session=${broadcastSessionId}`;
+    // Firebase設定をBase64エンコードしてURLに含める（スタッフ側で設定不要に）
+    const cfgB64=btoa(unescape(encodeURIComponent(JSON.stringify(state.firebaseConfig))));
+    const receiveUrl=`${location.origin}${location.pathname}?mode=receive&session=${broadcastSessionId}&cfg=${cfgB64}`;
     showBroadcastModal(receiveUrl,title);
     startBroadcastMic();
     broadcastActive=true;
@@ -2034,10 +2036,19 @@ async function initReceiveMode(sessionId){
   grid.innerHTML=receiveLangs.map(l=>`<button class="receive-lang-btn${l.code===receiveLang?' active':''}" onclick="setReceiveLang('${l.code}',this)">${l.label}</button>`).join('');
   try{
     await loadFirebaseRtDb();
-    const fbEnabled=localStorage.getItem('careVoiceFirebaseEnabled')==='true';
-    const fbCfgStr=localStorage.getItem('careVoiceFirebaseConfig');
-    if(fbEnabled&&fbCfgStr&&!state.firebaseApp){
-      try{await initFirebase(JSON.parse(fbCfgStr));}catch(e){}
+    // URLのcfgパラメータからFirebase設定を取得（スタッフ側設定不要）
+    const _p=new URLSearchParams(location.search);
+    const cfgB64=_p.get('cfg');
+    if(cfgB64&&!state.firebaseApp){
+      try{
+        const cfg=JSON.parse(decodeURIComponent(escape(atob(cfgB64))));
+        await initFirebase(cfg);
+      }catch(e){}
+    }
+    // localStorage からも試みる
+    if(!state.firebaseApp){
+      const fbCfgStr=localStorage.getItem('careVoiceFirebaseConfig');
+      if(fbCfgStr){try{await initFirebase(JSON.parse(fbCfgStr));}catch(e){}}
     }
     if(!state.firebaseApp){
       document.getElementById('receiveStatus').textContent='⚠ Firebase未設定';
