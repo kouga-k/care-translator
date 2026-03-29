@@ -3178,9 +3178,14 @@ async function initFirebase(config) {
   }
   const app = window.firebase.initializeApp(config);
   state.firebaseApp = app;
-  state.firebaseDb = window.firebase.firestore();
-  // connection test
-  await state.firebaseDb.collection('careVoice_rooms').limit(1).get();
+  state.firebaseEnabled = true;
+  // Firestore は任意（未有効でも継続）
+  try {
+    state.firebaseDb = window.firebase.firestore();
+    await state.firebaseDb.collection('careVoice_rooms').limit(1).get();
+  } catch(e) {
+    state.firebaseDb = null; // Firestore未設定でもRealtime Databaseは使用可能
+  }
   return true;
 }
 
