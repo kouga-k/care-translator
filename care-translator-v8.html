@@ -473,11 +473,13 @@ function saveSettings(){
   state.whisperKey = document.getElementById('whisperKeyInput').value.trim();
   let fbRaw = document.getElementById('firebaseConfigInput').value.trim();
   if(fbRaw){
-    // JavaScriptのconst firebaseConfig = {...}形式も受け付ける
+    // JS形式・JSON形式どちらも対応
     fbRaw = fbRaw.replace(/^const\s+\w+\s*=\s*/, '').replace(/;\s*$/, '').trim();
-    // キーをダブルクォートで囲む（JS形式→JSON形式）
-    fbRaw = fbRaw.replace(/(\w+):/g, '"$1":');
-    try{ state.firebaseConfig=JSON.parse(fbRaw); localStorage.setItem('cv8Firebase', fbRaw); }catch(e){ showToast('Firebase設定の形式が不正です'); return; }
+    try{
+      const parsed = Function('return ('+fbRaw+')')();
+      state.firebaseConfig = parsed;
+      localStorage.setItem('cv8Firebase', JSON.stringify(parsed));
+    }catch(e){ showToast('Firebase設定の形式が不正です'); return; }
   }
   if(state.geminiKey) localStorage.setItem('cv8Gemini', state.geminiKey);
   if(state.whisperKey) localStorage.setItem('cv8Whisper', state.whisperKey);
