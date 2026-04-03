@@ -471,8 +471,14 @@ function closeSettings(){ document.getElementById('settingsModal').classList.rem
 function saveSettings(){
   state.geminiKey = document.getElementById('geminiKeyInput').value.trim();
   state.whisperKey = document.getElementById('whisperKeyInput').value.trim();
-  const fbRaw = document.getElementById('firebaseConfigInput').value.trim();
-  if(fbRaw){ try{ state.firebaseConfig=JSON.parse(fbRaw); localStorage.setItem('cv8Firebase', fbRaw); }catch(e){ showToast('Firebase設定のJSON形式が不正です'); return; } }
+  let fbRaw = document.getElementById('firebaseConfigInput').value.trim();
+  if(fbRaw){
+    // JavaScriptのconst firebaseConfig = {...}形式も受け付ける
+    fbRaw = fbRaw.replace(/^const\s+\w+\s*=\s*/, '').replace(/;\s*$/, '').trim();
+    // キーをダブルクォートで囲む（JS形式→JSON形式）
+    fbRaw = fbRaw.replace(/(\w+):/g, '"$1":');
+    try{ state.firebaseConfig=JSON.parse(fbRaw); localStorage.setItem('cv8Firebase', fbRaw); }catch(e){ showToast('Firebase設定の形式が不正です'); return; }
+  }
   if(state.geminiKey) localStorage.setItem('cv8Gemini', state.geminiKey);
   if(state.whisperKey) localStorage.setItem('cv8Whisper', state.whisperKey);
   localStorage.setItem('cv8Level', state.seimonLevel);
