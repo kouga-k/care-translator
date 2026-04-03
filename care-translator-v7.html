@@ -44,8 +44,8 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
 .lang-swap{width:36px;height:36px;background:var(--accent-pale);border:none;border-radius:50%;cursor:pointer;font-size:16px;transition:all .3s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .lang-swap:hover{background:var(--accent);color:white;transform:rotate(180deg)}
 .lang-label{font-size:11px;color:var(--text-small);font-weight:300;letter-spacing:.5px}
-#mode-text,#mode-conv,#mode-live,#mode-explain,#mode-subtitle,#mode-training,#mode-face,#mode-broadcast{display:none}
-#mode-text.active,#mode-conv.active,#mode-live.active,#mode-explain.active,#mode-subtitle.active,#mode-training.active,#mode-face.active,#mode-broadcast.active{display:block}
+#mode-text,#mode-conv,#mode-live,#mode-explain,#mode-subtitle,#mode-training,#mode-face,#mode-broadcast,#mode-srtgen{display:none}
+#mode-text.active,#mode-conv.active,#mode-live.active,#mode-explain.active,#mode-subtitle.active,#mode-training.active,#mode-face.active,#mode-broadcast.active,#mode-srtgen.active{display:block}
 .input-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
 .input-card-label{font-size:11px;font-weight:500;color:var(--text-small);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
 .text-input{width:100%;border:none;background:none;font-family:var(--font-jp);font-size:16px;color:var(--text);resize:none;outline:none;min-height:80px;line-height:1.7}
@@ -261,6 +261,25 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
 .subtitle-mic-btn.running{background:#c1121f;color:white;animation:pulse 1.5s infinite}
 .subtitle-pause-btn{padding:12px 20px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);border-radius:12px;cursor:pointer;font-family:var(--font-jp);font-size:14px;font-weight:600;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px;transition:all .2s}
 .subtitle-pause-btn:hover{background:rgba(255,255,255,.15);color:white}
+/* SRT生成モード */
+.srt-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:12px}
+.srt-drop-zone{border:2px dashed var(--border);border-radius:12px;padding:32px 16px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2)}
+.srt-drop-zone:hover,.srt-drop-zone.drag-over{border-color:var(--accent);background:var(--accent-pale)}
+.srt-progress-bar{width:100%;height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin:8px 0}
+.srt-progress-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .3s}
+.srt-progress-label{font-size:12px;color:var(--text-muted);margin-bottom:4px}
+.srt-preview-table{width:100%;border-collapse:collapse;font-size:13px}
+.srt-preview-table th{background:var(--surface2);padding:8px 10px;text-align:left;font-size:11px;font-weight:600;color:var(--text-small);letter-spacing:.5px;border-bottom:1px solid var(--border)}
+.srt-preview-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5}
+.srt-preview-table tr:last-child td{border-bottom:none}
+.srt-time{color:var(--text-muted);font-size:11px;white-space:nowrap;font-family:monospace}
+.srt-original{color:var(--text-muted);font-size:12px}
+.srt-translated{color:var(--text);font-weight:500}
+.srt-dl-btn{padding:10px 18px;border:none;border-radius:10px;cursor:pointer;font-family:var(--font-jp);font-size:13px;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.srt-dl-btn.primary{background:var(--accent);color:white}
+.srt-dl-btn.primary:hover{background:var(--accent-light)}
+.srt-dl-btn.secondary{background:var(--surface2);border:1px solid var(--border);color:var(--text)}
+.srt-dl-btn.secondary:hover{border-color:var(--accent);color:var(--accent)}
 .explain-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px;animation:slideUp .3s ease}
 .explain-section{padding:16px;border-bottom:1px solid var(--border)}
 .explain-section:last-child{border-bottom:none}
@@ -462,6 +481,7 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
   <button class="mode-tab" id="tab-subtitle" onclick="switchMode('subtitle',this)">🎬 <span data-i18n="tab_subtitle">字幕モード</span></button>
   <button class="mode-tab train-tab" id="tab-training" onclick="switchMode('training',this)">📚 <span data-i18n="tab_training">研修</span></button>
   <button class="mode-tab broadcast-tab" id="tab-broadcast" onclick="switchMode('broadcast',this)">📡 <span>配信</span></button>
+  <button class="mode-tab" id="tab-srtgen" onclick="switchMode('srtgen',this)">📂 <span>字幕生成</span></button>
 </div>
 
 <div class="main">
@@ -722,6 +742,71 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
         <button class="whisper-toggle-btn whisper-off" id="whisperToggleBtn" onclick="toggleWhisperCapture()">OFF</button>
       </div>
       <button class="subtitle-start-btn" onclick="startSubtitleMode()">🎬 字幕モード開始</button>
+    </div>
+  </div>
+
+  <!-- ===== 字幕ファイル生成モード ===== -->
+  <div id="mode-srtgen">
+    <div class="srt-card">
+      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px">📂 字幕ファイル生成</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;line-height:1.7">収録済みの音声・動画ファイルから字幕（.srt）を生成します。<br>Whisper で文字起こし → 翻訳 → .srt ダウンロード</div>
+      <div class="srt-drop-zone" id="srtDropZone">
+        <div style="font-size:36px;margin-bottom:8px">🎵</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">ファイルをドロップ、またはクリックして選択</div>
+        <div style="font-size:12px;color:var(--text-muted)">対応形式：mp3 / mp4 / wav / m4a / webm / mov / ogg</div>
+        <input type="file" id="srtFileInput" accept="audio/*,video/*" style="display:none">
+      </div>
+      <div id="srtFileInfo" style="display:none;background:var(--accent-pale);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--accent);margin-top:10px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text-small);letter-spacing:1px;margin-bottom:6px">FROM</div>
+          <select class="subtitle-lang-select" id="srtLangFrom">
+            <option value="ja">🇯🇵 日本語</option><option value="en">🇺🇸 英語</option>
+            <option value="my">🇲🇲 ミャンマー語</option><option value="id">🇮🇩 インドネシア語</option>
+            <option value="vi">🇻🇳 ベトナム語</option><option value="tl">🇵🇭 タガログ語</option>
+            <option value="zh">🇨🇳 中国語</option><option value="ko">🇰🇷 韓国語</option>
+            <option value="th">🇹🇭 タイ語</option><option value="ms">🇲🇾 マレー語</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text-small);letter-spacing:1px;margin-bottom:6px">TO</div>
+          <select class="subtitle-lang-select" id="srtLangTo">
+            <option value="my">🇲🇲 ミャンマー語</option><option value="ja">🇯🇵 日本語</option>
+            <option value="en">🇺🇸 英語</option><option value="id">🇮🇩 インドネシア語</option>
+            <option value="vi">🇻🇳 ベトナム語</option><option value="tl">🇵🇭 タガログ語</option>
+            <option value="zh">🇨🇳 中国語</option><option value="ko">🇰🇷 韓国語</option>
+            <option value="th">🇹🇭 タイ語</option><option value="ms">🇲🇾 マレー語</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" id="srtBilingual"> バイリンガル字幕（翻訳＋原文を両方表示）
+        </label>
+      </div>
+      <div id="srtNoWhisperWarn" style="display:none;background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--warn);margin-top:12px">
+        ⚠️ Whisper APIキーが必要です。設定（⚙️）→「Whisper APIキー」に入力してください。
+      </div>
+      <button class="subtitle-start-btn" id="srtStartBtn" onclick="startSrtGeneration()" disabled style="margin-top:14px">📂 字幕を生成する</button>
+      <div id="srtProgress" style="display:none;margin-top:14px">
+        <div class="srt-progress-label" id="srtProgressLabel">処理中...</div>
+        <div class="srt-progress-bar"><div class="srt-progress-fill" id="srtProgressFill" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="srt-card" id="srtResult" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:15px;font-weight:700;color:var(--text)" id="srtResultTitle">字幕生成完了</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="srt-dl-btn primary" onclick="downloadSrt(false)">⬇️ .srt ダウンロード</button>
+          <button class="srt-dl-btn secondary" onclick="downloadSrt(true)">⬇️ バイリンガル</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;max-height:400px;overflow-y:auto">
+        <table class="srt-preview-table">
+          <thead><tr><th>時間</th><th>翻訳</th><th>原文</th></tr></thead>
+          <tbody id="srtPreviewBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -1624,6 +1709,10 @@ function switchMode(mode,btn) {
   } else if(mode==='broadcast'){
     langBar.style.display='none';
     if(careB) careB.style.display='none';
+  } else if(mode==='srtgen'){
+    langBar.style.display='none';
+    if(careB) careB.style.display='none';
+    initSrtGen();
   } else {
     langBar.style.display='';
     if(state.careMode && careB) careB.classList.add('show');
@@ -2726,10 +2815,11 @@ function onFirebaseToggle(){
   document.getElementById('firebaseConfigArea').style.display=enabled?'block':'none';
 }
 async function applyFirebaseConfig(){
-  const jsonStr=document.getElementById('firebaseConfigJson').value.trim();
+  let jsonStr=document.getElementById('firebaseConfigJson').value.trim();
   const resultEl=document.getElementById('firebaseTestResult');
   try{
-    const cfg=JSON.parse(jsonStr);
+    jsonStr=jsonStr.replace(/^const\s+\w+\s*=\s*/,'').replace(/;\s*$/,'').trim();
+    const cfg=Function('return ('+jsonStr+')')();
     if(!cfg.apiKey||!cfg.projectId) throw new Error('apiKeyとprojectIdが必要です');
     state.firebaseConfig=cfg;state.firebaseEnabled=true;
     localStorage.setItem('careVoiceFirebaseConfig',jsonStr);
@@ -3285,6 +3375,197 @@ function loadFirebaseSDK() {
       document.head.appendChild(s);
     });
   });
+}
+
+// ===== 字幕ファイル生成 =====
+const srtState = { segments: [], file: null, isProcessing: false, initialized: false };
+
+function initSrtGen() {
+  if (srtState.initialized) return;
+  srtState.initialized = true;
+  const dropZone = document.getElementById('srtDropZone');
+  const fileInput = document.getElementById('srtFileInput');
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) setSrtFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', () => { if (fileInput.files[0]) setSrtFile(fileInput.files[0]); });
+  if (!state.whisperKey) document.getElementById('srtNoWhisperWarn').style.display = 'block';
+}
+
+function setSrtFile(file) {
+  srtState.file = file;
+  const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+  const info = document.getElementById('srtFileInfo');
+  info.innerHTML = `📄 <strong>${file.name}</strong>（${sizeMB} MB）`;
+  info.style.display = 'block';
+  document.getElementById('srtStartBtn').disabled = !state.whisperKey;
+  document.getElementById('srtResult').style.display = 'none';
+  document.getElementById('srtProgress').style.display = 'none';
+}
+
+function updateSrtProgress(label, pct) {
+  document.getElementById('srtProgressLabel').textContent = label;
+  document.getElementById('srtProgressFill').style.width = pct + '%';
+}
+
+function float32ToWavBlob(samples, sampleRate) {
+  const n = samples.length;
+  const buf = new ArrayBuffer(44 + n * 2);
+  const v = new DataView(buf);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0,'RIFF'); v.setUint32(4, 36 + n * 2, true);
+  w(8,'WAVE'); w(12,'fmt ');
+  v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+  v.setUint32(24,sampleRate,true); v.setUint32(28,sampleRate*2,true);
+  v.setUint16(32,2,true); v.setUint16(34,16,true);
+  w(36,'data'); v.setUint32(40, n * 2, true);
+  let off = 44;
+  for (let i = 0; i < n; i++) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    v.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    off += 2;
+  }
+  return new Blob([buf], { type: 'audio/wav' });
+}
+
+async function audioSliceToWav(audioBuffer, startSec, endSec) {
+  const rate = 16000;
+  const dur = endSec - startSec;
+  const numSamples = Math.ceil(dur * rate);
+  const offCtx = new OfflineAudioContext(1, numSamples, rate);
+  const src = offCtx.createBufferSource();
+  src.buffer = audioBuffer;
+  src.connect(offCtx.destination);
+  src.start(0, startSec, dur);
+  const rendered = await offCtx.startRendering();
+  return float32ToWavBlob(rendered.getChannelData(0), rate);
+}
+
+async function whisperVerbose(wavBlob, fromLang, timeOffset) {
+  const langMap = {ja:'ja',zh:'zh',ko:'ko',en:'en',my:'my',id:'id',vi:'vi',tl:'tl',th:'th',ms:'ms',pt:'pt',es:'es',fr:'fr',de:'de',it:'it',ru:'ru'};
+  const fd = new FormData();
+  fd.append('file', wavBlob, 'chunk.wav');
+  fd.append('model', 'whisper-1');
+  fd.append('language', langMap[fromLang] || 'ja');
+  fd.append('response_format', 'verbose_json');
+  fd.append('timestamp_granularities[]', 'segment');
+  const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + state.whisperKey },
+    body: fd
+  });
+  if (!res.ok) throw new Error('Whisper error ' + res.status);
+  const data = await res.json();
+  return (data.segments || [])
+    .map(s => ({ start: s.start + timeOffset, end: s.end + timeOffset, text: s.text.trim() }))
+    .filter(s => s.text);
+}
+
+function formatSrtTime(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = Math.floor(sec % 60);
+  const ms = Math.round((sec % 1) * 1000);
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')},${String(ms).padStart(3,'0')}`;
+}
+
+async function startSrtGeneration() {
+  if (!srtState.file || srtState.isProcessing) return;
+  if (!state.whisperKey) { showToast('Whisper APIキーを設定してください'); return; }
+  srtState.isProcessing = true;
+  srtState.segments = [];
+  document.getElementById('srtStartBtn').disabled = true;
+  document.getElementById('srtProgress').style.display = 'block';
+  document.getElementById('srtResult').style.display = 'none';
+  const fromLang = document.getElementById('srtLangFrom').value;
+  const toLang = document.getElementById('srtLangTo').value;
+  try {
+    updateSrtProgress('音声を読み込み中...', 5);
+    const arrayBuffer = await srtState.file.arrayBuffer();
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let audioBuffer;
+    try {
+      audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    } catch(e) {
+      throw new Error('音声デコードに失敗しました。mp3/mp4/wav/m4a形式をお試しください。');
+    }
+    audioCtx.close();
+    const totalDur = audioBuffer.duration;
+    const CHUNK = 600; // 10分チャンク（WAV換算で約19MB）
+    const numChunks = Math.ceil(totalDur / CHUNK);
+    updateSrtProgress(`音声解析完了（${Math.floor(totalDur/60)}分${Math.floor(totalDur%60)}秒 / ${numChunks}チャンク）`, 10);
+    let allSegs = [];
+    for (let i = 0; i < numChunks; i++) {
+      const start = i * CHUNK;
+      const end = Math.min((i + 1) * CHUNK, totalDur);
+      updateSrtProgress(`文字起こし中 ${i+1}/${numChunks}...`, 10 + (i / numChunks) * 40);
+      const wav = await audioSliceToWav(audioBuffer, start, end);
+      const segs = await whisperVerbose(wav, fromLang, start);
+      allSegs = allSegs.concat(segs);
+    }
+    if (!allSegs.length) { showToast('音声が認識できませんでした'); return; }
+    for (let i = 0; i < allSegs.length; i++) {
+      updateSrtProgress(`翻訳中 ${i+1}/${allSegs.length}...`, 50 + (i / allSegs.length) * 45);
+      const seg = allSegs[i];
+      try {
+        if (state.engine==='gemini' && state.geminiKey) {
+          const r = await translateWithGemini(seg.text, fromLang, toLang, []); seg.translated = r.translated;
+        } else if (state.engine==='claude' && state.claudeKey) {
+          const r = await translateWithClaude(seg.text, fromLang, toLang, []); seg.translated = r.translated;
+        } else {
+          const r = await translateWithMyMemory(seg.text, fromLang, toLang, true); seg.translated = r.translated;
+        }
+      } catch(e) { seg.translated = seg.text; }
+      if (i % 10 === 9) await new Promise(r => setTimeout(r, 100));
+    }
+    srtState.segments = allSegs;
+    updateSrtProgress('完了！', 100);
+    renderSrtPreview();
+    document.getElementById('srtResult').style.display = 'block';
+    document.getElementById('srtResultTitle').textContent = `字幕生成完了（${allSegs.length}件）`;
+  } catch(e) {
+    showToast('エラー: ' + e.message);
+    document.getElementById('srtProgress').style.display = 'none';
+  } finally {
+    srtState.isProcessing = false;
+    document.getElementById('srtStartBtn').disabled = false;
+  }
+}
+
+function renderSrtPreview() {
+  const tbody = document.getElementById('srtPreviewBody');
+  const preview = srtState.segments.slice(0, 50);
+  tbody.innerHTML = preview.map(seg =>
+    `<tr>
+      <td class="srt-time">${formatSrtTime(seg.start)}</td>
+      <td class="srt-translated">${seg.translated || ''}</td>
+      <td class="srt-original">${seg.text}</td>
+    </tr>`
+  ).join('');
+  if (srtState.segments.length > 50) {
+    tbody.innerHTML += `<tr><td colspan="3" style="text-align:center;color:var(--text-muted);font-size:12px;padding:8px">他 ${srtState.segments.length - 50} 件（ダウンロードで全件確認）</td></tr>`;
+  }
+}
+
+function downloadSrt(bilingual) {
+  if (!srtState.segments.length) return;
+  const bil = bilingual || document.getElementById('srtBilingual').checked;
+  const content = srtState.segments.map((seg, i) => {
+    const lines = [`${i+1}`, `${formatSrtTime(seg.start)} --> ${formatSrtTime(seg.end)}`, seg.translated || seg.text];
+    if (bil && seg.text && seg.text !== seg.translated) lines.push(seg.text);
+    return lines.join('\n');
+  }).join('\n\n');
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const base = srtState.file ? srtState.file.name.replace(/\.[^.]+$/, '') : 'subtitle';
+  a.download = `${base}_${bil ? 'bilingual' : 'translated'}.srt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 // ===== 初期化 =====
