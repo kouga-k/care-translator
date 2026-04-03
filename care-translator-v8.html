@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CareVoice｜理解支援</title>
+<style>
+:root {
+  --bg:#f5f3ee;--surface:#fff;--surface2:#faf8f4;--border:#e2ddd6;
+  --accent:#2d6a4f;--accent-light:#40916c;--accent-pale:#d8f3dc;
+  --warn:#c1121f;--warn-bg:#fff0f0;
+  --text:#1a1a2e;--text-muted:#6b6860;--text-small:#9b9890;
+  --font-jp:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;--radius:14px;--shadow:0 2px 16px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+
+/* Header */
+.app-header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.logo-text{font-family:'DM Serif Display',serif;font-size:18px;color:var(--accent)}
+.logo-sub{font-size:9px;color:var(--text-muted);letter-spacing:1px}
+.header-right{display:flex;align-items:center;gap:8px}
+.lang-select{border:1px solid var(--border);background:var(--surface2);border-radius:8px;padding:6px 10px;font-family:var(--font-jp);font-size:13px;color:var(--text);outline:none;cursor:pointer}
+.icon-btn{width:36px;height:36px;border:1px solid var(--border);background:var(--surface2);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s}
+.icon-btn:hover{background:var(--accent-pale);border-color:var(--accent)}
+
+/* Mode bar */
+.mode-bar{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 12px;flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.mode-btn{padding:10px 14px;border:none;background:none;font-family:var(--font-jp);font-size:13px;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap}
+.mode-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.mode-btn.dist-btn.active{color:#e94560;border-bottom-color:#e94560}
+
+/* 2ペインレイアウト */
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.top-pane{flex:0 0 78%;overflow-y:auto;padding:16px;border-bottom:3px solid var(--border);background:var(--surface);scroll-behavior:smooth}
+.top-pane-label{font-size:10px;font-weight:600;color:var(--text-small);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.top-pane-text{font-size:20px;font-weight:500;color:var(--text);line-height:1.9}
+.top-pane-empty{font-size:13px;color:var(--text-small);text-align:center;padding:40px 0}
+.bottom-pane-label{font-size:10px;font-weight:600;color:var(--text-small);letter-spacing:1px;text-transform:uppercase;padding:8px 16px 4px;background:var(--bg);flex-shrink:0}
+/* Transcript（下ペイン） */
+.transcript-area{flex:1;overflow-y:auto;padding:8px 12px;scroll-behavior:smooth;background:var(--bg)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-small)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.empty-title{font-size:16px;font-weight:600;color:var(--text-muted);margin-bottom:6px}
+.empty-sub{font-size:13px;line-height:1.7}
+
+/* Entry */
+.entry{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);animation:slideUp .25s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.entry.interim{opacity:.5;border-style:dashed}
+.entry-interim-text{font-size:14px;color:var(--text-muted);font-style:italic}
+.entry-jp{font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:6px;padding-left:10px;border-left:2px solid var(--border)}
+.entry-trans{font-size:20px;font-weight:600;color:var(--text);line-height:1.6;margin-bottom:8px}
+.entry-terms{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.term-badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;background:#fff8e1;border:1px solid #ffe082;border-radius:20px;font-size:11px;color:#e65100;cursor:pointer;transition:all .2s}
+.term-badge:hover{background:#ffe082}
+
+/* Scroll button */
+.scroll-btn{position:fixed;bottom:90px;right:16px;width:44px;height:44px;background:var(--accent);color:white;border:none;border-radius:50%;font-size:18px;cursor:pointer;box-shadow:0 4px 12px rgba(45,106,79,.4);display:none;align-items:center;justify-content:center;z-index:10}
+.scroll-btn.show{display:flex}
+
+/* Bottom bar */
+.bottom-bar{background:var(--surface);border-top:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;box-shadow:0 -2px 12px rgba(0,0,0,.05)}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--text-small);flex-shrink:0}
+.status-dot.active{background:var(--warn);animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.status-text{font-size:12px;color:var(--text-muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.summary-btn{padding:10px 14px;border:1px solid var(--border);background:var(--surface2);border-radius:10px;font-family:var(--font-jp);font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;display:none;align-items:center;gap:5px;transition:all .2s;white-space:nowrap}
+.summary-btn.show{display:flex}
+.summary-btn:hover{border-color:var(--accent);color:var(--accent)}
+.pc-btn{width:36px;height:36px;border:1px solid var(--border);background:var(--surface2);border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.pc-btn.active{background:#6c3fc0;border-color:#6c3fc0;color:white}
+.mic-btn{padding:10px 20px;border:none;border-radius:10px;font-family:var(--font-jp);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;white-space:nowrap}
+.mic-btn.idle{background:var(--accent);color:white}
+.mic-btn.idle:hover{background:var(--accent-light)}
+.mic-btn.recording{background:var(--warn);color:white}
+
+/* 配信パネル */
+#mode-dist{display:none;flex:1;overflow-y:auto;padding:16px}
+#mode-dist.active{display:block}
+.dist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:12px}
+.dist-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.dist-desc{font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:16px}
+.dist-start-btn{width:100%;padding:14px;background:#e94560;color:white;border:none;border-radius:12px;font-family:var(--font-jp);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s}
+.dist-start-btn:hover{background:#c73652}
+.dist-stop-btn{width:100%;padding:14px;background:var(--surface2);color:var(--text-muted);border:1px solid var(--border);border-radius:12px;font-family:var(--font-jp);font-size:15px;font-weight:700;cursor:pointer;margin-top:8px}
+.qr-area{text-align:center;padding:16px 0}
+.qr-img{width:160px;height:160px;border:1px solid var(--border);border-radius:10px}
+.qr-code-text{font-size:28px;font-weight:700;color:var(--accent);letter-spacing:4px;margin:10px 0 4px}
+.qr-url{font-size:11px;color:var(--text-small);word-break:break-all;margin-bottom:12px}
+.qr-copy-btn{padding:8px 16px;border:1px solid var(--accent);background:var(--accent-pale);border-radius:8px;cursor:pointer;font-family:var(--font-jp);font-size:13px;color:var(--accent);font-weight:500}
+.dist-live-count{font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px}
+.dist-log{margin-top:12px;max-height:200px;overflow-y:auto}
+.dist-log-item{font-size:12px;color:var(--text-small);padding:4px 0;border-bottom:1px solid var(--border)}
+
+/* 受信モード overlay */
+.receive-overlay{display:none;position:fixed;inset:0;background:#0d1117;z-index:500;flex-direction:column}
+.receive-overlay.active{display:flex}
+.receive-header{padding:12px 16px;background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.receive-title{font-size:14px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:8px}
+.receive-live-dot{width:8px;height:8px;border-radius:50%;background:#ff4444;animation:blink 1s infinite}
+.receive-lang-select{border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);border-radius:8px;padding:5px 8px;font-family:var(--font-jp);font-size:12px;color:white;outline:none}
+.receive-area{flex:1;overflow-y:auto;padding:16px;scroll-behavior:smooth}
+.receive-entry{padding:14px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.receive-trans{font-size:22px;font-weight:600;color:#fff;line-height:1.6;margin-bottom:6px}
+.receive-jp{font-size:14px;color:rgba(255,255,255,.45);line-height:1.5}
+.receive-empty{text-align:center;padding:60px 20px;color:rgba(255,255,255,.3);font-size:15px}
+
+/* Modal base */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:flex-end;justify-content:center;padding:0;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;animation:sheetUp .3s ease}
+@keyframes sheetUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1}
+.modal-title{font-size:16px;font-weight:700}
+.modal-close{width:30px;height:30px;border:none;background:var(--surface2);border-radius:8px;cursor:pointer;font-size:14px}
+.modal-body{padding:16px 20px 24px}
+
+/* Settings */
+.setting-group{margin-bottom:18px}
+.setting-label{font-size:11px;font-weight:600;color:var(--text-small);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.setting-input{width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:var(--font-jp);font-size:14px;background:var(--surface2);outline:none}
+.setting-input:focus{border-color:var(--accent)}
+.setting-textarea{width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:monospace;font-size:12px;background:var(--surface2);outline:none;min-height:80px;resize:vertical}
+.setting-textarea:focus{border-color:var(--accent)}
+.setting-hint{font-size:11px;color:var(--text-small);margin-top:4px;line-height:1.5}
+.seg-btns{display:flex;gap:6px}
+.seg-btn{flex:1;padding:8px 4px;border:1px solid var(--border);background:var(--surface2);border-radius:8px;cursor:pointer;font-family:var(--font-jp);font-size:12px;font-weight:500;color:var(--text-muted);transition:all .2s;text-align:center}
+.seg-btn.active{background:var(--accent);color:white;border-color:var(--accent)}
+.save-btn{width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-family:var(--font-jp);font-size:14px;font-weight:600;cursor:pointer;margin-top:4px}
+.save-btn:hover{background:var(--accent-light)}
+
+/* Term popup */
+.term-popup{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:420px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:150;padding:16px;animation:slideUp .2s ease}
+.term-popup.show{display:block}
+.term-popup-close{float:right;background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-muted);line-height:1}
+.term-popup-name{font-size:20px;font-weight:700;color:var(--text)}
+.term-popup-reading{font-size:13px;color:var(--text-muted);margin-bottom:10px}
+.term-row{display:flex;gap:8px;margin-bottom:6px;align-items:flex-start;font-size:13px}
+.term-row-label{font-weight:600;color:var(--text);min-width:56px;flex-shrink:0}
+.term-row-text{color:var(--text-muted);line-height:1.5}
+.term-trans-line{font-size:12px;color:var(--accent);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+
+/* Summary */
+.summary-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px}
+.badge-draft{background:#fff3cd;color:#856404}
+.badge-confirmed{background:var(--accent-pale);color:var(--accent)}
+.summary-textarea{width:100%;min-height:220px;border:1px solid var(--border);border-radius:10px;padding:12px;font-family:var(--font-jp);font-size:14px;line-height:1.7;resize:vertical;outline:none;background:var(--surface2)}
+.summary-textarea:focus{border-color:var(--accent);background:white}
+.summary-hint{font-size:11px;color:var(--warn);margin-top:6px;line-height:1.5}
+.summary-actions{display:flex;gap:8px;margin-top:12px}
+.s-btn{flex:1;padding:10px 8px;border-radius:10px;font-family:var(--font-jp);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;border:none;transition:all .2s}
+.btn-regen{background:var(--surface2);color:var(--text-muted);border:1px solid var(--border) !important}
+.btn-regen:hover{border-color:var(--accent) !important;color:var(--accent)}
+.btn-dl{background:#1565c0;color:white}
+.btn-dl:hover{background:#1976d2}
+.btn-confirm{background:var(--accent);color:white}
+.btn-confirm:hover{background:var(--accent-light)}
+
+/* engine badge */
+.engine-badge{font-size:10px;padding:2px 6px;border-radius:10px;background:#e8f4fd;color:#1a6fa0;font-weight:600;margin-left:6px;vertical-align:middle}
+
+/* Toast */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:white;padding:10px 18px;border-radius:20px;font-size:13px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+
+@media(min-width:600px){
+  .modal-overlay{align-items:center}
+  .modal-sheet{border-radius:20px}
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="app-header">
+  <div class="logo">
+    <div class="logo-icon">🌿</div>
+    <div>
+      <div class="logo-text">CareVoice</div>
+      <div class="logo-sub">理解支援 v8</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <select class="lang-select" id="langSelect" onchange="changeLang(this.value)">
+      <option value="my">🇲🇲 ミャンマー語</option>
+      <option value="id">🇮🇩 インドネシア語</option>
+      <option value="vi">🇻🇳 ベトナム語</option>
+      <option value="en">🇺🇸 英語</option>
+    </select>
+    <button class="icon-btn" onclick="openSettings()" title="設定">⚙️</button>
+    <button class="icon-btn" onclick="clearAll()" title="クリア">🗑️</button>
+  </div>
+</header>
+
+<!-- Mode bar -->
+<div class="mode-bar">
+  <button class="mode-btn active" id="modeVideo" onclick="setMode('video',this)">🎬 研修動画</button>
+  <button class="mode-btn" id="modeMeeting" onclick="setMode('meeting',this)">🤝 会議・指導</button>
+  <button class="mode-btn dist-btn" id="modeDist" onclick="setMode('dist',this)">📡 配信</button>
+</div>
+
+<!-- 2ペインメインコンテンツ（研修・会議） -->
+<div class="main-content" id="mainContent">
+  <!-- 上ペイン：流れる翻訳文書 -->
+  <div class="top-pane" id="topPane">
+    <div class="top-pane-label">📖 翻訳ドキュメント</div>
+    <div class="top-pane-empty" id="topPaneEmpty">録音を開始すると翻訳がここに流れていきます</div>
+    <div class="top-pane-text" id="topPaneText"></div>
+  </div>
+  <!-- 下ペイン：逐次翻訳カード -->
+  <div class="bottom-pane-label">▼ 逐次翻訳</div>
+  <div class="transcript-area" id="transcriptArea">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">🎙️</div>
+      <div class="empty-title">録音を開始してください</div>
+      <div class="empty-sub">音声を整えて日本語＋翻訳を表示します<br>専門用語は📚バッジをタップで確認できます</div>
+    </div>
+  </div>
+</div>
+
+<!-- 配信パネル -->
+<div id="mode-dist">
+  <div class="dist-card">
+    <div class="dist-title">📡 リアルタイム配信</div>
+    <div class="dist-desc">
+      録音した内容をFirebaseでリアルタイム配信します。<br>
+      外国人スタッフはQRコードを読んでスマホで受信できます。
+    </div>
+    <div id="distSetup">
+      <button class="dist-start-btn" onclick="startDistribution()">📡 配信を開始する</button>
+      <div style="font-size:11px;color:var(--text-small);margin-top:10px;text-align:center">
+        ※ 設定（⚙️）→ Firebase設定 が必要です
+      </div>
+    </div>
+    <div id="distActive" style="display:none">
+      <div class="qr-area">
+        <img id="qrImg" class="qr-img" src="" alt="QR">
+        <div class="qr-code-text" id="sessionCodeDisplay"></div>
+        <div class="qr-url" id="sessionUrlDisplay"></div>
+        <button class="qr-copy-btn" onclick="copySessionUrl()">🔗 URLをコピー</button>
+      </div>
+      <div class="dist-live-count" id="distLiveCount">📱 受信者: 確認中...</div>
+      <button class="dist-stop-btn" onclick="stopDistribution()">⏹ 配信を停止</button>
+      <div class="dist-log" id="distLog"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Scroll to bottom -->
+<button class="scroll-btn" id="scrollBtn" onclick="scrollToBottom()">↓</button>
+
+<!-- Bottom bar -->
+<div class="bottom-bar">
+  <div class="status-dot" id="statusDot"></div>
+  <div class="status-text" id="statusText">待機中</div>
+  <button class="summary-btn" id="summaryBtn" onclick="openSummary()">📝 要点</button>
+  <button class="icon-btn pc-btn" id="pcBtn" onclick="togglePcAudio()" title="PC内部音声（Whisper）">🖥️</button>
+  <button class="mic-btn idle" id="micBtn" onclick="toggleRecording()">🎤 開始</button>
+</div>
+
+<!-- 受信モード overlay -->
+<div class="receive-overlay" id="receiveOverlay">
+  <div class="receive-header">
+    <div class="receive-title">
+      <div class="receive-live-dot"></div>
+      <span>CareVoice 受信中</span>
+    </div>
+    <select class="receive-lang-select" id="receiveLangSelect" onchange="changeReceiveLang(this.value)">
+      <option value="my">🇲🇲 ミャンマー語</option>
+      <option value="id">🇮🇩 インドネシア語</option>
+      <option value="vi">🇻🇳 ベトナム語</option>
+      <option value="en">🇺🇸 英語</option>
+      <option value="ja">🇯🇵 日本語のみ</option>
+    </select>
+  </div>
+  <div class="receive-area" id="receiveArea">
+    <div class="receive-empty">配信が始まるまでお待ちください...</div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ 設定</div>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="setting-group">
+        <div class="setting-label">Gemini API Key <span class="engine-badge">整文・翻訳・要点</span></div>
+        <input class="setting-input" id="geminiKeyInput" type="password" placeholder="AIzaSy...">
+        <div class="setting-hint">✨ <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com</a> で無料取得 · なければMyMemory（無料）で翻訳</div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-label">Whisper API Key <span class="engine-badge">PC音声用</span></div>
+        <input class="setting-input" id="whisperKeyInput" type="password" placeholder="sk-...">
+        <div class="setting-hint">🖥️ 🖥️ボタンでPC内部音声・研修サイトの音声を取得 · 約0.9円/分</div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-label">Firebase 設定 <span class="engine-badge">配信モード用</span></div>
+        <textarea class="setting-textarea" id="firebaseConfigInput" placeholder='{"apiKey":"...","databaseURL":"https://xxx.firebaseio.com",...}'></textarea>
+        <div class="setting-hint">🔥 Firebase コンソール → プロジェクト設定 → Firebase SDK snippet → Config をそのまま貼り付け<br>
+        無料（Spark）プランで100接続まで利用可</div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-label">文の整え方</div>
+        <div class="seg-btns">
+          <button class="seg-btn" id="levelLight" onclick="setLevel('light',this)">そのまま寄り</button>
+          <button class="seg-btn active" id="levelBalanced" onclick="setLevel('balanced',this)">バランス</button>
+          <button class="seg-btn" id="levelReadable" onclick="setLevel('readable',this)">読みやすさ重視</button>
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveSettings()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Term Popup -->
+<div class="term-popup" id="termPopup">
+  <button class="term-popup-close" onclick="closeTerm()">✕</button>
+  <div class="term-popup-name" id="termName"></div>
+  <div class="term-popup-reading" id="termReading"></div>
+  <div class="term-row"><span class="term-row-label">📌 基本</span><span class="term-row-text" id="termBasic"></span></div>
+  <div class="term-row"><span class="term-row-label">✅ ポイント</span><span class="term-row-text" id="termPoint"></span></div>
+  <div class="term-row"><span class="term-row-label">⚠️ 例外</span><span class="term-row-text" id="termException"></span></div>
+  <div class="term-trans-line" id="termTrans"></div>
+</div>
+
+<!-- Summary Modal -->
+<div class="modal-overlay" id="summaryModal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div class="modal-title">📝 要点まとめ</div>
+      <span class="summary-badge badge-draft" id="summaryBadge">AI下書き</span>
+      <button class="modal-close" onclick="closeSummary()">✕</button>
+    </div>
+    <div class="modal-body">
+      <textarea class="summary-textarea" id="summaryTextarea" placeholder="生成中..."></textarea>
+      <div class="summary-hint">⚠️ AI生成の下書きです。必ず内容を確認・修正してから保存してください。</div>
+      <div class="summary-actions">
+        <button class="s-btn btn-regen" onclick="regenerateSummary()">🔄 再生成</button>
+        <button class="s-btn btn-dl" onclick="downloadSummary()">⬇️ 保存</button>
+        <button class="s-btn btn-confirm" onclick="confirmSummary()">✓ 確定</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== 用語辞書 =====
+const TERMS_DB = [
+  {term:'見守り',reading:'みまもり',basic:'そばで安全を確認する',point:'基本は手を出さない',exception:'危険時はすぐ介助する',my:'စောင့်ကြည့်ခြင်း',id:'Mengawasi',vi:'Theo dõi',en:'Monitoring'},
+  {term:'介助',reading:'かいじょ',basic:'体を支えて動作を助ける',point:'利用者の残存能力を活かす',exception:'全介助が必要な場合もある',my:'ကူညီပံ့ပိုးခြင်း',id:'Membantu',vi:'Hỗ trợ',en:'Assistance'},
+  {term:'全介助',reading:'ぜんかいじょ',basic:'すべての動作を介護者が行う',point:'利用者が自力では困難な状態',exception:'リハビリ目的で一部自力動作を促す場合もある',my:'အကူအညီ အပြည့်',id:'Bantuan penuh',vi:'Hỗ trợ toàn phần',en:'Full assistance'},
+  {term:'一部介助',reading:'いちぶかいじょ',basic:'一部の動作を介護者が補助する',point:'利用者の自立を促しながら補う',exception:'状態により全介助に切り替える',my:'တစ်စိတ်တစ်ပိုင်း ကူညီ',id:'Bantuan sebagian',vi:'Hỗ trợ một phần',en:'Partial assistance'},
+  {term:'移乗',reading:'いじょう',basic:'ベッドや車椅子間の移動動作',point:'健側から動かすのが基本',exception:'麻痺の状態により手順が変わる',my:'နေရာပြောင်းရွှေ့ခြင်း',id:'Transfer',vi:'Chuyển tư thế',en:'Transfer'},
+  {term:'誘導',reading:'ゆうどう',basic:'声かけやジェスチャーで方向を示す',point:'強引に引っ張らない',exception:'混乱時は安全確保を優先',my:'လမ်းညွှန်ခြင်း',id:'Membimbing',vi:'Hướng dẫn',en:'Guiding'},
+  {term:'誤嚥',reading:'ごえん',basic:'食べ物や液体が気管に入ること',point:'誤嚥性肺炎の原因になる',exception:'無症状でも起きることがある（不顕性誤嚥）',my:'အသိုင်းအဝိုင်းသို့ ဝင်ခြင်း',id:'Aspirasi',vi:'Hít sặc',en:'Aspiration'},
+  {term:'健側',reading:'けんそく',basic:'麻痺がない側のこと',point:'移乗や動作は健側から動かす',exception:'状況により患側から行う場合もある',my:'ကျန်းမာသောဘက်',id:'Sisi sehat',vi:'Bên lành',en:'Unaffected side'},
+  {term:'麻痺側',reading:'まひそく',basic:'麻痺がある側のこと',point:'保護が必要・負担をかけない',exception:'リハビリでは意図的に使う場合もある',my:'လေဖြတ်သောဘက်',id:'Sisi lumpuh',vi:'Bên liệt',en:'Affected side'},
+  {term:'褥瘡',reading:'じょくそう',basic:'体の圧迫が続いてできる傷',point:'定期的な体位変換で予防する',exception:'発症済みの場合は専門的ケアが必要',my:'အိပ်ရာနာ',id:'Luka tekan',vi:'Loét tỳ đè',en:'Pressure ulcer'},
+  {term:'体位変換',reading:'たいいへんかん',basic:'床ずれ予防のため体の向きを変えること',point:'原則2時間ごとに実施',exception:'状態や指示により間隔が変わる',my:'ကိုယ်အနေအထားပြောင်းခြင်း',id:'Perubahan posisi',vi:'Đổi tư thế',en:'Repositioning'},
+  {term:'拘縮',reading:'こうしゅく',basic:'関節が固まって動きにくくなった状態',point:'無理に動かさない・痛みに注意',exception:'リハビリで改善できる場合もある',my:'အဆစ်တောင့်တင်းခြင်း',id:'Kontraktur',vi:'Co cứng',en:'Contracture'},
+];
+
+// ===== State =====
+const state = {
+  geminiKey:'', whisperKey:'', targetLang:'my',
+  isRecording:false, mode:'video', seimonLevel:'balanced',
+  entries:[], entryIdCounter:0, autoScroll:true,
+  recognition:null, interimId:null,
+  pcAudioActive:false, whisperRecorder:null, whisperStream:null, whisperTimer:null,
+  // Firebase
+  firebaseConfig:null, firebaseDb:null, fbRef:null, fbPush:null, fbOnValue:null, fbOff:null,
+  sessionCode:'', isDistributing:false,
+  // Receive
+  isReceiving:false, receiveLang:'my',
+};
+
+// ===== 初期化 =====
+(function init(){
+  state.geminiKey = localStorage.getItem('cv8Gemini') || '';
+  state.whisperKey = localStorage.getItem('cv8Whisper') || '';
+  state.targetLang = localStorage.getItem('cv8Lang') || 'my';
+  state.seimonLevel = localStorage.getItem('cv8Level') || 'balanced';
+  const fbCfg = localStorage.getItem('cv8Firebase');
+  if(fbCfg) state.firebaseConfig = JSON.parse(fbCfg);
+
+  document.getElementById('langSelect').value = state.targetLang;
+  document.getElementById('geminiKeyInput').value = state.geminiKey;
+  document.getElementById('whisperKeyInput').value = state.whisperKey;
+  if(state.firebaseConfig) document.getElementById('firebaseConfigInput').value = JSON.stringify(state.firebaseConfig, null, 2);
+  const lBtn = document.getElementById('level' + state.seimonLevel.charAt(0).toUpperCase() + state.seimonLevel.slice(1));
+  if(lBtn){ document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active')); lBtn.classList.add('active'); }
+
+  // Auto-scroll
+  const ta = document.getElementById('transcriptArea');
+  ta.addEventListener('scroll', ()=>{
+    const atBottom = ta.scrollTop + ta.clientHeight >= ta.scrollHeight - 60;
+    state.autoScroll = atBottom;
+    document.getElementById('scrollBtn').classList.toggle('show', !atBottom && state.entries.length > 0);
+  });
+
+  // Modal backdrop
+  document.getElementById('settingsModal').addEventListener('click', e=>{ if(e.target===document.getElementById('settingsModal')) closeSettings(); });
+  document.getElementById('summaryModal').addEventListener('click', e=>{ if(e.target===document.getElementById('summaryModal')) closeSummary(); });
+  document.addEventListener('click', e=>{
+    const p = document.getElementById('termPopup');
+    if(p.classList.contains('show') && !p.contains(e.target) && !e.target.classList.contains('term-badge')) closeTerm();
+  });
+
+  // 受信モード検出
+  const params = new URLSearchParams(location.search);
+  if(params.get('mode') === 'receive' && params.get('session')){
+    initReceiveMode(params.get('session'));
+  } else if(!state.geminiKey){
+    setTimeout(()=>showToast('⚙️ 設定からGemini APIキーを入力してください（なくても動きます）', 4000), 800);
+  }
+})();
+
+// ===== ユーティリティ =====
+function showToast(msg, ms=3000){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), ms);
+}
+function scrollToBottom(){
+  const ta=document.getElementById('transcriptArea');
+  ta.scrollTop=ta.scrollHeight;
+  state.autoScroll=true;
+  document.getElementById('scrollBtn').classList.remove('show');
+}
+function maybeScroll(){ if(state.autoScroll) scrollToBottom(); }
+function clearAll(){
+  if(state.entries.length && !confirm('記録をすべてクリアしますか？')) return;
+  state.entries=[]; state.entryIdCounter=0; state.interimId=null;
+  document.getElementById('transcriptArea').innerHTML='<div class="empty-state" id="emptyState"><div class="empty-icon">🎙️</div><div class="empty-title">録音を開始してください</div><div class="empty-sub">音声を整えて日本語＋翻訳を表示します<br>専門用語は📚バッジをタップで確認できます</div></div>';
+  document.getElementById('summaryBtn').classList.remove('show');
+  // 上ペインもリセット
+  document.getElementById('topPaneText').innerHTML='';
+  document.getElementById('topPaneEmpty').style.display='';
+}
+
+// ===== モード・設定 =====
+function setMode(mode, btn){
+  state.mode=mode;
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const mc = document.getElementById('mainContent');
+  const dm = document.getElementById('mode-dist');
+  if(mode === 'dist'){
+    mc.style.display='none'; dm.style.display='block';
+  } else {
+    mc.style.display=''; dm.style.display='none';
+  }
+}
+function changeLang(lang){ state.targetLang=lang; localStorage.setItem('cv8Lang',lang); }
+function setLevel(level, btn){
+  state.seimonLevel=level;
+  document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
+function openSettings(){ document.getElementById('settingsModal').classList.add('open'); }
+function closeSettings(){ document.getElementById('settingsModal').classList.remove('open'); }
+function saveSettings(){
+  state.geminiKey = document.getElementById('geminiKeyInput').value.trim();
+  state.whisperKey = document.getElementById('whisperKeyInput').value.trim();
+  const fbRaw = document.getElementById('firebaseConfigInput').value.trim();
+  if(fbRaw){ try{ state.firebaseConfig=JSON.parse(fbRaw); localStorage.setItem('cv8Firebase', fbRaw); }catch(e){ showToast('Firebase設定のJSON形式が不正です'); return; } }
+  if(state.geminiKey) localStorage.setItem('cv8Gemini', state.geminiKey);
+  if(state.whisperKey) localStorage.setItem('cv8Whisper', state.whisperKey);
+  localStorage.setItem('cv8Level', state.seimonLevel);
+  closeSettings(); showToast('✅ 保存しました');
+}
+
+// ===== 録音制御 =====
+function toggleRecording(){ state.isRecording ? stopRecording() : startRecording(); }
+function startRecording(){
+  if(state.pcAudioActive){ startPcAudioCapture(); return; }
+  startMicRecognition();
+}
+function stopRecording(){
+  state.isRecording=false;
+  if(micBuffer.trim()) flushMicBuffer(); // 残バッファを処理
+  clearTimeout(micBufferTimer); micBufferTimer=null; micBuffer='';
+  if(state.recognition){ try{state.recognition.stop();}catch(e){} state.recognition=null; }
+  stopPcAudioCapture();
+  updateUI(false);
+  if(state.entries.length>0) document.getElementById('summaryBtn').classList.add('show');
+}
+function updateUI(active){
+  document.getElementById('statusDot').classList.toggle('active', active);
+  document.getElementById('statusText').textContent = active
+    ? (state.pcAudioActive ? '🖥️ PC音声録音中...' : '🎤 録音中...')
+    : (state.entries.length>0 ? '停止中' : '待機中');
+  const btn=document.getElementById('micBtn');
+  btn.className='mic-btn '+(active?'recording':'idle');
+  btn.innerHTML=active?'⏹ 停止':'🎤 開始';
+}
+
+// ===== マイク音声認識 =====
+let micBuffer='';      // 溜まった確定テキスト
+let micBufferTimer=null; // 無音タイマー
+
+function getMicDelay(){ return state.mode==='video' ? 1800 : 2800; } // 動画:短め、会議:長め
+
+function flushMicBuffer(){
+  clearTimeout(micBufferTimer); micBufferTimer=null;
+  if(micBuffer.trim()){
+    processEntry(micBuffer.trim());
+    micBuffer='';
+  }
+}
+
+function startMicRecognition(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ showToast('音声認識非対応です。Chromeをご使用ください'); return; }
+  state.isRecording=true; updateUI(true);
+  micBuffer=''; clearTimeout(micBufferTimer);
+  const es=document.getElementById('emptyState'); if(es) es.style.display='none';
+  const rec=new SR();
+  rec.lang='ja-JP'; rec.continuous=true; rec.interimResults=true;
+  rec.onresult=e=>{
+    let interim='', final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal) final+=e.results[i][0].transcript;
+      else interim+=e.results[i][0].transcript;
+    }
+    if(final.trim()){
+      micBuffer+=(micBuffer?' ':'')+final.trim();
+      // 無音タイマーをリセット：一定時間話が止まったら処理
+      clearTimeout(micBufferTimer);
+      micBufferTimer=setTimeout(flushMicBuffer, getMicDelay());
+    }
+    // 仮表示：バッファ+現在の認識中テキストを合わせて表示
+    updateInterim((micBuffer+' '+interim).trim());
+  };
+  rec.onend=()=>{
+    if(state.isRecording && !state.pcAudioActive){
+      // 再起動前にバッファが残っていれば処理
+      if(micBuffer.trim()) flushMicBuffer();
+      setTimeout(()=>{ if(state.isRecording) try{rec.start();}catch(e){} }, 200);
+    }
+  };
+  rec.onerror=e=>{ if(e.error==='not-allowed'){ showToast('マイクの許可が必要です'); stopRecording(); } };
+  rec.start(); state.recognition=rec;
+}
+
+// ===== PC音声（Whisper） =====
+function togglePcAudio(){
+  state.pcAudioActive=!state.pcAudioActive;
+  document.getElementById('pcBtn').classList.toggle('active', state.pcAudioActive);
+  if(!state.pcAudioActive && state.isRecording){ stopPcAudioCapture(); startMicRecognition(); }
+}
+async function startPcAudioCapture(){
+  if(!state.whisperKey){ showToast('⚙️ Whisper APIキーを設定してください'); openSettings(); return; }
+  try{
+    const stream=await navigator.mediaDevices.getDisplayMedia({video:true, audio:true});
+    if(!stream.getAudioTracks().length){ showToast('音声トラックが取得できませんでした'); return; }
+    state.whisperStream=stream; state.isRecording=true; updateUI(true);
+    const es=document.getElementById('emptyState'); if(es) es.style.display='none';
+    const chunkMs=state.mode==='video'?4000:6000;
+    let chunks=[], whisperBusy=false;
+    // 音声トラックだけ取り出す＋対応mimeTypeを自動選択
+    const audioStream=new MediaStream(stream.getAudioTracks());
+    const mimeType=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':
+                   MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'';
+    const recorder=new MediaRecorder(audioStream, mimeType?{mimeType}:{});
+    recorder.ondataavailable=e=>{ if(e.data.size>0) chunks.push(e.data); };
+    recorder.onstop=async()=>{
+      if(!chunks.length || whisperBusy) return;
+      whisperBusy=true;
+      const blob=new Blob(chunks,{type:'audio/webm'}); chunks=[];
+      try{ const txt=await transcribeWhisper(blob); if(txt && txt.trim()) processEntry(txt.trim()); }
+      catch(e){ console.warn('Whisper error:', e); }
+      finally{
+        whisperBusy=false;
+        // 処理完了後に次のチャンクを開始
+        if(state.isRecording && recorder.state==='inactive') try{ recorder.start(); }catch(e){}
+      }
+    };
+    state.whisperRecorder=recorder; recorder.start();
+    state.whisperTimer=setInterval(()=>{
+      if(recorder.state==='recording' && !whisperBusy){
+        recorder.stop(); // onstopが呼ばれ、完了後に自動restart
+      }
+    }, chunkMs);
+    stream.getTracks().forEach(t=>t.addEventListener('ended', ()=>{ stopPcAudioCapture(); stopRecording(); }));
+  }catch(e){
+    if(e.name!=='NotAllowedError') showToast('画面共有エラー: '+e.message);
+    state.pcAudioActive=false; document.getElementById('pcBtn').classList.remove('active');
+  }
+}
+function stopPcAudioCapture(){
+  clearInterval(state.whisperTimer); state.whisperTimer=null;
+  if(state.whisperRecorder && state.whisperRecorder.state!=='inactive') try{state.whisperRecorder.stop();}catch(e){}
+  if(state.whisperStream){ state.whisperStream.getTracks().forEach(t=>t.stop()); state.whisperStream=null; }
+  state.whisperRecorder=null;
+}
+async function transcribeWhisper(blob){
+  const fd=new FormData();
+  fd.append('file',blob,'audio.webm'); fd.append('model','whisper-1');
+  fd.append('language','ja'); fd.append('response_format','text');
+  const res=await fetch('https://api.openai.com/v1/audio/transcriptions',{method:'POST',headers:{'Authorization':'Bearer '+state.whisperKey},body:fd});
+  if(!res.ok) throw new Error('Whisper '+res.status);
+  return await res.text();
+}
+
+// ===== エントリー表示 =====
+function updateInterim(text){
+  const area=document.getElementById('transcriptArea');
+  let el=state.interimId?document.getElementById('entry-'+state.interimId):null;
+  if(!el){
+    const id=++state.entryIdCounter; state.interimId=id;
+    el=document.createElement('div'); el.className='entry interim'; el.id='entry-'+id; area.appendChild(el);
+  }
+  el.innerHTML=`<div class="entry-interim-text">⋯ ${text}</div>`;
+  maybeScroll();
+}
+// ハルシネーションフィルター（Whisper・Web Speech APIが無音時に生成する幻覚フレーズ）
+const HALLUCINATION_PATTERNS = [
+  'ご視聴ありがとうございました',
+  'ありがとうございました',
+  'チャンネル登録',
+  '字幕は自動生成',
+  'お疲れ様でした',
+  'ご清聴ありがとう',
+];
+function isHallucination(text){
+  const t = text.trim();
+  if(t.length < 3) return true; // 極端に短いテキストも除外
+  return HALLUCINATION_PATTERNS.some(p => t.includes(p));
+}
+
+async function processEntry(raw){
+  if(isHallucination(raw)) return; // ハルシネーションは無視
+  if(state.interimId){
+    const el=document.getElementById('entry-'+state.interimId);
+    if(el) el.remove(); state.interimId=null;
+  }
+  const id=++state.entryIdCounter;
+  const area=document.getElementById('transcriptArea');
+  const el=document.createElement('div'); el.className='entry'; el.id='entry-'+id;
+  el.innerHTML=`<div class="entry-jp" style="color:var(--text-small)">整文中...</div>`;
+  area.appendChild(el); maybeScroll();
+  let entry;
+  try{
+    if(state.geminiKey){
+      const r=await geminiProcess(raw);
+      entry={id,raw,...r,engine:'gemini'};
+    } else {
+      // Geminiキーなし → MyMemoryフォールバック
+      const translation=await myMemoryTranslate(raw, state.targetLang);
+      entry={id,raw,seimon:raw,translation,terms:[],engine:'mymemory'};
+    }
+  }catch(e){
+    entry={id,raw,seimon:raw,translation:'',terms:[],engine:'none'};
+  }
+  state.entries.push(entry);
+  renderEntry(el, entry);
+  maybeScroll();
+  if(state.entries.length>=3) document.getElementById('summaryBtn').classList.add('show');
+  // Firebase配信
+  if(state.isDistributing && state.fbPush && state.sessionCode){
+    try{ await state.fbPush(state.fbRef(state.firebaseDb, `sessions/${state.sessionCode}/entries`), {jp:entry.seimon||entry.raw, trans:entry.translation||'', ts:Date.now()}); }catch(e){}
+    addDistLog(entry.seimon||entry.raw);
+  }
+}
+function renderEntry(el, entry){
+  const matched=TERMS_DB.filter(t=>(entry.seimon||entry.raw).includes(t.term));
+  const engineLabel=entry.engine==='mymemory'?'<span class="engine-badge">MyMemory</span>':'';
+  let html='';
+  if(entry.translation) html+=`<div class="entry-trans">${entry.translation}${engineLabel}</div>`;
+  html+=`<div class="entry-jp">${entry.seimon||entry.raw}</div>`;
+  el.innerHTML=html; el.classList.remove('interim');
+  appendToTopPane(entry);
+}
+
+// ===== 上ペイン：新しい翻訳を末尾に追加するだけ（既存は触らない） =====
+function appendToTopPane(entry){
+  if(!entry.translation || !entry.translation.trim()) return;
+  const textEl=document.getElementById('topPaneText');
+  const emptyEl=document.getElementById('topPaneEmpty');
+  const pane=document.getElementById('topPane');
+  emptyEl.style.display='none';
+  // 既存テキストの末尾にspanで追加（全文再描画しない）
+  const span=document.createElement('span');
+  span.textContent=(textEl.childNodes.length>0 ? '　' : '') + entry.translation.trim();
+  textEl.appendChild(span);
+  // 新しいspanが見えるようにスクロール
+  span.scrollIntoView({behavior:'smooth', block:'end'});
+}
+
+
+// ===== Gemini API =====
+async function geminiProcess(raw){
+  const toLang={my:'ミャンマー語',id:'インドネシア語',vi:'ベトナム語',en:'英語'}[state.targetLang];
+  const levelHint={
+    light:'口ぐせ・言い直しのみ削除、それ以外は極力そのまま',
+    balanced:'読みやすく整えるが意味・流れは保持',
+    readable:'文を整理して読みやすくする（意味・専門用語は保持）'
+  }[state.seimonLevel];
+  const prompt=`介護・医療現場の音声認識テキストを処理してください。
+音声認識テキスト：「${raw}」
+以下のJSON形式のみで返してください（説明・コードブロック不要）：
+{"seimon":"整文テキスト","translation":"${toLang}訳","terms":["用語1"]}
+整文ルール（${levelHint}）：
+・えーと/あのー/言い直しを削る
+・意味・指示の強さは絶対に変えない
+・見守り/介助/移乗等の専門用語はそのまま残す
+・話の流れを落とさない、要約しない
+・termsは文中の介護医療専門用語のみ（なければ空配列）`;
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${state.geminiKey}`,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:400}})
+  });
+  if(!res.ok) throw new Error('Gemini '+res.status);
+  const data=await res.json();
+  const txt=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  const m=txt.match(/\{[\s\S]*?\}/);
+  if(!m) throw new Error('parse error');
+  return JSON.parse(m[0]);
+}
+
+// ===== MyMemory フォールバック =====
+async function myMemoryTranslate(text, to){
+  const map={my:'my',id:'id',vi:'vi',en:'en',ja:'ja'};
+  const tc=map[to]||to;
+  const res=await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ja%7C${tc}`);
+  if(!res.ok) throw new Error('MyMemory error');
+  const data=await res.json();
+  return data.responseData?.translatedText||text;
+}
+
+// ===== 用語ポップアップ =====
+function showTerm(name){
+  const t=TERMS_DB.find(x=>x.term===name); if(!t) return;
+  document.getElementById('termName').textContent=t.term;
+  document.getElementById('termReading').textContent='（'+t.reading+'）';
+  document.getElementById('termBasic').textContent=t.basic;
+  document.getElementById('termPoint').textContent=t.point;
+  document.getElementById('termException').textContent=t.exception;
+  const tr=t[state.targetLang];
+  document.getElementById('termTrans').textContent=tr?'🌐 '+tr:'';
+  document.getElementById('termPopup').classList.add('show');
+}
+function closeTerm(){ document.getElementById('termPopup').classList.remove('show'); }
+
+// ===== 要点生成 =====
+async function openSummary(){
+  document.getElementById('summaryModal').classList.add('open');
+  document.getElementById('summaryBadge').className='summary-badge badge-draft';
+  document.getElementById('summaryBadge').textContent='AI下書き';
+  if(!state.geminiKey){ document.getElementById('summaryTextarea').value='要点生成にはGemini APIキーが必要です。'; return; }
+  await generateSummary();
+}
+function closeSummary(){ document.getElementById('summaryModal').classList.remove('open'); }
+async function generateSummary(){
+  const ta=document.getElementById('summaryTextarea');
+  ta.value='生成中...'; ta.disabled=true;
+  const transcript=state.entries.map(e=>e.seimon||e.raw).join('\n');
+  const label=state.mode==='video'?'研修動画':'会議・指導';
+  const prompt=`以下は介護・医療現場の${label}の記録です。
+要点を以下の形式でまとめてください：
+【要点】
+・
+・
+・
+【注意事項】（あれば）
+・
+【確認事項】（未確認・不明な点があれば）
+・
+記録：
+${transcript}
+※このまとめはAI生成の下書きです。必ず担当者が確認・修正してください。`;
+  try{
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${state.geminiKey}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.3,maxOutputTokens:600}})
+    });
+    const data=await res.json();
+    ta.value=data.candidates?.[0]?.content?.parts?.[0]?.text||'生成できませんでした';
+  }catch(e){ ta.value='生成に失敗しました。APIキーを確認してください。'; }
+  finally{ ta.disabled=false; }
+}
+async function regenerateSummary(){
+  document.getElementById('summaryBadge').className='summary-badge badge-draft';
+  document.getElementById('summaryBadge').textContent='AI下書き';
+  await generateSummary();
+}
+function confirmSummary(){
+  document.getElementById('summaryBadge').className='summary-badge badge-confirmed';
+  document.getElementById('summaryBadge').textContent='確定済み';
+  showToast('確定しました');
+}
+function downloadSummary(){
+  const content=document.getElementById('summaryTextarea').value;
+  if(!content||content==='生成中...') return;
+  const now=new Date();
+  const d=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+  const blob=new Blob([content],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`CareVoice_要点_${d}.txt`; a.click(); URL.revokeObjectURL(a.href);
+  showToast('ダウンロードしました');
+}
+
+// ===== Firebase 配信 =====
+async function loadFirebase(){
+  if(state.fbPush) return true;
+  if(!state.firebaseConfig){ showToast('⚙️ Firebase設定を入力してください'); openSettings(); return false; }
+  try{
+    const {initializeApp} = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+    const {getDatabase,ref,push,onValue,off} = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
+    const app = initializeApp(state.firebaseConfig, 'cv8');
+    state.firebaseDb = getDatabase(app);
+    state.fbRef=ref; state.fbPush=push; state.fbOnValue=onValue; state.fbOff=off;
+    return true;
+  }catch(e){ showToast('Firebase初期化エラー: '+e.message); return false; }
+}
+
+function generateCode(){ return Math.random().toString(36).substr(2,6).toUpperCase(); }
+
+async function startDistribution(){
+  const ok=await loadFirebase(); if(!ok) return;
+  state.sessionCode=generateCode();
+  state.isDistributing=true;
+  const baseUrl=location.href.split('?')[0];
+  const receiveUrl=`${baseUrl}?mode=receive&session=${state.sessionCode}`;
+  document.getElementById('sessionCodeDisplay').textContent=state.sessionCode;
+  document.getElementById('sessionUrlDisplay').textContent=receiveUrl;
+  document.getElementById('qrImg').src=`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(receiveUrl)}`;
+  document.getElementById('distSetup').style.display='none';
+  document.getElementById('distActive').style.display='block';
+  document.getElementById('distLiveCount').textContent='📡 配信中 · コード: '+state.sessionCode;
+  showToast('📡 配信開始！QRを外国人スタッフに見せてください');
+  // モードを研修動画に切り替えて録音できるように
+  setMode('video', document.getElementById('modeVideo'));
+}
+
+function stopDistribution(){
+  state.isDistributing=false;
+  document.getElementById('distSetup').style.display='block';
+  document.getElementById('distActive').style.display='none';
+  showToast('配信を停止しました');
+}
+
+function addDistLog(text){
+  const log=document.getElementById('distLog');
+  const item=document.createElement('div'); item.className='dist-log-item';
+  item.textContent='📤 '+text.slice(0,40)+(text.length>40?'...':'');
+  log.insertBefore(item, log.firstChild);
+  if(log.children.length>10) log.lastChild.remove();
+}
+
+function copySessionUrl(){
+  const url=document.getElementById('sessionUrlDisplay').textContent;
+  navigator.clipboard.writeText(url).then(()=>showToast('🔗 URLをコピーしました')).catch(()=>{});
+}
+
+// ===== 受信モード =====
+async function initReceiveMode(code){
+  const ok=await loadFirebase(); if(!ok) return;
+  state.isReceiving=true;
+  document.getElementById('receiveOverlay').classList.add('active');
+  document.getElementById('receiveLangSelect').value=state.receiveLang;
+  const entriesRef=state.fbRef(state.firebaseDb, `sessions/${code}/entries`);
+  state.fbOnValue(entriesRef, snapshot=>{
+    const data=snapshot.val();
+    if(!data) return;
+    const area=document.getElementById('receiveArea');
+    area.innerHTML='';
+    Object.values(data).forEach(entry=>{
+      const div=document.createElement('div'); div.className='receive-entry';
+      const lang=state.receiveLang;
+      if(lang==='ja'){
+        div.innerHTML=`<div class="receive-trans">${entry.jp||''}</div>`;
+      } else {
+        div.innerHTML=`<div class="receive-trans">${entry.trans||entry.jp||''}</div><div class="receive-jp">${entry.jp||''}</div>`;
+      }
+      area.appendChild(div);
+      // TTS自動読み上げ（オプション）
+    });
+    area.scrollTop=area.scrollHeight;
+  });
+}
+
+function changeReceiveLang(lang){
+  state.receiveLang=lang;
+  // 再レンダリングは次のonValue更新で自動
+}
+</script>
+</body>
+</html>
