@@ -850,7 +850,7 @@ async function startDistribution(){
   state.sessionCode=generateCode();
   state.isDistributing=true;
   const baseUrl=location.href.split('?')[0];
-  const receiveUrl=`${baseUrl}?mode=receive&session=${state.sessionCode}`;
+  const receiveUrl=`${baseUrl}?v=3&mode=receive&session=${state.sessionCode}`;
   document.getElementById('sessionCodeDisplay').textContent=state.sessionCode;
   document.getElementById('sessionUrlDisplay').textContent=receiveUrl;
   document.getElementById('qrImg').src=`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(receiveUrl)}`;
