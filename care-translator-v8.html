@@ -773,6 +773,12 @@ async function geminiProcess(raw){
     balanced:'読みやすく整えるが意味・流れは保持',
     readable:'文を整理して読みやすくする（意味・専門用語は保持）'
   }[state.seimonLevel];
+  // 固定訳ルール：辞書にある用語が音声に含まれていたら訳語を固定
+  const hitTerms=getActiveTerms().filter(t=>raw.includes(t.term)&&t[state.targetLang]);
+  const fixedRules=hitTerms.length>0
+    ?'\n【固定訳ルール（必ず使用すること）】\n'+hitTerms.map(t=>`・${t.term} → ${t[state.targetLang]}`).join('\n')
+    :'';
+
   const prompt=`介護・医療現場の音声認識テキストを処理してください。
 音声認識テキスト：「${raw}」
 以下のJSON形式のみで返してください（説明・コードブロック不要）：
@@ -782,7 +788,7 @@ async function geminiProcess(raw){
 ・意味・指示の強さは絶対に変えない
 ・見守り/介助/移乗等の専門用語はそのまま残す
 ・話の流れを落とさない、要約しない
-・termsは文中の介護医療専門用語のみ（なければ空配列）`;
+・termsは文中の介護医療専門用語のみ（なければ空配列）${fixedRules}`;
   const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${state.geminiKey}`,{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:400}})

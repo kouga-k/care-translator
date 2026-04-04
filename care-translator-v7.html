@@ -1914,8 +1914,12 @@ async function translateWithClaude(text,from,to,hits) {
   const glossCtx=hits&&hits.length>0?`\n【参照用語集】${hits.map(h=>`「${h.term}」→「${h.simple}」`).join('、')}`:'';
   const customCtx=custom.length>0?`\n【施設カスタム用語】${custom.slice(0,20).map(h=>`「${h.term}」＝「${h.simple}」`).join('、')}`:'';
   const sceneCtx=state.careMode?`\n【現在のシーン】${I18N.ja['scene_'+state.careScene]||'介護・医療'}に特化した表現を使ってください`:'';
+  // 固定訳ルール
+  const allTerms=[...hits||[],...custom.filter(h=>text.includes(h.term))];
+  const fixedRules=allTerms.filter(h=>h[to]).length>0
+    ?`\n【固定訳ルール（必ず使用すること）】\n${allTerms.filter(h=>h[to]).map(h=>`・${h.term} → ${h[to]}`).join('\n')}`:'';
   const sys=`あなたは日本の介護・医療現場に特化した通訳者です。以下のJSONのみ出力してください：{"simplified":"やさしい日本語（日本語入力時のみ、外国語はnull）","translated":"翻訳結果","backTranslation":"逆翻訳","backOk":true}`;
-  const usr=`${fn}から${tn}に翻訳。${state.politeMode&&from==='ja'?'①やさしい日本語化②翻訳③逆翻訳確認':'①翻訳②逆翻訳確認'}${glossCtx}${customCtx}${sceneCtx}\n\n入力:"${text}"`;
+  const usr=`${fn}から${tn}に翻訳。${state.politeMode&&from==='ja'?'①やさしい日本語化②翻訳③逆翻訳確認':'①翻訳②逆翻訳確認'}${glossCtx}${customCtx}${sceneCtx}${fixedRules}\n\n入力:"${text}"`;
   const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':state.claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1000,system:sys,messages:[{role:'user',content:usr}]})});
   const data=await res.json();
   if(data.error) throw new Error(data.error.message);
@@ -1929,7 +1933,11 @@ async function translateWithGemini(text,from,to,hits) {
   const glossCtx=hits&&hits.length>0?`\n【参照用語集】${hits.map(h=>`「${h.term}」→「${h.simple}」`).join('、')}`:'';
   const customCtx=custom.length>0?`\n【施設カスタム用語】${custom.slice(0,20).map(h=>`「${h.term}」＝「${h.simple}」`).join('、')}`:'';
   const sceneCtx=state.careMode?`\n【現在のシーン】${I18N.ja['scene_'+state.careScene]||'介護・医療'}の表現を使ってください`:'';
-  const prompt=`あなたは介護・医療現場専門の通訳者です。${fn}から${tn}に翻訳してください。${glossCtx}${customCtx}${sceneCtx}
+  // 固定訳ルール：辞書に登録された用語の訳語を強制
+  const allTerms=[...hits||[],...custom.filter(h=>text.includes(h.term))];
+  const fixedRules=allTerms.filter(h=>h[to]).length>0
+    ?`\n【固定訳ルール（必ず使用すること）】\n${allTerms.filter(h=>h[to]).map(h=>`・${h.term} → ${h[to]}`).join('\n')}`:'';
+  const prompt=`あなたは介護・医療現場専門の通訳者です。${fn}から${tn}に翻訳してください。${glossCtx}${customCtx}${sceneCtx}${fixedRules}
 【ルール】話し言葉・敬語・緊急度のトーンを保つ。翻訳結果のJSONのみ出力。
 {"translated":"翻訳結果","backTranslation":"${fn}への逆翻訳"${from==='ja'&&state.politeMode?`,"simplified":"やさしい日本語版"`:''}}\n\n入力:"${text}"`;
   const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${state.geminiKey}`,
@@ -2804,7 +2812,8 @@ function importBulkTerms(){
     const mapped=arr.map(item=>({
       term: item.term||'',
       simple: item.basic||item.simple||'',
-      note: [item.point,item.exception].filter(Boolean).join(' / ')
+      note: [item.point,item.exception].filter(Boolean).join(' / '),
+      my: item.my||'', id: item.id||'', vi: item.vi||'', en: item.en||''
     })).filter(item=>item.term);
     const existing=loadCustomGlossary();
     const existingTerms=new Set(existing.map(g=>g.term));
