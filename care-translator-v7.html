@@ -1110,6 +1110,9 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
           <button class="form-add-btn" onclick="addCustomTerm()" data-i18n="add">追加</button>
         </div>
         <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+          <button onclick="clearAllCustomTerms()" style="width:100%;padding:8px;background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:8px;font-family:var(--font-jp);font-size:13px;font-weight:600;cursor:pointer;color:var(--warn);margin-bottom:10px">🗑️ カスタム用語を全クリア</button>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:12px">
           <div class="add-glossary-title">📥 ChatGPT JSON 一括インポート</div>
           <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;line-height:1.6">ChatGPTで作成したJSON配列を貼り付けてインポートできます。<br>形式: <code>[{"term":"...","basic":"...","point":"..."},...]</code></div>
           <textarea id="bulkImportInput" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;font-family:monospace;resize:vertical;min-height:80px;outline:none;background:var(--surface2)" placeholder='[{"term":"褥瘡","basic":"床ずれのこと","point":"定期的な体位変換が必要"},...]'></textarea>
@@ -2828,6 +2831,12 @@ function importBulkTerms(){
 function clearBulkInput(){
   document.getElementById('bulkImportInput').value='';
   document.getElementById('bulkImportStatus').textContent='';
+}
+function clearAllCustomTerms(){
+  if(!confirm('カスタム用語をすべて削除しますか？\n削除後に再インポートしてください。')) return;
+  saveCustomGlossary([]);
+  renderGlossaryList();
+  showToast('カスタム用語をすべてクリアしました');
 }
 
 // ===== 設定 =====
