@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>CareVoice｜介護・医療現場AI通訳</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Sans:wght@300;400;500;600&family=Noto+Sans+Myanmar:wght@400;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg:#f5f3ee;--surface:#fff;--surface2:#faf8f4;--border:#e2ddd6;
@@ -13,8 +12,8 @@
   --warn:#c1121f;--warn-bg:#fff0f0;--warn-border:#ffb3b3;
   --train:#b45309;--train-light:#d97706;--train-pale:#fef3c7;--train-border:#fcd34d;
   --text:#1a1a2e;--text-muted:#6b6860;--text-small:#9b9890;
-  --font-jp:'Noto Sans JP',sans-serif;--font-en:'Noto Sans',sans-serif;
-  --font-display:'DM Serif Display',serif;
+  --font-jp:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;--font-en:-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-display:Georgia,serif;
   --radius:16px;--shadow:0 4px 24px rgba(0,0,0,.06);--shadow-lg:0 8px 40px rgba(0,0,0,.1);
   --subtitle-font-size:17px;
 }
@@ -108,6 +107,10 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
 .send-btn{width:44px;height:44px;border-radius:50%;border:none;background:var(--accent);color:white;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
 .send-btn:hover{background:var(--accent-light)}
 .live-container{display:flex;flex-direction:column;gap:12px}
+.live-top-pane{height:52vh;overflow-y:auto;padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow);scroll-behavior:smooth}
+.live-top-pane-label{font-size:11px;font-weight:500;color:var(--text-small);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.live-top-pane-empty{color:var(--text-small);font-size:14px;font-style:italic;text-align:center;padding:24px 0}
+.live-top-pane-text{font-size:16px;line-height:1.9;color:var(--text)}
 .live-status-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow)}
 .live-indicator{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500}
 .live-dot{width:10px;height:10px;border-radius:50%;background:var(--text-small)}
@@ -639,6 +642,16 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
 
   <!-- 同時通訳 -->
   <div id="mode-live">
+    <!-- 上ペイン：翻訳ドキュメント（追記のみ） -->
+    <div class="live-top-pane" id="liveTopPane">
+      <div class="live-top-pane-label">
+        <span>📖 翻訳ドキュメント</span>
+        <button onclick="clearHistory()" style="font-size:11px;border:none;background:none;color:var(--text-small);cursor:pointer" data-i18n="clear">クリア</button>
+      </div>
+      <div class="live-top-pane-empty" id="liveTopPaneEmpty">録音を開始すると翻訳がここに流れていきます</div>
+      <div class="live-top-pane-text" id="liveTopPaneText"></div>
+    </div>
+    <!-- 下ペイン：操作・速報 -->
     <div class="live-container">
       <!-- Whisper PC音声（同時通訳用） -->
       <div class="whisper-bar" id="whisperBarLive" style="display:none">
@@ -663,13 +676,6 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
           <span id="liveBackText" style="color:var(--text-small)"></span>
           <button class="play-btn" id="livePlayBtn" onclick="playLiveAudio()" style="display:none;padding:4px 10px;font-size:12px;margin-left:auto">🔊</button>
         </div>
-      </div>
-      <div class="live-history">
-        <div class="live-history-title">
-          <span>📋 <span data-i18n="history">通訳履歴</span></span>
-          <button onclick="clearHistory()" style="font-size:11px;border:none;background:none;color:var(--text-small);cursor:pointer" data-i18n="clear">クリア</button>
-        </div>
-        <div id="liveHistoryList"></div>
       </div>
     </div>
   </div>
@@ -1102,6 +1108,16 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
         <div class="form-row">
           <input class="form-input" id="newNote" data-i18n-ph="note_ph" style="flex:2" />
           <button class="form-add-btn" onclick="addCustomTerm()" data-i18n="add">追加</button>
+        </div>
+        <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+          <div class="add-glossary-title">📥 ChatGPT JSON 一括インポート</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;line-height:1.6">ChatGPTで作成したJSON配列を貼り付けてインポートできます。<br>形式: <code>[{"term":"...","basic":"...","point":"..."},...]</code></div>
+          <textarea id="bulkImportInput" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;font-family:monospace;resize:vertical;min-height:80px;outline:none;background:var(--surface2)" placeholder='[{"term":"褥瘡","basic":"床ずれのこと","point":"定期的な体位変換が必要"},...]'></textarea>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <button onclick="importBulkTerms()" style="flex:1;padding:8px;background:var(--accent);color:white;border:none;border-radius:8px;font-family:var(--font-jp);font-size:13px;font-weight:600;cursor:pointer">📥 インポート</button>
+            <button onclick="clearBulkInput()" style="padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-family:var(--font-jp);font-size:13px;cursor:pointer;color:var(--text-muted)">クリア</button>
+          </div>
+          <div id="bulkImportStatus" style="font-size:12px;color:var(--accent);margin-top:6px"></div>
         </div>
       </div>
     </div>
@@ -1694,6 +1710,17 @@ function applyGlossary(text) {
   return all.filter(g=>text.includes(g.term));
 }
 
+// ハルシネーション除去
+const HALLUCINATION_PATTERNS = [
+  'ご視聴ありがとうございました','ありがとうございました','チャンネル登録',
+  '字幕は自動生成','お疲れ様でした','ご清聴ありがとう','高評価','チャンネル',
+];
+function isHallucination(text){
+  const t=text.trim();
+  if(t.length<3) return true;
+  return HALLUCINATION_PATTERNS.some(p=>t.includes(p));
+}
+
 function switchMode(mode,btn) {
   document.querySelectorAll('.mode-tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
@@ -2117,6 +2144,7 @@ function startBroadcastMic(){
 
 async function processBroadcastBuffer(from){
   const text=broadcastBuffer.trim();if(!text)return;
+  if(isHallucination(text)) return;
   broadcastBuffer='';
   document.getElementById('broadcastCurrentText').textContent='翻訳送信中: '+text;
   const langs=['ja','my','id','vi','tl','zh','ko','en'];
@@ -2473,6 +2501,7 @@ async function processLiveBuffer(from,to) {
   }
 }
 async function executeLiveTranslation(text,from,to) {
+  if(isHallucination(text)) return;
   liveTranslating=true;
   document.getElementById('liveTranslated').style.color='var(--text-small)';
   document.getElementById('liveTranslated').textContent='...';
@@ -2499,17 +2528,27 @@ async function executeLiveTranslation(text,from,to) {
   }finally{liveTranslating=false}
 }
 function playLiveAudio(){speak(currentLiveResult.translated,document.getElementById('langTo').value)}
+function appendToTopPane(translated){
+  if(!translated||!translated.trim()) return;
+  const textEl=document.getElementById('liveTopPaneText');
+  const emptyEl=document.getElementById('liveTopPaneEmpty');
+  const pane=document.getElementById('liveTopPane');
+  if(!textEl||!pane) return;
+  emptyEl.style.display='none';
+  const span=document.createElement('span');
+  span.textContent=(textEl.childNodes.length>0?'　':'')+translated.trim();
+  textEl.appendChild(span);
+  span.scrollIntoView({behavior:'smooth',block:'end'});
+}
 function addLiveHistory(item) {
   state.liveHistory.unshift(item);
-  const el=document.getElementById('liveHistoryList');
-  el.innerHTML=state.liveHistory.map(h=>`
-    <div class="live-history-item">
-      <div class="history-original">${escHtml(h.original)}</div>
-      <div class="history-translated">${escHtml(h.translated)}</div>
-      ${h.backTranslation?`<div class="history-back">🔍 ${escHtml(h.backTranslation)}</div>`:''}
-    </div>`).join('');
+  appendToTopPane(item.translated);
 }
-function clearHistory(){state.liveHistory=[];document.getElementById('liveHistoryList').innerHTML=''}
+function clearHistory(){
+  state.liveHistory=[];
+  document.getElementById('liveTopPaneText').innerHTML='';
+  document.getElementById('liveTopPaneEmpty').style.display='';
+}
 
 // ===== 音声出力 =====
 function speak(text,langCode) {
@@ -2755,6 +2794,32 @@ function addCustomTerm(){
   renderGlossaryList();showToast(t('added'));
 }
 function deleteCustomTerm(idx){const list=loadCustomGlossary();list.splice(idx,1);saveCustomGlossary(list);renderGlossaryList();showToast(t('deleted'))}
+
+function importBulkTerms(){
+  const raw=document.getElementById('bulkImportInput').value.trim();
+  if(!raw){showToast('JSONを入力してください');return;}
+  try{
+    const arr=Function('return ('+raw+')')();
+    if(!Array.isArray(arr)) throw new Error('配列形式で入力してください');
+    const mapped=arr.map(item=>({
+      term: item.term||'',
+      simple: item.basic||item.simple||'',
+      note: [item.point,item.exception].filter(Boolean).join(' / ')
+    })).filter(item=>item.term);
+    const existing=loadCustomGlossary();
+    const existingTerms=new Set(existing.map(g=>g.term));
+    const newItems=mapped.filter(item=>!existingTerms.has(item.term));
+    saveCustomGlossary([...existing,...newItems]);
+    document.getElementById('bulkImportStatus').textContent=`✅ ${newItems.length}件追加（重複${mapped.length-newItems.length}件スキップ）`;
+    renderGlossaryList();
+  }catch(e){
+    document.getElementById('bulkImportStatus').textContent='⚠ エラー: '+e.message;
+  }
+}
+function clearBulkInput(){
+  document.getElementById('bulkImportInput').value='';
+  document.getElementById('bulkImportStatus').textContent='';
+}
 
 // ===== 設定 =====
 function openSettings(){loadSettingsUI();document.getElementById('settingsModal').classList.add('open')}
