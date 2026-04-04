@@ -306,6 +306,19 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
         無料（Spark）プランで100接続まで利用可</div>
       </div>
       <div class="setting-group">
+        <div class="setting-label">カスタム用語集 <span class="engine-badge">追加用語</span></div>
+        <div style="font-size:11px;color:var(--text-small);margin-bottom:6px;line-height:1.6">
+          ChatGPTで以下の形式のJSONを作成して貼り付けてください：<br>
+          <code style="font-size:10px;background:var(--bg);padding:2px 4px;border-radius:4px">[{"term":"用語","reading":"よみがな","basic":"基本","point":"ポイント","exception":"例外","my":"ミャンマー語","id":"インドネシア語","vi":"ベトナム語","en":"英語"}]</code>
+        </div>
+        <textarea class="setting-textarea" id="customTermsInput" placeholder='[{"term":"拘縮","reading":"こうしゅく",...}]' style="min-height:100px"></textarea>
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button onclick="importCustomTerms()" style="flex:1;padding:8px;background:var(--accent);color:white;border:none;border-radius:8px;font-family:var(--font-jp);font-size:13px;cursor:pointer">📥 インポート</button>
+          <button onclick="clearCustomTerms()" style="padding:8px 12px;background:var(--surface2);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;font-family:var(--font-jp);font-size:13px;cursor:pointer">🗑️ クリア</button>
+        </div>
+        <div class="setting-hint" id="customTermsCount"></div>
+      </div>
+      <div class="setting-group">
         <div class="setting-label">文の整え方</div>
         <div class="seg-btns">
           <button class="seg-btn" id="levelLight" onclick="setLevel('light',this)">そのまま寄り</button>
@@ -403,6 +416,7 @@ const state = {
   const fbCfg = localStorage.getItem('cv8Firebase');
   if(fbCfg) state.firebaseConfig = JSON.parse(fbCfg);
 
+  loadCustomTerms();
   document.getElementById('langSelect').value = state.targetLang;
   document.getElementById('geminiKeyInput').value = state.geminiKey;
   document.getElementById('whisperKeyInput').value = state.whisperKey;
@@ -642,6 +656,39 @@ function updateInterim(text){
   el.innerHTML=`<div class="entry-interim-text">⋯ ${text}</div>`;
   maybeScroll();
 }
+// ===== カスタム用語集 =====
+let customTerms = [];
+function loadCustomTerms(){
+  try{ customTerms = JSON.parse(localStorage.getItem('cv8CustomTerms')||'[]'); }catch(e){ customTerms=[]; }
+  updateCustomTermsCount();
+}
+function updateCustomTermsCount(){
+  const el = document.getElementById('customTermsCount');
+  if(!el) return;
+  el.textContent = customTerms.length > 0 ? `✅ ${customTerms.length}件登録済み（組み込み${TERMS_DB.length}件＋カスタム${customTerms.length}件）` : `組み込み用語: ${TERMS_DB.length}件`;
+}
+function getActiveTerms(){ return [...TERMS_DB, ...customTerms]; }
+function importCustomTerms(){
+  const raw = document.getElementById('customTermsInput').value.trim();
+  if(!raw){ showToast('JSONを入力してください'); return; }
+  try{
+    const arr = Function('return ('+raw+')')();
+    if(!Array.isArray(arr)) throw new Error('配列形式で入力してください');
+    customTerms = arr;
+    localStorage.setItem('cv8CustomTerms', JSON.stringify(arr));
+    document.getElementById('customTermsInput').value='';
+    updateCustomTermsCount();
+    showToast(`✅ ${arr.length}件の用語をインポートしました`);
+  }catch(e){ showToast('形式エラー: '+e.message); }
+}
+function clearCustomTerms(){
+  if(!confirm('カスタム用語をすべて削除しますか？')) return;
+  customTerms=[];
+  localStorage.removeItem('cv8CustomTerms');
+  updateCustomTermsCount();
+  showToast('カスタム用語をクリアしました');
+}
+
 // ハルシネーションフィルター（Whisper・Web Speech APIが無音時に生成する幻覚フレーズ）
 const HALLUCINATION_PATTERNS = [
   'ご視聴ありがとうございました',
@@ -692,7 +739,7 @@ async function processEntry(raw){
   }
 }
 function renderEntry(el, entry){
-  const matched=TERMS_DB.filter(t=>(entry.seimon||entry.raw).includes(t.term));
+  const matched=getActiveTerms().filter(t=>(entry.seimon||entry.raw).includes(t.term));
   const engineLabel=entry.engine==='mymemory'?'<span class="engine-badge">MyMemory</span>':'';
   let html='';
   if(entry.translation) html+=`<div class="entry-trans">${entry.translation}${engineLabel}</div>`;
@@ -759,7 +806,7 @@ async function myMemoryTranslate(text, to){
 
 // ===== 用語ポップアップ =====
 function showTerm(name){
-  const t=TERMS_DB.find(x=>x.term===name); if(!t) return;
+  const t=getActiveTerms().find(x=>x.term===name); if(!t) return;
   document.getElementById('termName').textContent=t.term;
   document.getElementById('termReading').textContent='（'+t.reading+'）';
   document.getElementById('termBasic').textContent=t.basic;
