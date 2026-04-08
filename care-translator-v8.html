@@ -403,10 +403,10 @@ const state = {
   recognition:null, interimId:null,
   pcAudioActive:false, whisperRecorder:null, whisperStream:null, whisperTimer:null,
   // Firebase
-  firebaseConfig:null, firebaseDb:null, fbRef:null, fbPush:null, fbOnValue:null, fbOff:null,
+  firebaseConfig:null, firebaseDb:null, fbRef:null, fbPush:null, fbOnValue:null, fbOff:null, fbSet:null,
   sessionCode:'', isDistributing:false,
   // Receive
-  isReceiving:false, receiveLang:'my',
+  isReceiving:false, receiveLang:'my', receiveEntries:[], receiveTransCache:{},
 };
 
 // ===== 初期化 =====
@@ -889,10 +889,10 @@ async function loadFirebase(){
   if(!state.firebaseConfig) state.firebaseConfig = DEFAULT_FIREBASE_CONFIG;
   try{
     const {initializeApp} = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
-    const {getDatabase,ref,push,onValue,off} = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
+    const {getDatabase,ref,push,onValue,off,set} = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
     const app = initializeApp(state.firebaseConfig, 'cv8');
     state.firebaseDb = getDatabase(app);
-    state.fbRef=ref; state.fbPush=push; state.fbOnValue=onValue; state.fbOff=off;
+    state.fbRef=ref; state.fbPush=push; state.fbOnValue=onValue; state.fbOff=off; state.fbSet=set;
     return true;
   }catch(e){ showToast('Firebase初期化エラー: '+e.message); return false; }
 }
@@ -918,6 +918,9 @@ async function startDistribution(){
 
 function stopDistribution(){
   state.isDistributing=false;
+  if(state.fbSet && state.sessionCode && state.firebaseDb){
+    try{ state.fbSet(state.fbRef(state.firebaseDb,`sessions/${state.sessionCode}/status`),'ended'); }catch(e){}
+  }
   document.getElementById('distSetup').style.display='block';
   document.getElementById('distActive').style.display='none';
   showToast('配信を停止しました');
@@ -937,35 +940,73 @@ function copySessionUrl(){
 }
 
 // ===== 受信モード =====
+async function translateForReceiver(text, lang){
+  if(!text || lang==='ja') return text;
+  const key=lang+':'+text;
+  if(state.receiveTransCache[key]) return state.receiveTransCache[key];
+  try{
+    const res=await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ja%7C${lang}`);
+    const data=await res.json();
+    const result=data.responseData?.translatedText||text;
+    state.receiveTransCache[key]=result;
+    return result;
+  }catch(e){ return text; }
+}
+
+async function renderReceiveArea(){
+  const area=document.getElementById('receiveArea');
+  if(!area) return;
+  area.innerHTML='';
+  const lang=state.receiveLang;
+  for(const entry of state.receiveEntries){
+    const div=document.createElement('div'); div.className='receive-entry';
+    if(lang==='ja'){
+      div.innerHTML=`<div class="receive-trans">${entry.jp||''}</div>`;
+    } else {
+      div.innerHTML=`<div class="receive-trans">...</div><div class="receive-jp">${entry.jp||''}</div>`;
+      area.appendChild(div);
+      translateForReceiver(entry.jp||'', lang).then(t=>{
+        div.querySelector('.receive-trans').textContent=t;
+      });
+      continue;
+    }
+    area.appendChild(div);
+  }
+  area.scrollTop=area.scrollHeight;
+}
+
 async function initReceiveMode(code){
   const ok=await loadFirebase(); if(!ok) return;
   state.isReceiving=true;
   document.getElementById('receiveOverlay').classList.add('active');
   document.getElementById('receiveLangSelect').value=state.receiveLang;
+  // エントリ監視
   const entriesRef=state.fbRef(state.firebaseDb, `sessions/${code}/entries`);
   state.fbOnValue(entriesRef, snapshot=>{
     const data=snapshot.val();
     if(!data) return;
-    const area=document.getElementById('receiveArea');
-    area.innerHTML='';
-    Object.values(data).forEach(entry=>{
-      const div=document.createElement('div'); div.className='receive-entry';
-      const lang=state.receiveLang;
-      if(lang==='ja'){
-        div.innerHTML=`<div class="receive-trans">${entry.jp||''}</div>`;
-      } else {
-        div.innerHTML=`<div class="receive-trans">${entry.trans||entry.jp||''}</div><div class="receive-jp">${entry.jp||''}</div>`;
-      }
-      area.appendChild(div);
-      // TTS自動読み上げ（オプション）
-    });
-    area.scrollTop=area.scrollHeight;
+    state.receiveEntries=Object.values(data);
+    renderReceiveArea();
+  });
+  // 配信終了監視
+  const statusRef=state.fbRef(state.firebaseDb, `sessions/${code}/status`);
+  state.fbOnValue(statusRef, snapshot=>{
+    if(snapshot.val()==='ended'){
+      const area=document.getElementById('receiveArea');
+      const banner=document.createElement('div');
+      banner.style.cssText='text-align:center;padding:20px;color:rgba(255,255,255,.5);font-size:14px;border-top:1px solid rgba(255,255,255,.1);margin-top:12px';
+      banner.textContent='📴 配信が終了しました';
+      area.appendChild(banner);
+      area.scrollTop=area.scrollHeight;
+      document.querySelector('.receive-live-dot').style.background='#888';
+      document.querySelector('.receive-live-dot').style.animation='none';
+    }
   });
 }
 
 function changeReceiveLang(lang){
   state.receiveLang=lang;
-  // 再レンダリングは次のonValue更新で自動
+  renderReceiveArea();
 }
 </script>
 </body>
