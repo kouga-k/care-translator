@@ -951,26 +951,30 @@ async function translateForReceiver(text, lang){
   }catch(e){ return text; }
 }
 
+let _renderReceiveId=0;
 async function renderReceiveArea(){
+  const myId=++_renderReceiveId;
   const area=document.getElementById('receiveArea');
   if(!area) return;
   area.innerHTML='';
   const lang=state.receiveLang;
-  for(const entry of state.receiveEntries){
+  const entries=[...state.receiveEntries];
+  for(const entry of entries){
+    if(myId!==_renderReceiveId) return;
     const div=document.createElement('div'); div.className='receive-entry';
     if(lang==='ja'){
       div.innerHTML=`<div class="receive-trans">${entry.jp||''}</div>`;
+      area.appendChild(div);
     } else {
       div.innerHTML=`<div class="receive-trans">...</div><div class="receive-jp">${entry.jp||''}</div>`;
       area.appendChild(div);
-      translateForReceiver(entry.jp||'', lang).then(t=>{
-        div.querySelector('.receive-trans').textContent=t;
+      translateForReceiver(entry.jp||'',lang).then(t=>{
+        if(myId===_renderReceiveId && div.isConnected)
+          div.querySelector('.receive-trans').textContent=t;
       });
-      continue;
     }
-    area.appendChild(div);
   }
-  area.scrollTop=area.scrollHeight;
+  if(myId===_renderReceiveId) area.scrollTop=area.scrollHeight;
 }
 
 async function initReceiveMode(code){
