@@ -102,6 +102,7 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
 .receive-title{font-size:14px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:8px}
 .receive-live-dot{width:8px;height:8px;border-radius:50%;background:#ff4444;animation:blink 1s infinite}
 .receive-lang-select{border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);border-radius:8px;padding:5px 8px;font-family:var(--font-jp);font-size:12px;color:white;outline:none}
+.receive-lang-select option{color:#333;background:#fff}
 .receive-area{flex:1;overflow-y:auto;padding:16px;scroll-behavior:smooth}
 .receive-entry{padding:14px 0;border-bottom:1px solid rgba(255,255,255,.08)}
 .receive-trans{font-size:22px;font-weight:600;color:#fff;line-height:1.6;margin-bottom:6px}
@@ -987,7 +988,17 @@ async function initReceiveMode(code){
   state.fbOnValue(entriesRef, snapshot=>{
     const data=snapshot.val();
     if(!data) return;
-    state.receiveEntries=Object.values(data);
+    // ts順にソートし、jp文字列が次のエントリに含まれる暫定結果を除去
+    const all=Object.values(data).sort((a,b)=>(a.ts||0)-(b.ts||0));
+    const deduped=all.filter((e,i)=>{
+      if(!e.jp) return false;
+      // 後続エントリのjpにこのエントリのjpが含まれていたら暫定結果として除外
+      for(let j=i+1;j<all.length;j++){
+        if(all[j].jp && all[j].jp.includes(e.jp)) return false;
+      }
+      return true;
+    });
+    state.receiveEntries=deduped;
     renderReceiveArea();
   });
   // 配信終了監視
