@@ -912,8 +912,6 @@ async function startDistribution(){
   document.getElementById('distActive').style.display='block';
   document.getElementById('distLiveCount').textContent='📡 配信中 · コード: '+state.sessionCode;
   showToast('📡 配信開始！QRを外国人スタッフに見せてください');
-  // モードを研修動画に切り替えて録音できるように
-  setMode('video', document.getElementById('modeVideo'));
 }
 
 function stopDistribution(){
