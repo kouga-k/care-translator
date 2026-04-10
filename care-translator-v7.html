@@ -2187,7 +2187,7 @@ async function stopBroadcast(){
 }
 
 // ===== スタッフ受信モード =====
-let receiveRtDb=null,receiveLang='ja',receiveSoundOn=false,receiveFontSize=32;
+let receiveRtDb=null,receiveLang='ja',receiveSoundOn=false,receiveFontSize=32,lastReceivedData=null;
 const receiveLangs=[
   {code:'ja',label:'🇯🇵 日本語'},{code:'my',label:'🇲🇲 ミャンマー語'},
   {code:'id',label:'🇮🇩 インドネシア語'},{code:'vi',label:'🇻🇳 ベトナム語'},
@@ -2234,6 +2234,7 @@ async function initReceiveMode(sessionId){
     receiveRtDb.ref(`broadcasts/${sessionId}/latest`).on('value',(snap)=>{
       if(!snap.exists())return;
       const d=snap.val();if(!d.translations)return;
+      lastReceivedData=d;
       const txt=d.translations[receiveLang]||d.original;
       displayReceivedText(txt,d.original,d.from);
     });
@@ -2264,6 +2265,11 @@ function setReceiveLang(code,btn){
   receiveLang=code;
   document.querySelectorAll('.receive-lang-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  // 最後に受信したデータで即座に再表示
+  if(lastReceivedData){
+    const txt=lastReceivedData.translations[receiveLang]||lastReceivedData.original;
+    displayReceivedText(txt,lastReceivedData.original,lastReceivedData.from);
+  }
 }
 function changeReceiveFontSize(delta){
   receiveFontSize=Math.max(16,Math.min(60,receiveFontSize+delta));
