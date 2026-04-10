@@ -632,7 +632,9 @@ function clearAll(){
   document.getElementById('transcriptArea').innerHTML='<div class="empty-state" id="emptyState"><div class="empty-icon">🎙️</div><div class="empty-title">録音を開始してください</div><div class="empty-sub">音声を整えて日本語＋翻訳を表示します<br>専門用語は📚バッジをタップで確認できます</div></div>';
   document.getElementById('summaryBtn').classList.remove('show');
   document.getElementById('topPaneText').innerHTML='';
+  document.getElementById('topPaneText').style.opacity='1';
   document.getElementById('topPaneEmpty').style.display='';
+  clearTimeout(_topPaneTimer);
 }
 
 // ===== モード・設定 =====
@@ -936,20 +938,55 @@ function renderEntry(el, entry){
   appendToTopPane(entry);
 }
 
-// ===== 上ペイン =====
+// ===== 上ペイン（精度の高い翻訳：蓄積テキストをGeminiで再生成） =====
+let _topPaneTimer=null;
 function appendToTopPane(entry){
-  // translation優先、なければtranslationsから取得、それもなければseimon（日本語）
-  const txt = (entry.translation||'').trim()
-    || (entry.translations&&(entry.translations[state.targetLang]||entry.translations.en)||'').trim()
-    || (entry.seimon||entry.raw||'').trim();
-  if(!txt) return;
+  // 下ペインと同じテキストをそのまま表示するのではなく、
+  // 一定時間後にGeminiで全文まとめて再翻訳する
+  clearTimeout(_topPaneTimer);
+  _topPaneTimer=setTimeout(refreshTopPane, 2500);
+}
+
+async function refreshTopPane(){
+  if(state.entries.length===0) return;
   const textEl=document.getElementById('topPaneText');
   const emptyEl=document.getElementById('topPaneEmpty');
-  emptyEl.style.display='none';
-  const span=document.createElement('span');
-  span.textContent=(textEl.childNodes.length>0 ? '　' : '') + txt;
-  textEl.appendChild(span);
-  span.scrollIntoView({behavior:'smooth', block:'end'});
+  // 蓄積したseimon（整文済み日本語）を結合
+  const allText=state.entries.map(e=>e.seimon||e.raw).filter(Boolean).join('。');
+  if(!allText.trim()) return;
+  const toLangName=DIST_LANGS.find(l=>l.code===state.targetLang)?.name||'英語';
+  // Geminiで自然な翻訳文章を生成（キーがあれば）
+  if(state.geminiKey){
+    emptyEl.style.display='none';
+    textEl.style.opacity='0.5';
+    try{
+      const prompt=`以下の介護・医療現場の会話を${toLangName}に翻訳してください。\n自然で読みやすい文章にまとめてください。翻訳のみ返してください（日本語・説明不要）：\n${allText}`;
+      const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${state.geminiKey}`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.2,maxOutputTokens:1000}})
+      });
+      if(res.ok){
+        const data=await res.json();
+        const translated=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+        if(translated.trim()){
+          textEl.textContent=translated.trim();
+          textEl.style.opacity='1';
+          textEl.scrollTop=textEl.scrollHeight;
+          return;
+        }
+      }
+    }catch(e){}
+    textEl.style.opacity='1';
+  }
+  // Geminiなし → 各エントリのtranslationを結合して表示
+  const fallback=state.entries
+    .map(e=>(e.translations&&e.translations[state.targetLang])||e.translation||'')
+    .filter(Boolean).join(' ');
+  if(fallback.trim()){
+    emptyEl.style.display='none';
+    textEl.textContent=fallback.trim();
+    textEl.scrollTop=textEl.scrollHeight;
+  }
 }
 
 // ===== Gemini API =====
@@ -979,7 +1016,7 @@ async function geminiProcess(raw){
 ・termsは文中の介護医療専門用語のみ（なければ空配列）${fixedRules}`;
   const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${state.geminiKey}`,{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:600}})
+    body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:1500}})
   });
   if(!res.ok) throw new Error('Gemini '+res.status);
   const data=await res.json();
