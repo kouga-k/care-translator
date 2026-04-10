@@ -984,7 +984,7 @@ async function geminiProcess(raw){
   if(!res.ok) throw new Error('Gemini '+res.status);
   const data=await res.json();
   const txt=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
-  const m=txt.match(/\{[\s\S]*?\}/);
+  const m=txt.match(/\{[\s\S]*\}/);
   if(!m) throw new Error('parse error');
   const parsed=JSON.parse(m[0]);
   if(parsed.translations) parsed.translation=parsed.translations[state.targetLang]||parsed.translations.en||'';
