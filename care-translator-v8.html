@@ -723,9 +723,13 @@ async function processEntry(raw){
       const r=await geminiProcess(raw);
       entry={id,raw,...r,engine:'gemini'};
     } else {
-      // Geminiキーなし → MyMemoryフォールバック
-      const translation=await myMemoryTranslate(raw, state.targetLang);
-      entry={id,raw,seimon:raw,translation,terms:[],engine:'mymemory'};
+      // Geminiキーなし → MyMemoryで全言語翻訳
+      const translations={};
+      await Promise.all(DIST_LANGS.map(async l=>{
+        try{ translations[l.code]=await myMemoryTranslate(raw,l.code); }catch(e){ translations[l.code]=raw; }
+      }));
+      const translation=translations[state.targetLang]||raw;
+      entry={id,raw,seimon:raw,translation,translations,terms:[],engine:'mymemory'};
     }
   }catch(e){
     entry={id,raw,seimon:raw,translation:'',terms:[],engine:'none'};
@@ -734,9 +738,9 @@ async function processEntry(raw){
   renderEntry(el, entry);
   maybeScroll();
   if(state.entries.length>=3) document.getElementById('summaryBtn').classList.add('show');
-  // Firebase配信
+  // Firebase配信（全言語翻訳を保存）
   if(state.isDistributing && state.fbPush && state.sessionCode){
-    try{ await state.fbPush(state.fbRef(state.firebaseDb, `sessions/${state.sessionCode}/entries`), {jp:entry.seimon||entry.raw, trans:entry.translation||'', ts:Date.now()}); }catch(e){}
+    try{ await state.fbPush(state.fbRef(state.firebaseDb, `sessions/${state.sessionCode}/entries`), {jp:entry.seimon||entry.raw, translations:entry.translations||{}, ts:Date.now()}); }catch(e){}
     addDistLog(entry.seimon||entry.raw);
   }
 }
@@ -767,23 +771,33 @@ function appendToTopPane(entry){
 
 
 // ===== Gemini API =====
+const DIST_LANGS=[
+  {code:'my',name:'ミャンマー語'},
+  {code:'id',name:'インドネシア語'},
+  {code:'vi',name:'ベトナム語'},
+  {code:'en',name:'英語'}
+];
+
 async function geminiProcess(raw){
-  const toLang={my:'ミャンマー語',id:'インドネシア語',vi:'ベトナム語',en:'英語'}[state.targetLang];
   const levelHint={
     light:'口ぐせ・言い直しのみ削除、それ以外は極力そのまま',
     balanced:'読みやすく整えるが意味・流れは保持',
     readable:'文を整理して読みやすくする（意味・専門用語は保持）'
   }[state.seimonLevel];
-  // 固定訳ルール：辞書にある用語が音声に含まれていたら訳語を固定
-  const hitTerms=getActiveTerms().filter(t=>raw.includes(t.term)&&t[state.targetLang]);
-  const fixedRules=hitTerms.length>0
-    ?'\n【固定訳ルール（必ず使用すること）】\n'+hitTerms.map(t=>`・${t.term} → ${t[state.targetLang]}`).join('\n')
-    :'';
+  // 固定訳ルール：各言語ごとに用語集の訳語を指定
+  const hitTerms=getActiveTerms().filter(t=>raw.includes(t.term));
+  const fixedRulesArr=DIST_LANGS
+    .map(l=>{
+      const hits=hitTerms.filter(t=>t[l.code]);
+      return hits.length>0?`${l.name}: ${hits.map(t=>`${t.term}→${t[l.code]}`).join('、')}`:'';
+    }).filter(Boolean);
+  const fixedRules=fixedRulesArr.length>0?'\n【固定訳ルール（必ず使用）】\n'+fixedRulesArr.join('\n'):'';
 
+  const translationsSchema=DIST_LANGS.map(l=>`"${l.code}":"${l.name}訳"`).join(',');
   const prompt=`介護・医療現場の音声認識テキストを処理してください。
 音声認識テキスト：「${raw}」
 以下のJSON形式のみで返してください（説明・コードブロック不要）：
-{"seimon":"整文テキスト","translation":"${toLang}訳","terms":["用語1"]}
+{"seimon":"整文テキスト","translations":{${translationsSchema}},"terms":["用語1"]}
 整文ルール（${levelHint}）：
 ・えーと/あのー/言い直しを削る
 ・意味・指示の強さは絶対に変えない
@@ -792,14 +806,17 @@ async function geminiProcess(raw){
 ・termsは文中の介護医療専門用語のみ（なければ空配列）${fixedRules}`;
   const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${state.geminiKey}`,{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:400}})
+    body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:600}})
   });
   if(!res.ok) throw new Error('Gemini '+res.status);
   const data=await res.json();
   const txt=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
   const m=txt.match(/\{[\s\S]*?\}/);
   if(!m) throw new Error('parse error');
-  return JSON.parse(m[0]);
+  const parsed=JSON.parse(m[0]);
+  // 画面表示用に targetLang の翻訳を translation に設定
+  if(parsed.translations) parsed.translation=parsed.translations[state.targetLang]||parsed.translations.en||'';
+  return parsed;
 }
 
 // ===== MyMemory フォールバック =====
@@ -967,12 +984,20 @@ async function renderReceiveArea(){
       div.innerHTML=`<div class="receive-trans">${entry.jp||''}</div>`;
       area.appendChild(div);
     } else {
-      div.innerHTML=`<div class="receive-trans">...</div><div class="receive-jp">${entry.jp||''}</div>`;
-      area.appendChild(div);
-      translateForReceiver(entry.jp||'',lang).then(t=>{
-        if(myId===_renderReceiveId && div.isConnected)
-          div.querySelector('.receive-trans').textContent=t;
-      });
+      const pre=entry.translations&&entry.translations[lang];
+      if(pre){
+        // 送信側が翻訳済み → 即時表示（高品質）
+        div.innerHTML=`<div class="receive-trans">${pre}</div><div class="receive-jp">${entry.jp||''}</div>`;
+        area.appendChild(div);
+      } else {
+        // 翻訳がない場合 → MyMemoryフォールバック
+        div.innerHTML=`<div class="receive-trans">...</div><div class="receive-jp">${entry.jp||''}</div>`;
+        area.appendChild(div);
+        translateForReceiver(entry.jp||'',lang).then(t=>{
+          if(myId===_renderReceiveId && div.isConnected)
+            div.querySelector('.receive-trans').textContent=t;
+        });
+      }
     }
   }
   if(myId===_renderReceiveId) area.scrollTop=area.scrollHeight;
