@@ -462,6 +462,29 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
           <button class="seg-btn" id="levelReadable" onclick="setLevel('readable',this)">読みやすさ重視</button>
         </div>
       </div>
+      <div class="setting-group">
+        <div class="setting-label">🔊 音声設定</div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">読み上げ速度</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:11px;color:var(--text-muted)">遅</span>
+            <input type="range" id="ttsRateSlider" min="0.5" max="1.5" step="0.1" value="1.0"
+              style="flex:1;accent-color:var(--accent);height:4px"
+              oninput="updateTtsRate(this.value)">
+            <span style="font-size:11px;color:var(--text-muted)">速</span>
+            <span style="font-size:14px;font-weight:700;min-width:28px;text-align:right;color:var(--accent)" id="ttsRateLabel">1.0</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">翻訳先言語の声（<span id="ttsVoiceLangName">ミャンマー語</span>）</div>
+          <select id="ttsVoiceSelect"
+            style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-family:var(--font-jp);font-size:13px;background:var(--bg);color:var(--text-main)"
+            onchange="updateTtsVoice(this.value)">
+            <option value="">デフォルト</option>
+          </select>
+          <div class="setting-hint">※端末にインストールされている音声のみ表示されます</div>
+        </div>
+      </div>
       <button class="save-btn" onclick="saveSettings()">保存</button>
     </div>
   </div>
@@ -587,6 +610,8 @@ const state = {
   // Receive
   isReceiving:false, receiveLang:'my', receiveEntries:[], receiveTransCache:{},
   receiveTTS:false,
+  ttsRate:1.0,
+  ttsVoiceMap:{},
 };
 
 let receiveFontSize=22;
@@ -601,6 +626,8 @@ let _renderReceiveId=0;
   state.targetLang = localStorage.getItem('cv9Lang') || localStorage.getItem('cv8Lang') || 'my';
   state.seimonLevel = localStorage.getItem('cv9Level') || localStorage.getItem('cv8Level') || 'balanced';
   state.engine = localStorage.getItem('cv9Engine') || 'gemini';
+  state.ttsRate = parseFloat(localStorage.getItem('cv9TtsRate')||'1.0');
+  state.ttsVoiceMap = JSON.parse(localStorage.getItem('cv9TtsVoiceMap')||'{}');
   const fbCfg = localStorage.getItem('cv9Firebase') || localStorage.getItem('cv8Firebase');
   if(fbCfg) state.firebaseConfig = JSON.parse(fbCfg);
 
@@ -630,6 +657,13 @@ let _renderReceiveId=0;
     state.autoScroll = atBottom;
     document.getElementById('scrollBtn').classList.toggle('show', !atBottom && state.entries.length > 0);
   });
+
+  // 音声リスト読み込み完了時にセレクタ更新
+  if(window.speechSynthesis){
+    window.speechSynthesis.onvoiceschanged=()=>{
+      if(document.getElementById('settingsModal').classList.contains('open')) populateTtsVoices();
+    };
+  }
 
   // Modal backdrop
   document.getElementById('settingsModal').addEventListener('click', e=>{ if(e.target===document.getElementById('settingsModal')) closeSettings(); });
@@ -767,7 +801,16 @@ function setEngine(eng, btn){
   document.querySelectorAll('#engineBtns .seg-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
 }
-function openSettings(){ document.getElementById('settingsModal').classList.add('open'); }
+function openSettings(){
+  document.getElementById('settingsModal').classList.add('open');
+  // 速度スライダー初期化
+  const slider=document.getElementById('ttsRateSlider');
+  if(slider) slider.value=state.ttsRate;
+  const lbl=document.getElementById('ttsRateLabel');
+  if(lbl) lbl.textContent=state.ttsRate.toFixed(1);
+  // 音声リスト初期化
+  populateTtsVoices();
+}
 function closeSettings(){ document.getElementById('settingsModal').classList.remove('open'); }
 function saveSettings(){
   state.geminiKey = document.getElementById('geminiKeyInput').value.trim();
@@ -789,6 +832,8 @@ function saveSettings(){
   if(state.whisperKey) localStorage.setItem('cv9Whisper', state.whisperKey);
   localStorage.setItem('cv9Level', state.seimonLevel);
   localStorage.setItem('cv9Engine', state.engine);
+  localStorage.setItem('cv9TtsRate', state.ttsRate);
+  localStorage.setItem('cv9TtsVoiceMap', JSON.stringify(state.ttsVoiceMap));
   closeSettings(); showToast('✅ 保存しました');
 }
 
@@ -1359,11 +1404,54 @@ async function translateForReceiver(text, lang){
 
 // TTS読み上げ
 let lastSpokenEntry=null;
+// ===== TTS音声設定 =====
+function populateTtsVoices(){
+  const sel=document.getElementById('ttsVoiceSelect');
+  if(!sel||!window.speechSynthesis) return;
+  const lang=state.targetLang;
+  const bcp47=TTS_LANG_MAP[lang]||lang;
+  const prefix=bcp47.split('-')[0].toLowerCase();
+  const voices=window.speechSynthesis.getVoices();
+  const filtered=voices.filter(v=>v.lang.toLowerCase().startsWith(prefix));
+  const cur=state.ttsVoiceMap[lang]||'';
+  sel.innerHTML='<option value="">デフォルト</option>';
+  filtered.forEach(v=>{
+    const opt=document.createElement('option');
+    opt.value=v.voiceURI;
+    opt.textContent=v.name+(v.localService?' 🔵':' 🌐');
+    if(cur===v.voiceURI) opt.selected=true;
+    sel.appendChild(opt);
+  });
+  if(filtered.length===0){
+    const opt=document.createElement('option');
+    opt.value=''; opt.textContent='この言語の音声が見つかりません';
+    sel.appendChild(opt);
+  }
+  const nameEl=document.getElementById('ttsVoiceLangName');
+  if(nameEl) nameEl.textContent=LANG_NAMES[lang]||lang;
+}
+function updateTtsRate(val){
+  state.ttsRate=parseFloat(val);
+  const lbl=document.getElementById('ttsRateLabel');
+  if(lbl) lbl.textContent=parseFloat(val).toFixed(1);
+}
+function updateTtsVoice(uri){ state.ttsVoiceMap[state.targetLang]=uri; }
+function applySpeakSettings(utter, lang){
+  const bcp47Map={my:'my',id:'id-ID',vi:'vi-VN',tl:'fil-PH',zh:'zh-CN',ko:'ko-KR',en:'en-US',hi:'hi-IN',ja:'ja-JP'};
+  utter.lang=bcp47Map[lang]||'en-US';
+  utter.rate=state.ttsRate||1.0;
+  const uri=state.ttsVoiceMap&&state.ttsVoiceMap[lang];
+  if(uri){
+    const v=window.speechSynthesis.getVoices().find(v=>v.voiceURI===uri);
+    if(v) utter.voice=v;
+  }
+}
+
 function speakText(text, lang){
   if(!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const utter=new SpeechSynthesisUtterance(text);
-  utter.lang=TTS_LANG_MAP[lang]||lang;
+  applySpeakSettings(utter, lang);
   window.speechSynthesis.speak(utter);
 }
 
@@ -1553,8 +1641,7 @@ function speakFaceResult(){
   const text=document.getElementById('faceResultText').textContent;
   if(!text||text==='翻訳結果がここに表示されます'||text==='翻訳中...') return;
   const utt=new SpeechSynthesisUtterance(text);
-  const bcp47Map={my:'my',id:'id-ID',vi:'vi-VN',tl:'fil-PH',zh:'zh-CN',ko:'ko-KR',en:'en-US',hi:'hi-IN'};
-  utt.lang=bcp47Map[state.targetLang]||'en-US';
+  applySpeakSettings(utt, state.targetLang);
   speechSynthesis.cancel();speechSynthesis.speak(utt);
 }
 
@@ -1591,8 +1678,8 @@ async function doMeetingTranslate(){
 function clearMeetingText(){document.getElementById('meetingTextInput').value='';document.getElementById('meetingTextResult').innerHTML='';}
 function speakMeetingResult(text,lang){
   const utt=new SpeechSynthesisUtterance(text);
-  const m={my:'my',id:'id-ID',vi:'vi-VN',tl:'fil-PH',zh:'zh-CN',ko:'ko-KR',en:'en-US',hi:'hi-IN'};
-  utt.lang=m[lang]||'en-US';speechSynthesis.cancel();speechSynthesis.speak(utt);
+  applySpeakSettings(utt, lang);
+  speechSynthesis.cancel();speechSynthesis.speak(utt);
 }
 
 async function initReceiveMode(code){
