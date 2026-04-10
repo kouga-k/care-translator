@@ -938,12 +938,16 @@ function renderEntry(el, entry){
 
 // ===== 上ペイン =====
 function appendToTopPane(entry){
-  if(!entry.translation || !entry.translation.trim()) return;
+  // translation優先、なければtranslationsから取得、それもなければseimon（日本語）
+  const txt = (entry.translation||'').trim()
+    || (entry.translations&&(entry.translations[state.targetLang]||entry.translations.en)||'').trim()
+    || (entry.seimon||entry.raw||'').trim();
+  if(!txt) return;
   const textEl=document.getElementById('topPaneText');
   const emptyEl=document.getElementById('topPaneEmpty');
   emptyEl.style.display='none';
   const span=document.createElement('span');
-  span.textContent=(textEl.childNodes.length>0 ? '　' : '') + entry.translation.trim();
+  span.textContent=(textEl.childNodes.length>0 ? '　' : '') + txt;
   textEl.appendChild(span);
   span.scrollIntoView({behavior:'smooth', block:'end'});
 }
