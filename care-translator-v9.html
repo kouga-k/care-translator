@@ -682,31 +682,30 @@ function buildQuickPhrases(){
 }
 
 async function addQuickPhrase(phrase){
-  // 通常のエントリ処理と同様に翻訳してFirebase送信
-  if(state.interimId){
-    const el=document.getElementById('entry-'+state.interimId);
-    if(el) el.remove(); state.interimId=null;
-  }
-  const id=++state.entryIdCounter;
-  const area=document.getElementById('transcriptArea');
-  const el=document.createElement('div'); el.className='entry'; el.id='entry-'+id;
-  el.innerHTML=`<div class="entry-jp" style="color:var(--text-small)">翻訳中...</div>`;
-  // 配信タブに居なくても下ペインに表示するため mainContent の transcriptArea に追加
-  area.appendChild(el);
-  // emptyState非表示
-  const es=document.getElementById('emptyState'); if(es) es.style.display='none';
-  maybeScroll();
-  let entry;
-  try{ entry=await translateEntry(phrase, id); }
-  catch(e){ entry={id,raw:phrase,seimon:phrase,translation:'',translations:{},terms:[],engine:'none'}; }
-  state.entries.push(entry);
-  renderEntry(el, entry);
-  maybeScroll();
-  if(state.entries.length>=3) document.getElementById('summaryBtn').classList.add('show');
-  // Firebase配信（配信中のみ）
-  if(state.isDistributing && state.fbPush && state.sessionCode){
-    try{ await state.fbPush(state.fbRef(state.firebaseDb,`sessions/${state.sessionCode}/entries`),{jp:entry.seimon||entry.raw,translations:entry.translations||{},ts:Date.now()}); }catch(e){}
-    addDistLog(entry.seimon||entry.raw);
+  // 会議・指導タブのテキスト結果エリアに表示
+  const resultEl=document.getElementById('meetingTextResult');
+  const toLangName=LANG_NAMES[state.targetLang]||'英語';
+  resultEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-muted)">翻訳中...</div>';
+  try{
+    const res=await translateEntry(phrase, ++state.entryIdCounter);
+    const translated=(res.translations&&res.translations[state.targetLang])||res.translation||'';
+    resultEl.innerHTML=`
+      <div style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:10px">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">日本語</div>
+        <div style="font-size:15px;color:var(--text-main)">${phrase}</div>
+      </div>
+      <div style="background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border-radius:10px;padding:14px">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">${toLangName}</div>
+        <div style="font-size:18px;font-weight:600;color:var(--accent);margin-bottom:8px">${translated}</div>
+        ${translated?`<button onclick="speakMeetingResult('${translated.replace(/'/g,"\\'")}','${state.targetLang}')" style="padding:6px 14px;border:1px solid var(--accent);border-radius:6px;background:none;color:var(--accent);font-size:13px;cursor:pointer">🔊 読み上げ</button>`:''}
+      </div>`;
+    // Firebase配信（配信中のみ）
+    if(state.isDistributing && state.fbPush && state.sessionCode){
+      try{ await state.fbPush(state.fbRef(state.firebaseDb,`sessions/${state.sessionCode}/entries`),{jp:res.seimon||phrase,translations:res.translations||{},ts:Date.now()}); }catch(e){}
+      addDistLog(res.seimon||phrase);
+    }
+  }catch(e){
+    resultEl.innerHTML='<div style="color:var(--warn);padding:12px">翻訳エラーが発生しました</div>';
   }
 }
 
@@ -751,6 +750,9 @@ function setMode(mode, btn){
   } else {
     mc.style.display=''; dm.style.display='none'; mp.style.display='none';
   }
+  // PC内部音声ボタンは会議・指導モードでは非表示
+  const pcBtn=document.getElementById('pcBtn');
+  if(pcBtn) pcBtn.style.display=(mode==='meeting')?'none':'';
 }
 function changeLang(lang){ state.targetLang=lang; localStorage.setItem('cv9Lang',lang); }
 function setLevel(level, btn){
