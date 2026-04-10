@@ -636,6 +636,7 @@ function clearAll(){
   document.getElementById('topPaneEmpty').style.display='';
   clearTimeout(_topPaneTimer);
   _topPaneLastIdx=0;
+  _topPaneLastRun=0;
 }
 
 // ===== モード・設定 =====
@@ -941,15 +942,24 @@ function renderEntry(el, entry){
 
 // ===== 上ペイン（新着エントリのみ翻訳して追記） =====
 let _topPaneTimer=null;
-let _topPaneLastIdx=0; // 最後に処理したエントリのインデックス
+let _topPaneLastIdx=0;
+let _topPaneLastRun=0; // 最後にrefreshTopPaneを実行した時刻
 
 function appendToTopPane(entry){
-  // 新エントリが来たら3秒後に未処理分だけ翻訳して追記（全消しなし）
+  const now=Date.now();
+  // 前回の更新から15秒以上経過していたら即時実行
+  if(now - _topPaneLastRun >= 15000){
+    clearTimeout(_topPaneTimer);
+    refreshTopPane();
+    return;
+  }
+  // それ以外は5秒debounce（発話が止まったら更新）
   clearTimeout(_topPaneTimer);
   _topPaneTimer=setTimeout(refreshTopPane, 5000);
 }
 
 async function refreshTopPane(){
+  _topPaneLastRun=Date.now();
   const newEntries=state.entries.slice(_topPaneLastIdx);
   if(newEntries.length===0) return;
   const textEl=document.getElementById('topPaneText');
