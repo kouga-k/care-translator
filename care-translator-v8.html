@@ -907,10 +907,11 @@ async function loadFirebase(){
   if(!state.firebaseConfig) state.firebaseConfig = DEFAULT_FIREBASE_CONFIG;
   try{
     const {initializeApp} = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
-    const {getDatabase,ref,push,onValue,off,set} = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
+    const {getDatabase,ref,push,onValue,off,set,query,limitToLast} = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
     const app = initializeApp(state.firebaseConfig, 'cv8');
     state.firebaseDb = getDatabase(app);
     state.fbRef=ref; state.fbPush=push; state.fbOnValue=onValue; state.fbOff=off; state.fbSet=set;
+    state.fbQuery=query; state.fbLimitToLast=limitToLast;
     return true;
   }catch(e){ showToast('Firebase初期化エラー: '+e.message); return false; }
 }
@@ -1008,9 +1009,10 @@ async function initReceiveMode(code){
   state.isReceiving=true;
   document.getElementById('receiveOverlay').classList.add('active');
   document.getElementById('receiveLangSelect').value=state.receiveLang;
-  // エントリ監視
+  // エントリ監視（最新10件のみ取得）
   const entriesRef=state.fbRef(state.firebaseDb, `sessions/${code}/entries`);
-  state.fbOnValue(entriesRef, snapshot=>{
+  const entriesQuery=state.fbQuery(entriesRef, state.fbLimitToLast(10));
+  state.fbOnValue(entriesQuery, snapshot=>{
     const data=snapshot.val();
     if(!data) return;
     // ts順にソートし、jp文字列が次のエントリに含まれる暫定結果を除去
