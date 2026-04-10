@@ -718,7 +718,7 @@ function updateUI(active){
 let micBuffer='';
 let micBufferTimer=null;
 
-function getMicDelay(){ return state.mode==='video' ? 1800 : 2800; }
+function getMicDelay(){ return state.mode==='video' ? 3500 : 4500; }
 
 function flushMicBuffer(){
   clearTimeout(micBufferTimer); micBufferTimer=null;
@@ -946,7 +946,7 @@ let _topPaneLastIdx=0; // 最後に処理したエントリのインデックス
 function appendToTopPane(entry){
   // 新エントリが来たら3秒後に未処理分だけ翻訳して追記（全消しなし）
   clearTimeout(_topPaneTimer);
-  _topPaneTimer=setTimeout(refreshTopPane, 3000);
+  _topPaneTimer=setTimeout(refreshTopPane, 5000);
 }
 
 async function refreshTopPane(){
