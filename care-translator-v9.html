@@ -182,6 +182,47 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
   .modal-overlay{align-items:center}
   .modal-sheet{border-radius:20px}
 }
+
+/* 会議・指導サブモードタブ */
+.meeting-sub-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface)}
+.meeting-sub-btn{flex:1;padding:10px 8px;border:none;background:none;font-family:var(--font-jp);font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.meeting-sub-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* 会議 - 会話モード */
+#meeting-conv{display:flex;flex-direction:column;height:100%}
+.conv-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.conv-hint{text-align:center;color:var(--text-muted);font-size:13px;padding:40px 20px}
+.conv-msg{padding:12px 14px;border-radius:12px;max-width:85%}
+.msg-jp{background:var(--accent-pale);border:1px solid var(--accent);align-self:flex-start}
+.msg-foreign{background:var(--surface);border:1px solid var(--border);align-self:flex-end}
+.conv-msg-header{font-size:11px;color:var(--text-muted);margin-bottom:4px}
+.conv-msg-original{font-size:14px;color:var(--text);line-height:1.5}
+.conv-msg-translated{font-size:16px;font-weight:600;color:var(--accent);line-height:1.5;margin-top:4px}
+.conv-msg-back{font-size:11px;color:var(--text-muted);margin-top:4px;font-style:italic}
+.conv-input-area{border-top:1px solid var(--border);padding:12px;background:var(--surface);flex-shrink:0}
+.conv-speaker-btns{display:flex;gap:8px;margin-bottom:8px}
+.speaker-btn{flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--font-jp);font-size:12px;cursor:pointer;background:none;color:var(--text-muted);transition:all .2s}
+.active-jp{border-color:var(--accent);background:var(--accent-pale);color:var(--accent);font-weight:600}
+.active-foreign{border-color:#e94560;background:rgba(233,69,96,.1);color:#e94560;font-weight:600}
+.conv-mic-area{display:flex;gap:6px}
+.conv-text-in{flex:1;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:var(--font-jp);font-size:14px;outline:none;background:var(--bg)}
+.conv-mic-btn{width:40px;height:40px;border:none;border-radius:8px;cursor:pointer;font-size:18px;transition:all .2s}
+.mic-btn-jp{background:var(--accent);color:white}
+.mic-btn-foreign{background:#e94560;color:white}
+.conv-mic-btn.recording{animation:blink 1s infinite}
+.conv-send-btn{padding:8px 14px;border:none;border-radius:8px;background:var(--accent);color:white;font-family:var(--font-jp);font-size:14px;cursor:pointer}
+
+/* 会議 - 対面モード */
+.face-partner-card{background:var(--accent-pale);border:2px solid var(--accent);border-radius:var(--radius);padding:20px 16px;transform:rotate(180deg);margin-bottom:0}
+.face-partner-lang{font-size:11px;color:var(--accent);font-weight:600;letter-spacing:1px;margin-bottom:8px}
+.face-partner-text{font-size:24px;font-weight:600;color:var(--text);line-height:1.5;min-height:60px}
+.face-speak-btn{margin-top:10px;padding:6px 14px;border:1px solid var(--accent);background:none;border-radius:8px;color:var(--accent);cursor:pointer;font-family:var(--font-jp);font-size:12px}
+.face-divider{display:flex;align-items:center;gap:10px;margin:14px 0;font-size:12px;font-weight:600;color:var(--text-muted)}
+.face-divider::before,.face-divider::after{content:'';flex:1;height:2px;background:var(--border)}
+.face-status{font-size:12px;color:var(--text-muted);margin-bottom:8px;min-height:18px}
+.face-mic-btn{width:100%;padding:14px;border:none;border-radius:10px;background:var(--accent);color:white;font-family:var(--font-jp);font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px;transition:all .2s}
+.face-text-input{width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:var(--font-jp);font-size:15px;resize:none;outline:none;background:var(--bg);margin-bottom:8px}
+.face-translate-btn{width:100%;padding:10px;border:none;border-radius:8px;background:var(--surface2);color:var(--text-muted);font-family:var(--font-jp);font-size:14px;cursor:pointer;border:1px solid var(--border)}
 </style>
 </head>
 <body>
@@ -267,6 +308,61 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
   <div id="quickPhrases">
     <div class="qp-title">⚡ クイックフレーズ</div>
     <div class="qp-grid" id="qpGrid"></div>
+  </div>
+</div>
+
+<!-- 会議・指導パネル -->
+<div id="mode-meeting-panel" style="display:none;flex:1;overflow-y:auto;flex-direction:column">
+  <!-- サブモードタブ -->
+  <div class="meeting-sub-tabs">
+    <button class="meeting-sub-btn active" id="subConv" onclick="setMeetingSubMode('conv',this)">💬 会話</button>
+    <button class="meeting-sub-btn" id="subFace" onclick="setMeetingSubMode('face',this)">📱 対面</button>
+    <button class="meeting-sub-btn" id="subText" onclick="setMeetingSubMode('text',this)">📝 テキスト</button>
+  </div>
+
+  <!-- サブモード1: 会話モード -->
+  <div id="meeting-conv" style="display:flex;flex-direction:column;flex:1">
+    <div class="conv-messages" id="convMessages">
+      <div class="conv-hint">話す人を選んでマイクボタンを押してください</div>
+    </div>
+    <div class="conv-input-area">
+      <div class="conv-speaker-btns">
+        <button class="speaker-btn active-jp" id="speakerJp" onclick="selectSpeaker('jp')">🇯🇵 日本人スタッフ</button>
+        <button class="speaker-btn" id="speakerForeign" onclick="selectSpeaker('foreign')">🌏 外国人スタッフ</button>
+      </div>
+      <div class="conv-mic-area">
+        <input class="conv-text-in" id="convTextIn" placeholder="テキスト入力...">
+        <button class="conv-mic-btn mic-btn-jp" id="convMicBtn" onclick="toggleConvMic()">🎤</button>
+        <button class="conv-send-btn" onclick="sendConvMessage()">→</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- サブモード2: 対面モード -->
+  <div id="meeting-face" style="display:none;padding:16px">
+    <!-- 相手側（180度回転） -->
+    <div class="face-partner-card">
+      <div class="face-partner-lang" id="faceTgtLabel"></div>
+      <div class="face-partner-text" id="faceResultText">翻訳結果がここに表示されます</div>
+      <button class="face-speak-btn" onclick="speakFaceResult()">🔊 読み上げ</button>
+    </div>
+    <div class="face-divider">▲ 外国人スタッフ側 ┃ 日本人スタッフ側 ▼</div>
+    <!-- 自分側 -->
+    <div class="face-status" id="faceMicStatus"></div>
+    <button class="face-mic-btn" id="faceMicBtn" onclick="toggleFaceMic()">🎤 マイクで話す（自動翻訳）</button>
+    <textarea class="face-text-input" id="faceInput" rows="2" placeholder="または直接入力..."></textarea>
+    <button class="face-translate-btn" onclick="translateFaceText()">翻訳 →</button>
+  </div>
+
+  <!-- サブモード3: テキスト翻訳 -->
+  <div id="meeting-text" style="display:none;padding:16px">
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600;letter-spacing:1px">入力テキスト</div>
+    <textarea id="meetingTextInput" rows="5" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:12px;font-family:var(--font-jp);font-size:15px;resize:none;outline:none;background:var(--bg);margin-bottom:8px" placeholder="日本語を入力してください..."></textarea>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button onclick="clearMeetingText()" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;background:none;font-family:var(--font-jp);font-size:13px;cursor:pointer;color:var(--text-muted)">✕ クリア</button>
+      <button onclick="doMeetingTranslate()" style="flex:2;padding:10px;border:none;border-radius:8px;background:var(--accent);color:white;font-family:var(--font-jp);font-size:14px;font-weight:600;cursor:pointer">翻訳 →</button>
+    </div>
+    <div id="meetingTextResult"></div>
   </div>
 </div>
 
@@ -644,12 +740,15 @@ function setMode(mode, btn){
   state.mode=mode;
   document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  const mc = document.getElementById('mainContent');
-  const dm = document.getElementById('mode-dist');
-  if(mode === 'dist'){
-    mc.style.display='none'; dm.style.display='block';
+  const mc=document.getElementById('mainContent');
+  const dm=document.getElementById('mode-dist');
+  const mp=document.getElementById('mode-meeting-panel');
+  if(mode==='dist'){
+    mc.style.display='none'; dm.style.display='block'; mp.style.display='none';
+  } else if(mode==='meeting'){
+    mc.style.display='none'; dm.style.display='none'; mp.style.display='flex'; mp.style.flexDirection='column';
   } else {
-    mc.style.display=''; dm.style.display='none';
+    mc.style.display=''; dm.style.display='none'; mp.style.display='none';
   }
 }
 function changeLang(lang){ state.targetLang=lang; localStorage.setItem('cv9Lang',lang); }
@@ -1320,6 +1419,177 @@ function changeReceiveFontSize(delta){
 function toggleReceiveTTS(){
   state.receiveTTS=!state.receiveTTS;
   document.getElementById('ttsBtn').style.opacity=state.receiveTTS?'1':'0.4';
+}
+
+// ===== 会議・指導サブモード =====
+
+// BCP47マップ
+const BCP47={my:'my',id:'id-ID',vi:'vi-VN',tl:'fil-PH',zh:'zh-CN',ko:'ko-KR',en:'en-US',hi:'hi-IN',ja:'ja-JP'};
+
+// 言語名マップ
+const LANG_NAMES={my:'ミャンマー語',id:'インドネシア語',vi:'ベトナム語',tl:'タガログ語',zh:'中国語',ko:'韓国語',en:'英語',hi:'ヒンディー語',ja:'日本語'};
+
+function setMeetingSubMode(mode, btn){
+  document.querySelectorAll('.meeting-sub-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('meeting-conv').style.display=mode==='conv'?'flex':'none';
+  document.getElementById('meeting-face').style.display=mode==='face'?'block':'none';
+  document.getElementById('meeting-text').style.display=mode==='text'?'block':'none';
+}
+
+// ===== サブモード1: 会話モード =====
+let convMessages=[];
+let convSpeaker='jp';
+let convMicRec=null, convMicActive=false;
+
+function selectSpeaker(s){
+  convSpeaker=s;
+  document.getElementById('speakerJp').className='speaker-btn '+(s==='jp'?'active-jp':'');
+  document.getElementById('speakerForeign').className='speaker-btn '+(s==='foreign'?'active-foreign':'');
+  document.getElementById('convMicBtn').className='conv-mic-btn '+(s==='jp'?'mic-btn-jp':'mic-btn-foreign');
+}
+
+function toggleConvMic(){
+  const btn=document.getElementById('convMicBtn');
+  if(convMicActive){convMicRec?.stop();convMicActive=false;btn.classList.remove('recording');return;}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){showToast('Chromeが必要です');return;}
+  const lang=convSpeaker==='jp'?'ja-JP':(BCP47[state.targetLang]||'en-US');
+  convMicRec=new SR();convMicRec.lang=lang;convMicRec.continuous=false;convMicRec.interimResults=false;
+  convMicRec.onresult=e=>{document.getElementById('convTextIn').value=e.results[0][0].transcript;sendConvMessage();};
+  convMicRec.onend=()=>{convMicActive=false;btn.classList.remove('recording');};
+  convMicRec.onerror=()=>{convMicActive=false;btn.classList.remove('recording');};
+  convMicRec.start();convMicActive=true;btn.classList.add('recording');
+}
+
+async function sendConvMessage(){
+  const text=document.getElementById('convTextIn').value.trim();if(!text)return;
+  document.getElementById('convTextIn').value='';
+  const isJp=convSpeaker==='jp';
+  const to=isJp?state.targetLang:'ja';
+  const toLangName=isJp?LANG_NAMES[state.targetLang]:LANG_NAMES['ja'];
+  convMessages.push({speaker:convSpeaker,original:text,translated:'翻訳中...',loading:true});
+  renderConvMessages();
+  try{
+    let translated='';
+    if(state.geminiKey){
+      const prompt=`「${text}」を${toLangName}に翻訳してください。翻訳のみ返してください。`;
+      const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${state.geminiKey}`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:300}})
+      });
+      const data=await res.json();
+      translated=(data.candidates?.[0]?.content?.parts?.[0]?.text||'').trim();
+    } else {
+      translated=await myMemoryTranslate(text,to);
+    }
+    convMessages[convMessages.length-1]={speaker:convSpeaker,original:text,translated};
+  }catch(e){
+    convMessages[convMessages.length-1]={speaker:convSpeaker,original:text,translated:'エラー'};
+  }
+  renderConvMessages();
+}
+
+function renderConvMessages(){
+  const el=document.getElementById('convMessages');
+  if(!convMessages.length){el.innerHTML='<div class="conv-hint">話す人を選んでマイクボタンを押してください</div>';return;}
+  el.innerHTML=convMessages.map(m=>{
+    const isJp=m.speaker==='jp';
+    return`<div class="conv-msg ${isJp?'msg-jp':'msg-foreign'}">
+      <div class="conv-msg-header">${isJp?'🇯🇵 日本人スタッフ':'🌏 外国人スタッフ'}</div>
+      <div class="conv-msg-original">${m.original}</div>
+      <div class="conv-msg-translated">${m.translated}</div>
+    </div>`;
+  }).join('');
+  el.scrollTop=el.scrollHeight;
+}
+
+// ===== サブモード2: 対面モード =====
+let faceMicRec=null,faceMicOn=false;
+
+function toggleFaceMic(){
+  const btn=document.getElementById('faceMicBtn');
+  if(faceMicOn){faceMicOn=false;try{faceMicRec?.stop();}catch(e){}return;}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){showToast('Chromeが必要です');return;}
+  faceMicRec=new SR();faceMicRec.lang='ja-JP';faceMicRec.continuous=false;faceMicRec.interimResults=true;
+  faceMicRec.onstart=()=>{faceMicOn=true;btn.textContent='⏹ 停止する';btn.style.background='var(--warn)';document.getElementById('faceMicStatus').textContent='🔴 録音中...'};
+  faceMicRec.onresult=e=>{
+    let f='',i='';
+    for(let x=e.resultIndex;x<e.results.length;x++){e.results[x].isFinal?f+=e.results[x][0].transcript:i+=e.results[x][0].transcript;}
+    if(f.trim()){document.getElementById('faceInput').value=f.trim();translateFaceText();}
+  };
+  faceMicRec.onend=()=>{faceMicOn=false;btn.textContent='🎤 マイクで話す（自動翻訳）';btn.style.background='var(--accent)';document.getElementById('faceMicStatus').textContent='';};
+  faceMicRec.onerror=e=>{faceMicOn=false;btn.textContent='🎤 マイクで話す（自動翻訳）';btn.style.background='var(--accent)';document.getElementById('faceMicStatus').textContent='❌ '+(e.error==='not-allowed'?'マイクを許可してください':e.error);};
+  faceMicRec.start();
+}
+
+async function translateFaceText(){
+  const text=document.getElementById('faceInput').value.trim();if(!text)return;
+  const toLangName=LANG_NAMES[state.targetLang]||'英語';
+  document.getElementById('faceResultText').textContent='翻訳中...';
+  document.getElementById('faceTgtLabel').textContent=toLangName;
+  try{
+    let translated='';
+    if(state.geminiKey){
+      const prompt=`「${text}」を${toLangName}に翻訳してください。翻訳のみ返してください。`;
+      const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${state.geminiKey}`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:300}})
+      });
+      const data=await res.json();
+      translated=(data.candidates?.[0]?.content?.parts?.[0]?.text||'').trim();
+    } else {
+      translated=await myMemoryTranslate(text,state.targetLang);
+    }
+    document.getElementById('faceResultText').textContent=translated;
+  }catch(e){document.getElementById('faceResultText').textContent='翻訳エラー';}
+}
+
+function speakFaceResult(){
+  const text=document.getElementById('faceResultText').textContent;
+  if(!text||text==='翻訳結果がここに表示されます'||text==='翻訳中...') return;
+  const utt=new SpeechSynthesisUtterance(text);
+  const bcp47Map={my:'my',id:'id-ID',vi:'vi-VN',tl:'fil-PH',zh:'zh-CN',ko:'ko-KR',en:'en-US',hi:'hi-IN'};
+  utt.lang=bcp47Map[state.targetLang]||'en-US';
+  speechSynthesis.cancel();speechSynthesis.speak(utt);
+}
+
+// ===== サブモード3: テキスト翻訳 =====
+async function doMeetingTranslate(){
+  const text=document.getElementById('meetingTextInput').value.trim();
+  if(!text){showToast('テキストを入力してください');return;}
+  const resultEl=document.getElementById('meetingTextResult');
+  const toLangName=LANG_NAMES[state.targetLang]||'英語';
+  resultEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-muted)">翻訳中...</div>';
+  try{
+    let translated='';
+    if(state.geminiKey){
+      const prompt=`「${text}」を介護・医療現場の文脈で${toLangName}に翻訳してください。自然な表現で翻訳のみ返してください。`;
+      const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${state.geminiKey}`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:500}})
+      });
+      const data=await res.json();
+      translated=(data.candidates?.[0]?.content?.parts?.[0]?.text||'').trim();
+    } else {
+      translated=await myMemoryTranslate(text,state.targetLang);
+    }
+    resultEl.innerHTML=`
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px">
+        <div style="font-size:11px;color:var(--accent);font-weight:600;letter-spacing:1px;margin-bottom:8px">${toLangName}訳</div>
+        <div style="font-size:20px;font-weight:600;color:var(--text);line-height:1.6">${translated}</div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button onclick="speakMeetingResult('${translated.replace(/'/g,"&#39;")}','${state.targetLang}')" style="padding:6px 12px;border:1px solid var(--accent);background:none;border-radius:8px;color:var(--accent);cursor:pointer;font-family:var(--font-jp);font-size:12px">🔊 読み上げ</button>
+        </div>
+      </div>`;
+  }catch(e){resultEl.innerHTML='<div style="color:var(--warn);padding:12px">翻訳エラーが発生しました</div>';}
+}
+function clearMeetingText(){document.getElementById('meetingTextInput').value='';document.getElementById('meetingTextResult').innerHTML='';}
+function speakMeetingResult(text,lang){
+  const utt=new SpeechSynthesisUtterance(text);
+  const m={my:'my',id:'id-ID',vi:'vi-VN',tl:'fil-PH',zh:'zh-CN',ko:'ko-KR',en:'en-US',hi:'hi-IN'};
+  utt.lang=m[lang]||'en-US';speechSynthesis.cancel();speechSynthesis.speak(utt);
 }
 
 async function initReceiveMode(code){
