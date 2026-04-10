@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CareVoice QRコード</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   body {
     font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -28,6 +28,7 @@
   h1 { font-size: 22px; color: #2d6a4f; margin: 0 0 4px; }
   .sub { font-size: 13px; color: #9b9890; margin-bottom: 28px; }
   canvas { border-radius: 12px; }
+  #qr { display:inline-block; }
   .url {
     margin-top: 20px;
     background: #f5f3ee;
@@ -57,10 +58,13 @@
 <script>
   const url = 'https://kouga-k.github.io/care-translator/care-translator-v9.html';
   document.getElementById('urlText').textContent = url;
-  QRCode.toCanvas(document.getElementById('qr'), url, {
+  new QRCode(document.getElementById('qr'), {
+    text: url,
     width: 240,
-    margin: 2,
-    color: { dark: '#2d6a4f', light: '#ffffff' }
+    height: 240,
+    colorDark: '#2d6a4f',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
   });
 </script>
 </body>
