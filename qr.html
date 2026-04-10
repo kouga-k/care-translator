@@ -50,12 +50,12 @@
   <canvas id="qr"></canvas>
   <div class="url" id="urlText"></div>
   <div class="hint">
-    スマホで読み取ってください<br>
-    <strong>PCと同じWi-Fi</strong> に接続が必要です
+    スマホのカメラで読み取ってください<br>
+    <strong>インターネット接続</strong> があれば使えます
   </div>
 </div>
 <script>
-  const url = 'http://10.170.127.99:3000/care-translator-v7.html';
+  const url = 'https://kouga-k.github.io/care-translator/care-translator-v9.html';
   document.getElementById('urlText').textContent = url;
   QRCode.toCanvas(document.getElementById('qr'), url, {
     width: 240,
