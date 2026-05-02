@@ -668,6 +668,7 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);min-heigh
           <span id="liveStatus" data-i18n="standby">待機中</span>
         </div>
         <button class="live-mic-btn idle" id="liveMicBtn" onclick="toggleLive()">🎤 <span data-i18n="start_interp">通訳開始</span></button>
+        <button id="tvModeBtn" onclick="toggleTVMode()" style="padding:8px 14px;border:1px solid var(--border);background:var(--surface2);border-radius:10px;font-family:var(--font-jp);font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px">📺 TVモード</button>
       </div>
       <div class="live-display">
         <div class="live-original" id="liveOriginal"></div>
@@ -1615,7 +1616,7 @@ let state = {
   engine:'mymemory', googleKey:'', claudeKey:'', geminiKey:'', whisperKey:'',
   politeMode:true, riskWarning:true, autoSpeak:false, liveBackTranslate:true,
   currentMode:'text', careMode:false, careScene:'general',
-  convSpeaker:'jp', isMicActive:false, isLiveActive:false,
+  convSpeaker:'jp', isMicActive:false, isLiveActive:false, tvMode:false, tvStream:null,
   recognition:null, liveRecognition:null,
   pendingTranslation:null, lastTranslatedText:'', lastTranslatedLang:'',
   convMessages:[], liveHistory:[],
@@ -2386,6 +2387,23 @@ let liveBuffer='', liveTimer=null, currentLiveResult={translated:'',backTranslat
     liveTranslating=false, livePendingText='', liveIsRestarting=false;
 
 function toggleLive(){state.isLiveActive?stopLive():startLive()}
+async function toggleTVMode(){
+  const btn=document.getElementById('tvModeBtn');
+  if(state.tvMode){
+    state.tvMode=false;
+    if(state.tvStream){state.tvStream.getTracks().forEach(t=>t.stop());state.tvStream=null;}
+    btn.style.background='var(--surface2)';btn.style.color='var(--text-muted)';btn.style.borderColor='var(--border)';
+    showToast('TVモード OFF');
+  } else {
+    try{
+      state.tvStream=await navigator.mediaDevices.getUserMedia({audio:{noiseSuppression:false,echoCancellation:false,autoGainControl:false}});
+      state.tvMode=true;
+      btn.style.background='#e65100';btn.style.color='white';btn.style.borderColor='#e65100';
+      showToast('📺 TVモード ON：ノイズ除去をオフにしました');
+    }catch(e){showToast('マイクへのアクセスを許可してください');}
+  }
+  if(state.isLiveActive){stopLive();startLive();}
+}
 
 let liveSessionTimer=null; // 強制セッションリセット用
 const LIVE_SESSION_MS = 50000; // 50秒ごとにリセット
