@@ -2579,11 +2579,20 @@ function speak(text,langCode) {
   if(!text||text==='...'||text==='Error') return;
   const targetBcp47=bcp47Map[langCode]||langCode||'ja-JP';
   const jpName={my:'ミャンマー語',km:'クメール語',lo:'ラオス語',th:'タイ語',vi:'ベトナム語',id:'インドネシア語',tl:'フィリピン語',ms:'マレー語'};
-  window.speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang=targetBcp47;u.rate=0.9;
-  u.onerror=()=>_speakToast('このデバイスでは'+(jpName[langCode]||langNames[langCode]||langCode)+'の音声に対応していません');
-  window.speechSynthesis.speak(u);
+  const doSpeak=()=>{
+    const voices=window.speechSynthesis.getVoices();
+    const langPrefix=targetBcp47.split('-')[0];
+    if(voices.length>0&&!voices.some(v=>v.lang.startsWith(langPrefix))){
+      _speakToast('このデバイスでは'+(jpName[langCode]||langNames[langCode]||langCode)+'の音声に対応していません');
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang=targetBcp47;u.rate=0.9;
+    window.speechSynthesis.speak(u);
+  };
+  if(window.speechSynthesis.getVoices().length>0){doSpeak();}
+  else{window.speechSynthesis.onvoiceschanged=()=>{window.speechSynthesis.onvoiceschanged=null;doSpeak();};setTimeout(doSpeak,1500);}
 }
 
 // ===== 字幕モード =====
