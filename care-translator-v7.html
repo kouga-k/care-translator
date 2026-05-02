@@ -2387,22 +2387,56 @@ let liveBuffer='', liveTimer=null, currentLiveResult={translated:'',backTranslat
     liveTranslating=false, livePendingText='', liveIsRestarting=false;
 
 function toggleLive(){state.isLiveActive?stopLive():startLive()}
+
+// ===== TVモード（Whisperマイク録音） =====
+let tvWhisperRecorder=null,tvWhisperActive=false;
+
 async function toggleTVMode(){
   const btn=document.getElementById('tvModeBtn');
-  if(state.tvMode){
-    state.tvMode=false;
-    if(state.tvStream){state.tvStream.getTracks().forEach(t=>t.stop());state.tvStream=null;}
+  if(tvWhisperActive){
+    stopTVWhisper();
     btn.style.background='var(--surface2)';btn.style.color='var(--text-muted)';btn.style.borderColor='var(--border)';
-    showToast('TVモード OFF');
-  } else {
-    try{
-      state.tvStream=await navigator.mediaDevices.getUserMedia({audio:{noiseSuppression:false,echoCancellation:false,autoGainControl:false}});
-      state.tvMode=true;
-      btn.style.background='#e65100';btn.style.color='white';btn.style.borderColor='#e65100';
-      showToast('📺 TVモード ON：ノイズ除去をオフにしました');
-    }catch(e){showToast('マイクへのアクセスを許可してください');}
+    btn.textContent='📺 TVモード';
+    showToast('📺 TVモード OFF');
+    return;
   }
-  if(state.isLiveActive){stopLive();startLive();}
+  if(!state.whisperKey){showToast('設定（⚙️）にOpenAI Whisper APIキーを入力してください');return;}
+  try{
+    state.tvStream=await navigator.mediaDevices.getUserMedia({audio:{noiseSuppression:false,echoCancellation:false,autoGainControl:false}});
+    const mimeType=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';
+    tvWhisperRecorder=new MediaRecorder(state.tvStream,{mimeType});
+    tvWhisperRecorder.ondataavailable=async(e)=>{
+      if(e.data.size<200||!tvWhisperActive)return;
+      const blob=new Blob([e.data],{type:mimeType});
+      try{
+        const transcript=await transcribeWithWhisper(blob);
+        if(transcript&&transcript.trim()){
+          liveBuffer+=transcript+' ';
+          const from=document.getElementById('langFrom').value;
+          const to=document.getElementById('langTo').value;
+          processLiveBuffer(from,to);
+        }
+      }catch(err){showToast('⚠ Whisper: '+err.message);}
+    };
+    tvWhisperRecorder.start(WHISPER_CHUNK_MS);
+    tvWhisperActive=true;
+    state.tvMode=true;
+    btn.style.background='#e65100';btn.style.color='white';btn.style.borderColor='#e65100';
+    btn.textContent='📺 TV録音中…';
+    showToast('📺 TVモード ON：スマホをテレビに近づけてください（5秒ごとに翻訳）');
+    if(!state.isLiveActive){
+      state.isLiveActive=true;
+      liveBuffer='';livePendingText='';liveTranslating=false;liveIsRestarting=false;
+      document.getElementById('liveDot').classList.add('active');applyI18n();
+    }
+  }catch(e){showToast('マイクへのアクセスを許可してください');if(state.tvStream){state.tvStream.getTracks().forEach(t=>t.stop());state.tvStream=null;}}
+}
+
+function stopTVWhisper(){
+  tvWhisperActive=false;state.tvMode=false;
+  if(tvWhisperRecorder&&tvWhisperRecorder.state!=='inactive'){try{tvWhisperRecorder.stop();}catch(e){}}
+  tvWhisperRecorder=null;
+  if(state.tvStream){state.tvStream.getTracks().forEach(t=>t.stop());state.tvStream=null;}
 }
 
 let liveSessionTimer=null; // 強制セッションリセット用
