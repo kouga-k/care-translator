@@ -2577,7 +2577,8 @@ function speak(text,langCode) {
   const hasVoice=voices.length===0||voices.some(v=>v.lang.startsWith(langPrefix));
   if(!hasVoice) {
     const msg=document.createElement('div');
-    msg.textContent='このデバイスでは'+(langNames[langCode]||langCode)+'の音声に対応していません';
+    const jpName={my:'ミャンマー語',km:'クメール語',lo:'ラオス語',th:'タイ語',vi:'ベトナム語',id:'インドネシア語',tl:'フィリピン語',ms:'マレー語'};
+    msg.textContent='このデバイスでは'+(jpName[langCode]||langNames[langCode]||langCode)+'の音声に対応していません';
     msg.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;z-index:9999;pointer-events:none';
     document.body.appendChild(msg);
     setTimeout(()=>msg.remove(),3000);
