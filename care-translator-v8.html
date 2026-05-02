@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>CareVoice｜理解支援</title>
+<script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE"></script>
 <style>
 :root {
   --bg:#f5f3ee;--surface:#fff;--surface2:#faf8f4;--border:#e2ddd6;
@@ -489,6 +490,17 @@ function setMode(mode, btn){
   }
 }
 function changeLang(lang){ state.targetLang=lang; localStorage.setItem('cv8Lang',lang); }
+function speak(text,langCode){
+  if(!text) return;
+  if(langCode==='my' && typeof responsiveVoice!=='undefined'){
+    responsiveVoice.speak(text,'Burmese',{rate:0.9}); return;
+  }
+  const bcp47={ja:'ja-JP',id:'id-ID',vi:'vi-VN',tl:'fil-PH',en:'en-US',zh:'zh-CN','zh-TW':'zh-TW',ko:'ko-KR',th:'th-TH',ms:'ms-MY',km:'km-KH',lo:'lo-LA',pt:'pt-BR',es:'es-ES',fr:'fr-FR',de:'de-DE',it:'it-IT',ru:'ru-RU'};
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=bcp47[langCode]||langCode||'ja-JP'; u.rate=0.9;
+  window.speechSynthesis.speak(u);
+}
 function setLevel(level, btn){
   state.seimonLevel=level;
   document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
@@ -748,7 +760,7 @@ function renderEntry(el, entry){
   const matched=getActiveTerms().filter(t=>(entry.seimon||entry.raw).includes(t.term));
   const engineLabel=entry.engine==='mymemory'?'<span class="engine-badge">MyMemory</span>':'';
   let html='';
-  if(entry.translation) html+=`<div class="entry-trans">${entry.translation}${engineLabel}</div>`;
+  if(entry.translation) html+=`<div class="entry-trans">${entry.translation}${engineLabel}<button onclick="speak('${entry.translation.replace(/'/g,"\\'")}','${state.targetLang}')" style="margin-left:8px;padding:2px 8px;font-size:12px;border:1px solid var(--accent);background:var(--accent-pale);color:var(--accent);border-radius:6px;cursor:pointer">🔊</button></div>`;
   html+=`<div class="entry-jp">${entry.seimon||entry.raw}</div>`;
   el.innerHTML=html; el.classList.remove('interim');
   appendToTopPane(entry);

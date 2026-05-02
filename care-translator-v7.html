@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>CareVoice｜介護・医療現場AI通訳</title>
+<script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE"></script>
 <style>
 :root {
   --bg:#f5f3ee;--surface:#fff;--surface2:#faf8f4;--border:#e2ddd6;
@@ -2570,6 +2571,10 @@ function clearHistory(){
 // ===== 音声出力 =====
 function speak(text,langCode) {
   if(!text||text==='...'||text==='Error') return;
+  if(langCode==='my' && typeof responsiveVoice!=='undefined') {
+    responsiveVoice.speak(text,'Burmese',{rate:0.9});
+    return;
+  }
   window.speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
   u.lang=bcp47Map[langCode]||langCode||'ja-JP';u.rate=0.9;
