@@ -181,6 +181,28 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
 .trans-mode-btn{padding:5px 12px;border:1.5px solid var(--border);background:white;border-radius:16px;font-family:var(--font-jp);font-size:11px;cursor:pointer;color:var(--text-muted);font-weight:500;transition:all .2s;white-space:nowrap}
 .trans-mode-btn.active{border-color:var(--accent);background:var(--accent-pale);color:var(--accent);font-weight:700}
 
+/* ===== v10.2: 候補確認モーダル ===== */
+.candidate-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px}
+.candidate-modal{background:white;border-radius:20px;padding:24px 20px;width:100%;max-width:400px;box-shadow:0 8px 40px rgba(0,0,0,.25);animation:slideUp .2s ease}
+.candidate-modal-title{font-size:13px;font-weight:700;color:var(--text-small);letter-spacing:1px;margin-bottom:4px;text-align:center}
+.candidate-modal-subtitle{font-size:12px;color:var(--text-muted);text-align:center;margin-bottom:16px}
+.candidate-modal-danger{background:#fff0f3;border:1.5px solid #e94560;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#c62828;font-weight:600;text-align:center}
+.candidate-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.candidate-btn{width:100%;padding:14px 16px;border:2px solid var(--border);border-radius:14px;background:white;text-align:left;cursor:pointer;transition:all .15s;font-family:var(--font-jp)}
+.candidate-btn:hover{border-color:var(--accent);background:var(--accent-pale)}
+.candidate-btn.selected{border-color:var(--accent);background:var(--accent-pale)}
+.candidate-btn-term{font-size:17px;font-weight:700;color:var(--text);display:block;margin-bottom:2px}
+.candidate-btn-context{font-size:12px;color:var(--text-muted);display:block}
+.candidate-btn-conf{font-size:11px;font-weight:600;color:var(--accent);float:right;margin-top:2px}
+.candidate-modal-actions{display:flex;gap:8px}
+.candidate-action-btn{flex:1;padding:12px;border-radius:12px;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font-jp);transition:all .15s}
+.candidate-action-confirm{background:var(--accent);color:white}
+.candidate-action-confirm:hover{opacity:.9}
+.candidate-action-edit{background:#f5f3fc;color:var(--text);border:1.5px solid var(--border)}
+.candidate-action-edit:hover{border-color:var(--accent)}
+.candidate-edit-area{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:var(--font-jp);margin-bottom:12px;resize:none;display:none}
+.candidate-edit-area.show{display:block}
+
 /* ===== v10: 3段階字幕 ===== */
 .entry.stage1{opacity:.6;border-style:dashed;border-color:#ddd;background:#fafafa}
 .entry.stage1 .entry-interim-text{color:#999;font-style:italic;font-size:14px}
@@ -605,6 +627,21 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- v10.2: 候補確認モーダル -->
+<div class="candidate-modal-overlay" id="candidateModalOverlay" style="display:none" onclick="onCandidateOverlayClick(event)">
+  <div class="candidate-modal" onclick="event.stopPropagation()">
+    <div class="candidate-modal-title" id="candidateModalTitle">確認してください</div>
+    <div class="candidate-modal-subtitle" id="candidateModalSubtitle">どちらの言葉ですか？</div>
+    <div class="candidate-modal-danger" id="candidateModalDanger" style="display:none"></div>
+    <div class="candidate-list" id="candidateList"></div>
+    <textarea class="candidate-edit-area" id="candidateEditArea" rows="2" placeholder="テキストを編集できます"></textarea>
+    <div class="candidate-modal-actions">
+      <button class="candidate-action-btn candidate-action-edit" onclick="toggleCandidateEdit()">✏️ 編集</button>
+      <button class="candidate-action-btn candidate-action-confirm" onclick="confirmCandidate()">✅ この内容で翻訳</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ===== 用語辞書 =====
 const TERMS_DB = [
@@ -969,8 +1006,11 @@ function getMicDelay(){ return state.mode==='video' ? 3500 : 4500; }
 function flushMicBuffer(){
   clearTimeout(micBufferTimer); micBufferTimer=null;
   if(micBuffer.trim()){
-    processEntry(micBuffer.trim());
+    const text = micBuffer.trim();
+    const alts = micBuffer._alts || null;
     micBuffer='';
+    // v10.2: 候補チェックを経由してprocessEntryへ
+    checkAndShowCandidates(text, alts);
   }
 }
 
@@ -982,14 +1022,29 @@ function startMicRecognition(){
   const es=document.getElementById('emptyState'); if(es) es.style.display='none';
   const rec=new SR();
   rec.lang='ja-JP'; rec.continuous=true; rec.interimResults=true;
+  rec.maxAlternatives=3; // v10.2: 複数候補を取得
   rec.onresult=e=>{
     let interim='', final='';
+    let lastFinalAlternatives=null;
     for(let i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal) final+=e.results[i][0].transcript;
-      else interim+=e.results[i][0].transcript;
+      if(e.results[i].isFinal){
+        final+=e.results[i][0].transcript;
+        // 最後のfinal結果の複数候補を保存
+        lastFinalAlternatives=[];
+        for(let j=0;j<e.results[i].length;j++){
+          lastFinalAlternatives.push({
+            transcript:e.results[i][j].transcript,
+            confidence:e.results[i][j].confidence||0
+          });
+        }
+      } else {
+        interim+=e.results[i][0].transcript;
+      }
     }
     if(final.trim()){
       micBuffer+=(micBuffer?' ':'')+final.trim();
+      // 複数候補を一時保存
+      if(lastFinalAlternatives) micBuffer._alts=lastFinalAlternatives;
       clearTimeout(micBufferTimer);
       micBufferTimer=setTimeout(flushMicBuffer, getMicDelay());
     }
@@ -1105,6 +1160,162 @@ function clearCustomTerms(){
   localStorage.removeItem('cv9CustomTerms');
   updateCustomTermsCount();
   showToast('カスタム用語をクリアしました');
+}
+
+// ===== v10.2: 候補確認システム =====
+
+// 確認不要ワード（日常会話 - 即翻訳）
+const BYPASS_PHRASES = [
+  'おはようございます','こんにちは','こんばんは','お疲れ様です','お疲れ様でした',
+  'ありがとうございます','ありがとうございました','よろしくお願いします','よろしくお願いいたします',
+  'すみません','ごめんなさい','失礼します',
+  '大丈夫ですか','大丈夫です','はい','いいえ','わかりました',
+  'こちらへ来てください','少し待ってください','もう少し待ってください',
+  'ゆっくりどうぞ','気をつけてください','いってらっしゃい','おやすみなさい'
+];
+
+// 介護文脈での同音異義語グループ
+const AMBIGUOUS_PAIRS = [
+  ['転倒','転棟','点灯','転道'],
+  ['離床','理床','理書'],
+  ['褥瘡','除草','熟想'],
+  ['誤嚥','御縁','ご縁'],
+  ['体位','大尉','退位'],
+  ['介助','海女','回初'],
+  ['拘縮','口述','後述'],
+  ['嚥下','園下'],
+  ['移乗','異常'],
+  ['安静','案精','安精'],
+  ['清拭','精食'],
+  ['臥位','我位'],
+];
+
+// 信頼度の差がこれ以下なら候補表示（25%）
+const CONFIDENCE_GAP_THRESHOLD = 0.25;
+
+// 候補モーダルの状態
+let _candidateSelected = null;
+let _candidateEditMode = false;
+
+// バイパスフレーズ判定
+function isBypassPhrase(text) {
+  const t = text.trim().replace(/[。、！？!?]/g,'');
+  return BYPASS_PHRASES.some(p => t.includes(p.replace(/[。、！？!?]/g,'')));
+}
+
+// 曖昧語判定
+function checkAmbiguousPairs(text, alternatives) {
+  for (const group of AMBIGUOUS_PAIRS) {
+    const matchedInTop = group.filter(w => text.includes(w));
+    if (!matchedInTop.length) continue;
+    // alternativesに別の候補が含まれているか
+    const otherAlts = (alternatives || []).slice(1).filter(a =>
+      group.some(w => a.transcript.includes(w) && !matchedInTop.includes(w))
+    );
+    if (otherAlts.length) return true;
+  }
+  return false;
+}
+
+// 候補モーダル表示
+function showCandidateModal(alternatives, dangerInfo) {
+  const overlay = document.getElementById('candidateModalOverlay');
+  const list = document.getElementById('candidateList');
+  const dangerDiv = document.getElementById('candidateModalDanger');
+  const title = document.getElementById('candidateModalTitle');
+  const subtitle = document.getElementById('candidateModalSubtitle');
+  const editArea = document.getElementById('candidateEditArea');
+
+  _candidateSelected = alternatives[0].transcript;
+  _candidateEditMode = false;
+  editArea.value = _candidateSelected;
+  editArea.classList.remove('show');
+
+  // 危険語の場合
+  if (dangerInfo && (dangerInfo.hasDanger || dangerInfo.hasImportant)) {
+    const terms = [...(dangerInfo.critical||[]), ...(dangerInfo.important||[])].map(t=>t.term||t.matched).join('・');
+    dangerDiv.textContent = `⚠️ 重要な用語が含まれています：${terms}`;
+    dangerDiv.style.display = 'block';
+    title.textContent = '翻訳前に確認してください';
+    subtitle.textContent = '医療・介護の重要用語が含まれています';
+  } else {
+    dangerDiv.style.display = 'none';
+    title.textContent = '確認してください';
+    subtitle.textContent = '認識結果が複数あります。正しい方を選んでください';
+  }
+
+  // 候補ボタン生成
+  list.innerHTML = '';
+  const shown = alternatives.slice(0, 3);
+  shown.forEach((alt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'candidate-btn' + (i === 0 ? ' selected' : '');
+    const confPct = alt.confidence > 0 ? Math.round(alt.confidence * 100) : null;
+    btn.innerHTML = `
+      <span class="candidate-btn-term">${escapeHtml(alt.transcript)}</span>
+      ${confPct ? `<span class="candidate-btn-conf">${confPct}%</span>` : ''}
+    `;
+    btn.onclick = () => {
+      document.querySelectorAll('.candidate-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      _candidateSelected = alt.transcript;
+      document.getElementById('candidateEditArea').value = alt.transcript;
+    };
+    list.appendChild(btn);
+  });
+
+  overlay.style.display = 'flex';
+}
+
+function toggleCandidateEdit() {
+  _candidateEditMode = !_candidateEditMode;
+  const area = document.getElementById('candidateEditArea');
+  area.classList.toggle('show', _candidateEditMode);
+  if (_candidateEditMode) { area.focus(); area.select(); }
+}
+
+function confirmCandidate() {
+  const area = document.getElementById('candidateEditArea');
+  const text = _candidateEditMode ? area.value.trim() : _candidateSelected;
+  document.getElementById('candidateModalOverlay').style.display = 'none';
+  _candidateSelected = null; _candidateEditMode = false;
+  if (text) processEntry(text);
+}
+
+function onCandidateOverlayClick(e) {
+  if (e.target === document.getElementById('candidateModalOverlay')) {
+    // 危険語の場合は背景クリックで閉じない（必ず確認させる）
+    const danger = document.getElementById('candidateModalDanger');
+    if (danger.style.display !== 'none') return;
+    confirmCandidate();
+  }
+}
+
+// 音声認識結果の候補チェック（flushMicBuffer→processEntryの間に挟む）
+function checkAndShowCandidates(text, alternatives) {
+  // 1. バイパスフレーズ → 即翻訳
+  if (isBypassPhrase(text)) { processEntry(text); return; }
+
+  // 2. 危険語 → 必ず確認
+  const danger = checkDangerousTerms(text);
+  if (danger.hasDanger || danger.hasImportant) {
+    showCandidateModal(alternatives || [{transcript: text, confidence: 0}], danger);
+    return;
+  }
+
+  // 3. 信頼度の差が小さい or 曖昧語 → 候補表示
+  if (alternatives && alternatives.length > 1) {
+    const top = alternatives[0].confidence || 0;
+    const second = alternatives[1].confidence || 0;
+    const gap = top - second;
+    if ((gap < CONFIDENCE_GAP_THRESHOLD && top > 0) || checkAmbiguousPairs(text, alternatives)) {
+      showCandidateModal(alternatives, null);
+      return;
+    }
+  }
+
+  // 4. 問題なし → 自動確定
+  processEntry(text);
 }
 
 // ===== v10: 危険語辞書 =====
