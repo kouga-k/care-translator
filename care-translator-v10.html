@@ -644,7 +644,7 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
 
 <script>
 // ===== 用語辞書 =====
-const TERMS_DB = [
+let TERMS_DB = [
   {term:'見守り',reading:'みまもり',basic:'そばで安全を確認する',point:'基本は手を出さない',exception:'危険時はすぐ介助する',my:'စောင့်ကြည့်ခြင်း',id:'Mengawasi',vi:'Theo dõi',en:'Monitoring',tl:'Pagmamasid',zh:'看护',ko:'돌봄',hi:'निगरानी'},
   {term:'介助',reading:'かいじょ',basic:'体を支えて動作を助ける',point:'利用者の残存能力を活かす',exception:'全介助が必要な場合もある',my:'ကူညီပံ့ပိုးခြင်း',id:'Membantu',vi:'Hỗ trợ',en:'Assistance',tl:'Tulong',zh:'协助',ko:'도움',hi:'सहायता'},
   {term:'全介助',reading:'ぜんかいじょ',basic:'すべての動作を介護者が行う',point:'利用者が自力では困難な状態',exception:'リハビリ目的で一部自力動作を促す場合もある',my:'အကူအညီ အပြည့်',id:'Bantuan penuh',vi:'Hỗ trợ toàn phần',en:'Full assistance',tl:'Buong tulong',zh:'全面协助',ko:'전면도움',hi:'पूर्ण सहायता'},
@@ -753,6 +753,7 @@ let _renderReceiveId=0;
   if(fbCfg) state.firebaseConfig = JSON.parse(fbCfg);
 
   loadCustomTerms();
+  initBuiltinTerms(); // custom-terms.jsonを非同期で読み込みTERMS_DBにマージ
   document.getElementById('langSelect').value = state.targetLang;
   document.getElementById('geminiKeyInput').value = state.geminiKey;
   document.getElementById('claudeKeyInput').value = state.claudeKey;
@@ -1139,6 +1140,19 @@ function updateCustomTermsCount(){
   const el = document.getElementById('customTermsCount');
   if(!el) return;
   el.textContent = customTerms.length > 0 ? `✅ ${customTerms.length}件登録済み（組み込み${TERMS_DB.length}件＋カスタム${customTerms.length}件）` : `組み込み用語: ${TERMS_DB.length}件`;
+}
+async function initBuiltinTerms(){
+  try{
+    const res = await fetch('custom-terms.json');
+    if(!res.ok) return;
+    const json = await res.json();
+    if(!Array.isArray(json) || json.length === 0) return;
+    // custom-terms.jsonを優先、HTMLハードコード分でjsonにない用語だけ追加
+    const fromJson = new Map(json.map(t=>[t.term, t]));
+    const extras = TERMS_DB.filter(t=>!fromJson.has(t.term));
+    TERMS_DB = [...json, ...extras];
+    updateCustomTermsCount();
+  }catch(e){ console.warn('custom-terms.json読み込み失敗:', e); }
 }
 function getActiveTerms(){ return [...TERMS_DB, ...customTerms]; }
 function importCustomTerms(){
