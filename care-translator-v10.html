@@ -1663,6 +1663,51 @@ const HALLUCINATION_PATTERNS = [
   '通知をオン',
   'サブスクライブ',
 ];
+// ===== v10.1: テキスト正規化 + aliases補正 =====
+function normalizeForSearch(text){
+  if(!text) return '';
+  let t = text;
+  // カタカナ → ひらがな
+  t = t.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
+  // 半角カタカナ → ひらがな
+  const hk = {'ｱ':'あ','ｲ':'い','ｳ':'う','ｴ':'え','ｵ':'お','ｶ':'か','ｷ':'き','ｸ':'く','ｹ':'け','ｺ':'こ',
+               'ｻ':'さ','ｼ':'し','ｽ':'す','ｾ':'せ','ｿ':'そ','ﾀ':'た','ﾁ':'ち','ﾂ':'つ','ﾃ':'て','ﾄ':'と',
+               'ﾅ':'な','ﾆ':'に','ﾇ':'ぬ','ﾈ':'ね','ﾉ':'の','ﾊ':'は','ﾋ':'ひ','ﾌ':'ふ','ﾍ':'へ','ﾎ':'ほ',
+               'ﾏ':'ま','ﾐ':'み','ﾑ':'む','ﾒ':'め','ﾓ':'も','ﾔ':'や','ﾕ':'ゆ','ﾖ':'よ',
+               'ﾗ':'ら','ﾘ':'り','ﾙ':'る','ﾚ':'れ','ﾛ':'ろ','ﾜ':'わ','ｦ':'を','ﾝ':'ん'};
+  t = t.replace(/[ｦ-ﾝ]/g, c => hk[c] || c);
+  // 全角英数 → 半角
+  t = t.replace(/[Ａ-Ｚａ-ｚ０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+  return t.toLowerCase();
+}
+
+function escapeRegex(str){ return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function applyAliasCorrections(text){
+  const normalized = normalizeForSearch(text);
+  let correctedText = text;
+  const corrections = [];
+  for(const term of getActiveTerms()){
+    const searchTargets = [...(term.aliases||[]), term.reading].filter(Boolean);
+    if(!searchTargets.length) continue;
+    const termNorm = normalizeForSearch(term.term);
+    for(const alias of searchTargets){
+      const aliasNorm = normalizeForSearch(alias);
+      if(!aliasNorm || aliasNorm === termNorm) continue;
+      // テキスト中にaliasが含まれ、正式termがまだない場合に補正
+      if(normalized.includes(aliasNorm) && !normalized.includes(termNorm)){
+        const regex = new RegExp(escapeRegex(alias), 'g');
+        if(regex.test(correctedText)){
+          correctedText = correctedText.replace(regex, term.term);
+          corrections.push({alias, canonical: term.term});
+          break;
+        }
+      }
+    }
+  }
+  return {correctedText, corrections};
+}
+
 function isHallucination(text){
   const t = text.trim();
   if(t.length < 3) return true;
@@ -1732,18 +1777,28 @@ async function processEntry(raw){
   const area=document.getElementById('transcriptArea');
   const ts=Date.now();
 
+  // === aliases補正（翻訳前処理）===
+  const aliasResult = applyAliasCorrections(raw);
+  const processText = aliasResult.correctedText;
+  const aliasCorrections = aliasResult.corrections;
+
   // === Stage 1: 仮字幕表示 ===
   const el=document.createElement('div'); el.className='entry stage1'; el.id='entry-'+id;
-  el.innerHTML=`<div class="entry-interim-text">⋯ ${escapeHtml(raw)}</div><div class="stage-progress"><div class="stage-progress-bar"></div></div>`;
+  const aliasBadgeHtml = aliasCorrections.length
+    ? `<span style="font-size:11px;color:#2e7d32;background:#e8f5e9;border-radius:10px;padding:2px 7px;margin-left:6px;vertical-align:middle">📚 ${aliasCorrections.map(c=>`${escapeHtml(c.alias)}→${escapeHtml(c.canonical)}`).join('、')}</span>`
+    : '';
+  el.innerHTML=`<div class="entry-interim-text">⋯ ${escapeHtml(processText)}${aliasBadgeHtml}</div><div class="stage-progress"><div class="stage-progress-bar"></div></div>`;
   area.appendChild(el); maybeScroll();
 
   // === Stage 2: 翻訳中表示 ===
   let entry;
   try{
-    entry=await translateEntry(raw, id);
+    entry=await translateEntry(processText, id);
   }catch(e){
-    entry={id,raw,seimon:raw,translation:'',translations:{},terms:[],corrections:[],engine:'none'};
+    entry={id,raw:processText,seimon:processText,translation:'',translations:{},terms:[],corrections:[],engine:'none'};
   }
+  entry.aliasCorrections = aliasCorrections;
+  entry.originalRaw = raw;
   entry.ts=ts;
 
   // 危険語チェック
@@ -1854,8 +1909,17 @@ function renderEntry(el, entry){
   if(transText) html+=`<div class="entry-trans">${escapeHtml(transText)}</div>`;
   html+=`<div class="entry-jp">${seimonHtml}</div>`;
   html+=termsHtml;
+  // aliases補正バッジ
+  let aliasCorrHtml = '';
+  if(entry.aliasCorrections?.length){
+    aliasCorrHtml = entry.aliasCorrections.map(c=>
+      `<span style="font-size:10px;background:#e8f5e9;color:#2e7d32;border-radius:8px;padding:2px 6px;border:1px solid #a5d6a7" title="音声認識補正">📚 ${escapeHtml(c.alias)}→${escapeHtml(c.canonical)}</span>`
+    ).join(' ');
+  }
+
   html+=`<div class="entry-meta">`;
   html+=trustBadge;
+  if(aliasCorrHtml) html+=`<span class="meta-sep">·</span>${aliasCorrHtml}`;
   html+=`<span class="meta-sep">·</span>`;
   html+=`<span class="meta-time">⏱ ${time}</span>`;
   html+=engineLabel;

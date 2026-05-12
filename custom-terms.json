@@ -107,7 +107,12 @@
     "my": "အစာစားကူညီခြင်း",
     "id": "bantuan makan",
     "vi": "hỗ trợ ăn uống",
-    "en": "feeding assistance"
+    "en": "feeding assistance",
+    "aliases": [
+      "しょくじかいじょ",
+      "食介",
+      "食べる介助"
+    ]
   },
   {
     "term": "食事摂取",
@@ -151,7 +156,13 @@
     "my": "မျိုချခြင်း",
     "id": "menelan",
     "vi": "nuốt",
-    "en": "swallowing"
+    "en": "swallowing",
+    "aliases": [
+      "えんか",
+      "えんげ",
+      "エンゲ",
+      "飲み込み"
+    ]
   },
   {
     "term": "口腔ケア",
@@ -173,7 +184,11 @@
     "my": "မစင်ဆီးကူညီခြင်း",
     "id": "bantuan toileting",
     "vi": "hỗ trợ đi vệ sinh",
-    "en": "toileting assistance"
+    "en": "toileting assistance",
+    "aliases": [
+      "はいせつかいじょ",
+      "トイレ介助"
+    ]
   },
   {
     "term": "トイレ誘導",
@@ -261,7 +276,12 @@
     "my": "ရေချိုးကူညီခြင်း",
     "id": "bantuan mandi",
     "vi": "hỗ trợ tắm",
-    "en": "bathing assistance"
+    "en": "bathing assistance",
+    "aliases": [
+      "にゅうよくかいじょ",
+      "お風呂介助",
+      "入浴補助"
+    ]
   },
   {
     "term": "清拭",
@@ -272,7 +292,13 @@
     "my": "ကိုယ်သုတ်သင်ခြင်း",
     "id": "membersihkan tubuh dengan lap",
     "vi": "lau người",
-    "en": "bed bath"
+    "en": "bed bath",
+    "aliases": [
+      "せいしき",
+      "セイシキ",
+      "体を拭く",
+      "体拭き"
+    ]
   },
   {
     "term": "更衣介助",
@@ -481,7 +507,13 @@
     "my": "အချက်အလက်လွှဲပြောင်းခြင်း",
     "id": "serah terima informasi",
     "vi": "bàn giao thông tin",
-    "en": "handover"
+    "en": "handover",
+    "aliases": [
+      "もうしおくり",
+      "もうしおくり",
+      "引き継ぎ",
+      "引継ぎ"
+    ]
   },
   {
     "term": "カンファレンス",
@@ -525,7 +557,12 @@
     "my": "ပြုတ်ကျခြင်း",
     "id": "jatuh dari ketinggian",
     "vi": "ngã rơi",
-    "en": "falling off"
+    "en": "falling off",
+    "aliases": [
+      "てんらく",
+      "テンラク",
+      "落ちた"
+    ]
   },
   {
     "term": "ヒヤリハット",
@@ -745,7 +782,13 @@
     "my": "ဖောရောင်ခြင်း",
     "id": "edema",
     "vi": "phù",
-    "en": "edema"
+    "en": "edema",
+    "aliases": [
+      "むくみ",
+      "ムクミ",
+      "ふしゅ",
+      "フシュ"
+    ]
   },
   {
     "term": "脱水",
@@ -1163,7 +1206,11 @@
     "my": "အနားယူခြင်း",
     "id": "istirahat",
     "vi": "nghỉ ngơi",
-    "en": "rest"
+    "en": "rest",
+    "aliases": [
+      "あんせい",
+      "アンセイ"
+    ]
   },
   {
     "term": "ベッド上安静",
@@ -1185,7 +1232,13 @@
     "my": "အစားမစားရ",
     "id": "puasa makan",
     "vi": "nhịn ăn",
-    "en": "nothing by mouth"
+    "en": "nothing by mouth",
+    "aliases": [
+      "きんしょく",
+      "キンショク",
+      "食事禁止",
+      "絶食"
+    ]
   },
   {
     "term": "水分制限",
@@ -1251,7 +1304,13 @@
     "my": "ဆေးရည်သွင်းခြင်း",
     "id": "infus",
     "vi": "truyền dịch",
-    "en": "intravenous infusion"
+    "en": "intravenous infusion",
+    "aliases": [
+      "てんてき",
+      "テンテキ",
+      "IV",
+      "iv"
+    ]
   },
   {
     "term": "ルート",
@@ -1592,7 +1651,12 @@
     "my": "ဆေးမှားခြင်း",
     "id": "kesalahan obat",
     "vi": "nhầm thuốc",
-    "en": "medication error"
+    "en": "medication error",
+    "aliases": [
+      "ごやく",
+      "ゴヤク",
+      "薬間違い"
+    ]
   },
   {
     "term": "食前",
@@ -1636,7 +1700,12 @@
     "my": "နေ့ပိုင်းအလုပ်",
     "id": "shift pagi",
     "vi": "ca ngày",
-    "en": "day shift"
+    "en": "day shift",
+    "aliases": [
+      "にっきん",
+      "ニッキン",
+      "日中勤務"
+    ]
   },
   {
     "term": "夜勤",
@@ -1647,7 +1716,12 @@
     "my": "ညပိုင်းအလုပ်",
     "id": "shift malam",
     "vi": "ca đêm",
-    "en": "night shift"
+    "en": "night shift",
+    "aliases": [
+      "やきん",
+      "ヤキン",
+      "夜間勤務"
+    ]
   },
   {
     "term": "早番",
@@ -1977,7 +2051,13 @@
     "my": "အိပ်ရာဒဏ်ရာ",
     "id": "ulkus dekubitus",
     "vi": "loét tì đè",
-    "en": "pressure ulcer"
+    "en": "pressure ulcer",
+    "aliases": [
+      "床ずれ",
+      "じょくそう",
+      "ジョクソウ",
+      "pressure sore"
+    ]
   },
   {
     "term": "誤嚥",
@@ -1988,7 +2068,12 @@
     "my": "အစာသီးခြင်း",
     "id": "aspirasi",
     "vi": "hít sặc",
-    "en": "aspiration"
+    "en": "aspiration",
+    "aliases": [
+      "ごえん",
+      "ゴエン",
+      "誤飲"
+    ]
   },
   {
     "term": "嘔吐",
@@ -2329,7 +2414,12 @@
     "my": "ချွဲစုပ်ခြင်း",
     "id": "pengisapan lendir",
     "vi": "hút đờm",
-    "en": "suctioning"
+    "en": "suctioning",
+    "aliases": [
+      "きゅういん",
+      "キュウイン",
+      "痰の吸引"
+    ]
   },
   {
     "term": "吸入",
@@ -2373,7 +2463,13 @@
     "my": "ကိုယ်နေဟန်ထားပြောင်းပေးခြင်း",
     "id": "perubahan posisi",
     "vi": "thay đổi tư thế",
-    "en": "repositioning"
+    "en": "repositioning",
+    "aliases": [
+      "体交",
+      "たいこう",
+      "たいいへんかん",
+      "体位ヘンカン"
+    ]
   },
   {
     "term": "移乗",
@@ -2384,7 +2480,12 @@
     "my": "နေရာရွှေ့ပြောင်းခြင်း",
     "id": "memindahkan pasien",
     "vi": "di chuyển người bệnh",
-    "en": "transferring"
+    "en": "transferring",
+    "aliases": [
+      "いじょう",
+      "イジョウ",
+      "トランス"
+    ]
   },
   {
     "term": "ベッドメイキング",
@@ -2604,7 +2705,11 @@
     "my": "စောင့်ကြည့်ပေးခြင်း",
     "id": "pengawasan",
     "vi": "giám sát",
-    "en": "supervision"
+    "en": "supervision",
+    "aliases": [
+      "みまもり",
+      "ミマモリ"
+    ]
   },
   {
     "term": "一部介助",
@@ -3528,7 +3633,11 @@
     "my": "အဆစ်တောင့်တင်းခြင်း",
     "id": "kontraktur",
     "vi": "co cứng khớp",
-    "en": "contracture"
+    "en": "contracture",
+    "aliases": [
+      "こうしゅく",
+      "コウシュク"
+    ]
   },
   {
     "term": "廃用症候群",
@@ -4540,7 +4649,12 @@
     "my": "လမ်းလျှောက်ကူညီခြင်း",
     "id": "bantuan berjalan",
     "vi": "hỗ trợ đi bộ",
-    "en": "walking assistance"
+    "en": "walking assistance",
+    "aliases": [
+      "ほこうかいじょ",
+      "歩く介助",
+      "歩行補助"
+    ]
   },
   {
     "term": "見当識",
@@ -5189,7 +5303,9 @@
     "reading": "さいけつ",
     "aliases": [
       "血を抜く",
-      "血液検査"
+      "血液検査",
+      "さいけつ",
+      "サイケツ"
     ],
     "category": "健康診断・オリエンテーション関連",
     "danger_level": "中",
@@ -5356,7 +5472,10 @@
     "term": "報連相",
     "reading": "ほうれんそう",
     "aliases": [
-      "報告・連絡・相談"
+      "報告・連絡・相談",
+      "ほうれんそう",
+      "ホウレンソウ",
+      "報告連絡相談"
     ],
     "category": "健康診断・オリエンテーション関連",
     "danger_level": "高",
