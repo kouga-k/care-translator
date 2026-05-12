@@ -5147,5 +5147,303 @@
     "id": "obat yang dibawa dari rumah",
     "vi": "thuốc mang từ nhà vào",
     "en": "medication brought from home"
+  },
+  {
+    "term": "視力検査",
+    "reading": "しりょくけんさ",
+    "aliases": [
+      "目の検査"
+    ],
+    "category": "健康診断・オリエンテーション関連",
+    "danger_level": "低",
+    "basic": "目の見えやすさを調べる検査",
+    "point": "「C」のマークを見て、切れている（開いている）方向を指でさして答える",
+    "exception": "見えない時は当てずっぽうにせず「見えない」と正直に伝える",
+    "example_sentence": "視力検査をします。丸の開いている方向を指でさしてください。",
+    "ng_translation": "「文字を読む（read letters）」という直訳（日本の検査は文字ではなく方向を答えるためNG）",
+    "my": "အမြင်အာရုံစစ်ဆေးခြင်း",
+    "id": "tes penglihatan",
+    "vi": "kiểm tra thị lực",
+    "en": "vision test"
+  },
+  {
+    "term": "聴力検査",
+    "reading": "ちょうりょくけんさ",
+    "aliases": [
+      "耳の検査"
+    ],
+    "category": "健康診断・オリエンテーション関連",
+    "danger_level": "低",
+    "basic": "耳がよく聞こえるかを調べる検査",
+    "point": "ヘッドホンをして、小さな音が聞こえた時だけ手元のボタンを押す",
+    "exception": "音が止まったらボタンから指を離す",
+    "example_sentence": "聴力検査をします。ピーッと音が聞こえたらボタンを押してください。",
+    "ng_translation": "「話を聞く（listen to speech）」という直訳（機械音を聞き取る検査であるためNG）",
+    "my": "အကြားအာရုံစစ်ဆေးခြင်း",
+    "id": "tes pendengaran",
+    "vi": "kiểm tra thính lực",
+    "en": "hearing test"
+  },
+  {
+    "term": "採血",
+    "reading": "さいけつ",
+    "aliases": [
+      "血を抜く",
+      "血液検査"
+    ],
+    "category": "健康診断・オリエンテーション関連",
+    "danger_level": "中",
+    "basic": "検査のために腕から血を少し取ること",
+    "point": "終わった後は、血が止まるまで5分ほどしっかり押さえる（揉まない）",
+    "exception": "注射針を刺す時や血を見て気分が悪くなりやすい人は先に伝える",
+    "example_sentence": "採血の後は、揉まずに5分間しっかり押さえてください。",
+    "ng_translation": "「血を流す（bleed）」という直訳（意図的な医療処置であることが伝わらないためNG）",
+    "my": "သွေးဖောက်စစ်ဆေးခြင်း",
+    "id": "pengambilan darah",
+    "vi": "lấy máu xét nghiệm",
+    "en": "blood draw"
+  },
+  {
+    "term": "胸部レントゲン",
+    "reading": "きょうぶれんとげん",
+    "aliases": [
+      "胸のX線",
+      "胸部X線"
+    ],
+    "category": "健康診断・オリエンテーション関連",
+    "danger_level": "低",
+    "basic": "胸（肺や心臓）の写真を撮る検査",
+    "point": "機械の前に立ち、「息を吸って、止めて」の合図に合わせて呼吸をピタッと止める",
+    "exception": "ボタン、ネックレスなどの金属類や、湿布、ブラジャーは外しておく",
+    "example_sentence": "胸部レントゲンを撮るので、ネックレスなどの金属は外してください。",
+    "ng_translation": "「胸を見る（look at chest）」という直訳（放射線を使った撮影であることが伝わらないためNG）",
+    "my": "ရင်ခေါင်းဓာတ်မှန်ရိုက်ခြင်း",
+    "id": "rontgen dada",
+    "vi": "chụp X-quang phổi",
+    "en": "chest X-ray"
+  },
+  {
+    "term": "中間尿",
+    "reading": "ちゅうかんにょう",
+    "aliases": [
+      "途中の尿",
+      "検尿"
+    ],
+    "category": "健康診断・オリエンテーション関連",
+    "danger_level": "低",
+    "basic": "出始めのおしっこを捨てて、途中で出るおしっこのこと",
+    "point": "正確な尿検査をするため、必ず最初ではなく「途中」の尿を紙コップにとる",
+    "exception": "生理中の場合は、検査結果に影響が出るため必ずスタッフに伝える",
+    "example_sentence": "尿検査があるので、出始めではなく途中の中間尿をとってください。",
+    "ng_translation": "「半分のおしっこ（half urine）」という直訳（タイミングの「中間」であることが伝わらないためNG）",
+    "my": "အလယ်ပိုင်းဆီး (ဆီးသွားစဉ်အလယ်မှခံယူသောဆီး)",
+    "id": "urine pancaran tengah",
+    "vi": "nước tiểu giữa dòng",
+    "en": "midstream urine"
+  },
+  {
+    "term": "問診票",
+    "reading": "もんしんひょう",
+    "aliases": [
+      "健康アンケート"
+    ],
+    "category": "健康診断・オリエンテーション関連",
+    "danger_level": "中",
+    "basic": "今の体調や過去の病気、アレルギーなどを記入する用紙",
+    "point": "自分の命と健康を守るため、嘘をつかず正確に正直に書く",
+    "exception": "日本語の意味が分からない質問があれば、適当に丸をつけず空欄にして質問する",
+    "example_sentence": "問診票の日本語で分からないところがあれば、書かずに聞いてください。",
+    "ng_translation": "「テスト用紙（test paper）」という直訳（正解を出すものではないためNG）",
+    "my": "ကျန်းမာရေးမေးခွန်းလွှာ",
+    "id": "kuesioner medis",
+    "vi": "phiếu câu hỏi y tế",
+    "en": "medical questionnaire"
+  },
+  {
+    "term": "身だしなみ",
+    "reading": "みだしなみ",
+    "aliases": [
+      "服装のルール"
+    ],
+    "category": "健康診断・オリエンテーション関連",
+    "danger_level": "中",
+    "basic": "医療・介護現場で相手に不快感や危険を与えない服装や髪型のこと",
+    "point": "爪を短く切る、長い髪をまとめるなど、感染予防や安全に直結するルール",
+    "exception": "「おしゃれ（自分が楽しむもの）」とは目的が違うことを理解する",
+    "example_sentence": "オリエンテーションで、現場での身だしなみのルールを説明します。",
+    "ng_translation": "「ファッション（fashion）」という直訳（目的が全く異なるためNG）",
+    "my": "သပ်ရပ်စွာဝတ်ဆင်ပြင်ဆင်ခြင်း",
+    "id": "kerapian penampilan (grooming)",
+    "vi": "tác phong ăn mặc",
+    "en": "grooming and appearance"
+  },
+  {
+    "term": "オリエンテーション",
+    "reading": "おりえんてーしょん",
+    "aliases": [
+      "事前説明",
+      "入職説明"
+    ],
+    "category": "健康診断・オリエンテーション関連",
+    "danger_level": "低",
+    "basic": "働き始める前に、施設のルールや仕事のやり方を説明する時間",
+    "point": "分からないことは「はい」と愛想笑いで返事せず、必ずその場で質問して確認する",
+    "exception": "施設内の案内や、火災時の非常口の確認なども含まれる重要な時間",
+    "example_sentence": "明日から働く前に、まずは1時間のオリエンテーションを行います。",
+    "ng_translation": "「歓迎会（welcome party）」という直訳（ルール説明という重要な目的が伝わらないためNG）",
+    "my": "လုပ်ငန်းခွင်မိတ်ဆက်ခြင်းအစီအစဉ်",
+    "id": "orientasi (pengenalan tempat kerja)",
+    "vi": "định hướng công việc",
+    "en": "orientation"
+  },
+  {
+    "term": "テレビカード",
+    "reading": "てれびかーど",
+    "aliases": [
+      "プリペイドカード"
+    ],
+    "category": "健康診断・オリエンテーション関連",
+    "danger_level": "低",
+    "basic": "病室のテレビや冷蔵庫を使うために買う専用のカード",
+    "point": "退院時に精算機でお金が戻ることを、ご家族にも案内する",
+    "exception": "施設によっては不要な場合もあるため、ルールを確認する",
+    "example_sentence": "テレビを見るには、各階の販売機でテレビカードを買ってください。",
+    "ng_translation": "「クレジットカード（credit card）」という誤訳",
+    "my": "ဆေးရုံသုံး တီဗီနှင့် ရေခဲသေတ္တာအတွက် ကြိုတင်ငွေဖြည့်ကတ်",
+    "id": "kartu prabayar untuk TV dan kulkas di rumah sakit",
+    "vi": "thẻ trả trước để xem TV và dùng tủ lạnh",
+    "en": "prepaid card for hospital TV and fridge"
+  },
+  {
+    "term": "床頭台",
+    "reading": "しょうとうだい",
+    "aliases": [
+      "ベッドサイドキャビネット",
+      "テレビ台"
+    ],
+    "category": "健康診断・オリエンテーション関連",
+    "danger_level": "低",
+    "basic": "ベッドの横にある、引き出しや冷蔵庫がついた家具",
+    "point": "引き出しの中の「貴重品ボックス（鍵付き）」の使い方を必ず説明する",
+    "exception": "タオルや日用品の収納場所でもあるため、勝手に開けないよう配慮する",
+    "example_sentence": "財布などの大切なものは、床頭台の鍵付きの引き出しに入れてください。",
+    "ng_translation": "「ただの机（desk）」や「テーブル（table）」という直訳（収納や金庫の役割が伝わらないためNG）",
+    "my": "အိပ်ရာဘေးရှိ အံဆွဲနှင့် ရေခဲသေတ္တာပါသော ဗီရို",
+    "id": "lemari kecil di samping tempat tidur (nakas)",
+    "vi": "tủ nhỏ để đồ cạnh giường bệnh",
+    "en": "bedside cabinet"
+  },
+  {
+    "term": "検便",
+    "reading": "けんべん",
+    "aliases": [
+      "便検査",
+      "大腸検査"
+    ],
+    "category": "健康診断・オリエンテーション関連",
+    "danger_level": "低",
+    "basic": "健康診断で、感染症や病気がないか便を調べる検査",
+    "point": "便器の水に落ちた便は使わず、表面を専用の棒で少しだけこすり取ることを説明する",
+    "exception": "スタッフの健康診断でも必須。正しい取り方を教えないと再提出になる",
+    "example_sentence": "健康診断の検便は、専用の棒で便の表面を少しこすって取ってください。",
+    "ng_translation": "「便をする（defecate）」という直訳（検査のための採取であることが伝わらないためNG）",
+    "my": "ဝမ်းစစ်ဆေးခြင်း (ရောဂါပိုးရှိမရှိစစ်ဆေးရန်)",
+    "id": "pemeriksaan feses (tes tinja)",
+    "vi": "xét nghiệm phân",
+    "en": "stool test"
+  },
+  {
+    "term": "報連相",
+    "reading": "ほうれんそう",
+    "aliases": [
+      "報告・連絡・相談"
+    ],
+    "category": "健康診断・オリエンテーション関連",
+    "danger_level": "高",
+    "basic": "チームで働くための基本である「報告・連絡・相談」のこと",
+    "point": "自分で勝手に判断せず、迷ったら必ず先輩に「相談」する文化を教える",
+    "exception": "急変などの緊急時は、何よりもまず「報告（助けを呼ぶ）」を優先する",
+    "example_sentence": "オリエンテーションでは、事故を防ぐための報連相の大切さをしっかり伝えます。",
+    "ng_translation": "「ほうれん草（spinach）」という野菜の誤訳",
+    "my": "အစီရင်ခံခြင်း၊ ဆက်သွယ်ခြင်း၊ တိုင်ပင်ခြင်း (Ho-Ren-So)",
+    "id": "lapor, komunikasi, dan konsultasi (Ho-Ren-So)",
+    "vi": "Báo cáo - Liên lạc - Bàn bạc (Ho-Ren-So)",
+    "en": "Report, Communicate, Consult (Ho-Ren-So)"
+  },
+  {
+    "term": "汚物処理室",
+    "reading": "おぶつしょりしつ",
+    "aliases": [
+      "汚物室"
+    ],
+    "category": "施設案内関連",
+    "danger_level": "高",
+    "basic": "排泄物の処理や、便などで汚染された衣類の下洗いをする専用の部屋",
+    "point": "感染予防のため、必ず手袋やエプロン（ガウン）を着用して作業する",
+    "exception": "汚染物専用のため、通常の洗濯物を洗ったり、清潔な物品を持ち込んだりしない",
+    "example_sentence": "便で汚染された衣類は、汚物処理室で下洗いをしてから専用の袋に入れてください。",
+    "ng_translation": "「一般の洗濯室（general laundry room）」という用途の誤解",
+    "my": "အညစ်အကြေးစွန့်ပစ်ခြင်းနှင့် ညစ်ပေသောအဝတ်များကို ဆေးကြောသည့်ခန်း (ပုံမှန်အဝတ်လျှော်ခန်းမဟုတ်ပါ)",
+    "id": "ruang untuk membuang kotoran dan mencuci pakaian yang terkontaminasi (bukan ruang cuci biasa)",
+    "vi": "phòng xử lý chất thải và giặt sơ quần áo bị bẩn (không phải phòng giặt thông thường)",
+    "en": "soiled utility room for waste disposal and washing contaminated clothes (not a general laundry room)"
+  },
+  {
+    "term": "配茶",
+    "reading": "はいちゃ",
+    "aliases": [
+      "お茶配り",
+      "お茶を作る"
+    ],
+    "category": "現場教育辞書",
+    "danger_level": "中",
+    "basic": "お茶を作って、患者様一人ひとりに配ること",
+    "point": "とろみの有無、温度、水分制限の指示を必ず確認してから配る",
+    "exception": "火傷に注意し、こぼした場合はすぐに拭き取る",
+    "example_sentence": "10時から配茶を始めるので、準備をお願いします。",
+    "ng_translation": "「お茶のパーティー（tea party）」のような誤訳",
+    "my": "လက်ဖက်ရည် (သို့) ရေနွေးကြမ်း တိုက်ကျွေးခြင်း",
+    "id": "pembagian teh (menyiapkan dan membagikan teh)",
+    "vi": "phát trà (pha và phát trà cho bệnh nhân)",
+    "en": "tea service (preparing and distributing tea)"
+  },
+  {
+    "term": "下膳台車",
+    "reading": "げぜんだいしゃ",
+    "aliases": [
+      "下膳カート",
+      "食器を載せる台"
+    ],
+    "category": "現場教育辞書",
+    "danger_level": "低",
+    "basic": "食後に、下げた食器（皿、コップ、箸など）を載せるための大きな台車",
+    "point": "食器を重ねすぎると崩れて危険なため、バランスよく載せる",
+    "exception": "残飯などのゴミの分別ルールを守って片付ける",
+    "example_sentence": "食べ終わった食器は、下膳台車に載せて片付けてください。",
+    "ng_translation": "「食べ物のワゴン（food wagon）」という配膳用との混同",
+    "my": "စားပြီးပန်းကန်များတင်သည့်တွန်းလှည်း",
+    "id": "troli piring kotor (troli untuk membereskan sisa makan)",
+    "vi": "xe đẩy thu dọn bát đĩa",
+    "en": "dish clearing cart (tray trolley)"
+  },
+  {
+    "term": "ザイオン",
+    "reading": "ざいおん",
+    "aliases": [
+      "勤怠システム",
+      "タイムレコーダー",
+      "Zion"
+    ],
+    "category": "健康診断・オリエンテーション関連",
+    "danger_level": "低",
+    "basic": "出勤や退勤の時間を記録する、勤怠管理システムの名前",
+    "point": "職場に着いた時と帰る時に、忘れずに打刻（記録）する",
+    "exception": "押し忘れた場合は、すぐに上司へ報告して修正してもらう",
+    "example_sentence": "病院に着いたら、まずはザイオンで出勤の打刻をしてください。",
+    "ng_translation": "「ライオン（Lion）」などの聞き間違いや、宗教用語との混同",
+    "my": "အလုပ်တက်/ဆင်းချိန် မှတ်တမ်းတင်စနစ် (Zion)",
+    "id": "sistem absensi kerja (Zion)",
+    "vi": "hệ thống quản lý chấm công (Zion)",
+    "en": "attendance management system (Zion)"
   }
 ]
