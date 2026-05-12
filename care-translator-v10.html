@@ -547,10 +547,7 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
           <button onclick="importCustomTerms()" style="flex:1;padding:8px;background:var(--accent);color:white;border:none;border-radius:8px;font-family:var(--font-jp);font-size:13px;cursor:pointer">📥 インポート</button>
           <button onclick="clearCustomTerms()" style="padding:8px 12px;background:var(--surface2);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;font-family:var(--font-jp);font-size:13px;cursor:pointer">🗑️ クリア</button>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
-          <div class="setting-hint" id="customTermsCount" style="flex:1;margin-top:0"></div>
-          <button onclick="openTermsListModal()" style="padding:4px 10px;background:white;border:1px solid var(--border);border-radius:8px;font-family:var(--font-jp);font-size:11px;cursor:pointer;color:var(--text-muted);white-space:nowrap">📋 一覧を見る</button>
-        </div>
+        <div class="setting-hint" id="customTermsCount"></div>
       </div>
       <div class="setting-group">
         <div class="setting-label">文の整え方</div>
@@ -629,23 +626,6 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
-
-<!-- 用語一覧モーダル -->
-<div class="guide-modal-overlay" id="termsListModalOverlay" style="display:none" onclick="if(event.target===this)closeTermsListModal()">
-  <div class="guide-modal" onclick="event.stopPropagation()">
-    <div class="guide-modal-header">
-      <div class="guide-modal-title">📋 組み込み用語一覧</div>
-      <button class="guide-close-btn" onclick="closeTermsListModal()">✕</button>
-    </div>
-    <div style="margin-bottom:10px">
-      <input type="text" id="termsSearchInput" placeholder="用語・よみがな・説明で検索..."
-        oninput="filterTermsList()"
-        style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font-jp);font-size:14px;outline:none;box-sizing:border-box">
-    </div>
-    <div style="font-size:11px;color:var(--text-small);margin-bottom:8px" id="termsListCount"></div>
-    <div id="termsListBody" style="display:flex;flex-direction:column;gap:4px"></div>
-  </div>
-</div>
 
 <!-- 使い方ガイドモーダル -->
 <div class="guide-modal-overlay" id="guideModalOverlay" style="display:none" onclick="if(event.target===this)closeGuideModal()">
@@ -1511,41 +1491,6 @@ function openGuideModal(){
 function closeGuideModal(){
   document.getElementById('guideModalOverlay').style.display='none';
 }
-// 用語一覧モーダル
-function openTermsListModal(){
-  document.getElementById('termsListModalOverlay').style.display='flex';
-  document.getElementById('termsSearchInput').value='';
-  renderTermsList(getActiveTerms());
-}
-function closeTermsListModal(){
-  document.getElementById('termsListModalOverlay').style.display='none';
-}
-function filterTermsList(){
-  const q=document.getElementById('termsSearchInput').value.trim().toLowerCase();
-  const all=getActiveTerms();
-  if(!q){ renderTermsList(all); return; }
-  const filtered=all.filter(t=>
-    (t.term||'').includes(q)||
-    (t.reading||'').includes(q)||
-    (t.basic||'').toLowerCase().includes(q)||
-    (t.en||'').toLowerCase().includes(q)
-  );
-  renderTermsList(filtered);
-}
-function renderTermsList(terms){
-  document.getElementById('termsListCount').textContent=`${terms.length}件表示中（全${getActiveTerms().length}件）`;
-  document.getElementById('termsListBody').innerHTML=terms.map(t=>`
-    <div style="background:#faf8fe;border:1px solid #e8e4f4;border-radius:10px;padding:10px 14px">
-      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:2px">
-        <span style="font-size:15px;font-weight:700;color:#1a1a2e">${escapeHtml(t.term||'')}</span>
-        <span style="font-size:11px;color:#9b98a8">${escapeHtml(t.reading||'')}</span>
-      </div>
-      <div style="font-size:12px;color:#6b6880;line-height:1.5">${escapeHtml(t.basic||'')}</div>
-      ${t.point?`<div style="font-size:11px;color:#8b5cf6;margin-top:2px">💡 ${escapeHtml(t.point)}</div>`:''}
-    </div>
-  `).join('');
-}
-
 // ハルシネーションフィルター（v10強化版）
 const HALLUCINATION_PATTERNS = [
   'ご視聴ありがとうございました',
