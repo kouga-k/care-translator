@@ -1533,14 +1533,40 @@ const DANGER_TERMS = {
 
 function checkDangerousTerms(text){
   const found={critical:[],important:[]};
+  const seen = new Set(); // 重複防止
+
+  // 既存ハードコードリスト（フォールバック）
   for(const [level,terms] of Object.entries(DANGER_TERMS)){
     for(const dt of terms){
       const all=[dt.term,...(dt.aliases||[])];
       for(const p of all){
-        if(text.includes(p)){found[level].push({...dt,matched:p});break;}
+        if(text.includes(p) && !seen.has(dt.term)){
+          found[level].push({...dt,matched:p,source:'builtin'});
+          seen.add(dt.term);
+          break;
+        }
       }
     }
   }
+
+  // ===== v10.1: 辞書のdanger_levelも参照 =====
+  // '高' → important（赤は既存DANGER_TERMSのみ。辞書は黄色警告に留める）
+  // '中' → skip（頻出語が多く警告疲れを起こすため）
+  const levelMap = {'高':'important'};
+  for(const term of getActiveTerms()){
+    const dl = term.danger_level;
+    if(!dl || dl === '低' || !levelMap[dl]) continue;
+    const level = levelMap[dl];
+    const targets = [term.term, ...(term.aliases||[])];
+    for(const p of targets){
+      if(text.includes(p) && !seen.has(term.term)){
+        found[level].push({term:term.term, matched:p, source:'dict'});
+        seen.add(term.term);
+        break;
+      }
+    }
+  }
+
   return {
     hasDanger:found.critical.length>0,
     hasImportant:found.important.length>0,
