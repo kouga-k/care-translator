@@ -4618,5 +4618,534 @@
     "id": "menolak rehabilitasi",
     "vi": "từ chối phục hồi chức năng",
     "en": "rehabilitation refusal"
+  },
+  {
+    "term": "FIM",
+    "reading": "ふぃむ",
+    "aliases": [
+      "機能的自立度評価表"
+    ],
+    "category": "回復期リハビリ用語",
+    "danger_level": "低",
+    "basic": "日常生活で「していること」を評価する採点法",
+    "point": "できることではなく、実際にしていることを評価する",
+    "exception": "点数付けは職種間で認識を合わせる",
+    "example_sentence": "先月よりFIMの点数が上がっています。",
+    "ng_translation": "「テストの点数（test score）」のような直訳",
+    "my": "နေ့စဉ်ဘဝလုပ်ဆောင်နိုင်စွမ်းအကဲဖြတ်စနစ်",
+    "id": "skor kemandirian fungsional (FIM)",
+    "vi": "thang điểm đánh giá mức độ độc lập chức năng (FIM)",
+    "en": "Functional Independence Measure (FIM)"
+  },
+  {
+    "term": "高次脳機能障害",
+    "reading": "こうじのうきのうしょうがい",
+    "aliases": [
+      "高次脳",
+      "記憶障害",
+      "注意障害"
+    ],
+    "category": "回復期リハビリ用語",
+    "danger_level": "中",
+    "basic": "脳の損傷により、記憶や注意、行動のコントロールが難しくなる状態",
+    "point": "見た目では分かりにくいため、誤解を生みやすいことに配慮する",
+    "exception": "怒りっぽくなるなどの症状も含まれる",
+    "example_sentence": "高次脳機能障害があるため、一度に一つずつ伝えてください。",
+    "ng_translation": "「頭がおかしくなる」などの不適切な表現",
+    "my": "ဦးနှောက်လုပ်ဆောင်မှုချို့ယွင်းခြင်း",
+    "id": "gangguan fungsi otak kognitif",
+    "vi": "rối loạn chức năng não bộ bậc cao",
+    "en": "higher brain dysfunction"
+  },
+  {
+    "term": "パーソン・センタード・ケア",
+    "reading": "ぱーそんせんたーどけあ",
+    "aliases": [
+      "その人を中心としたケア"
+    ],
+    "category": "認知症・BPSD関連",
+    "danger_level": "低",
+    "basic": "誰もが誰かの大切な人であるという考えに基づき、その人の尊厳を守るケア",
+    "point": "業務中心ではなく、その人の気持ちや背景を最優先に考える",
+    "exception": "認知症ケアの基本理念となる",
+    "example_sentence": "パーソン・センタード・ケアの視点で、もう一度関わり方を見直しましょう。",
+    "ng_translation": "「患者の世話（patient care）」という一般的な直訳",
+    "my": "လူတစ်ဦးချင်းစီ၏ဂုဏ်သိက္ခာကိုဦးစားပေးသောစောင့်ရှောက်မှု",
+    "id": "perawatan yang berpusat pada individu (person-centered care)",
+    "vi": "chăm sóc lấy người bệnh làm trung tâm",
+    "en": "person-centered care"
+  },
+  {
+    "term": "易怒性",
+    "reading": "いどせい",
+    "aliases": [
+      "怒りっぽい",
+      "易怒的"
+    ],
+    "category": "認知症・BPSD関連",
+    "danger_level": "中",
+    "basic": "ささいなことで怒りやすくなっている状態",
+    "point": "本人の不安や身体的な苦痛が背景にないかを確認する",
+    "exception": "反論せず、まずは話を傾聴することが大切",
+    "example_sentence": "今日は易怒性が高いため、穏やかに声かけをしてください。",
+    "ng_translation": "「性格が悪い（bad personality）」という誤解を招く訳",
+    "my": "ဒေါသထွက်လွယ်ခြင်း",
+    "id": "mudah marah (iritabilitas)",
+    "vi": "dễ cáu gắt",
+    "en": "irritability"
+  },
+  {
+    "term": "弄便",
+    "reading": "ろうべん",
+    "aliases": [
+      "便いじり"
+    ],
+    "category": "認知症・BPSD関連",
+    "danger_level": "中",
+    "basic": "認知症などの影響で、自身の便を触ったり周囲に塗ったりする行為",
+    "point": "叱らずに尊厳を守りながら、速やかに環境と身体を清潔にする",
+    "exception": "おむつの不快感や便秘が原因のことが多い",
+    "example_sentence": "弄便があったため、全身の清拭とシーツ交換を行いました。",
+    "ng_translation": "「便で遊ぶ（playing with feces）」という尊厳を傷つける直訳",
+    "my": "မစင်ကိုကိုင်တွယ်ခြင်း",
+    "id": "memainkan feses",
+    "vi": "hành vi bôi bẩn phân",
+    "en": "fecal smearing"
+  },
+  {
+    "term": "ショック状態",
+    "reading": "しょっくじょうたい",
+    "aliases": [
+      "ショック",
+      "血圧低下"
+    ],
+    "category": "医療安全関連",
+    "danger_level": "高",
+    "basic": "血圧が下がり、全身に血液が十分に行き渡らない命に関わる状態",
+    "point": "顔面蒼白、冷や汗、意識レベルの低下があればすぐに救急対応",
+    "exception": "アレルギーや出血など原因は様々",
+    "example_sentence": "顔色が悪くショック状態の疑いがあるため、すぐ医師を呼んでください。",
+    "ng_translation": "「精神的なショック（emotional shock）」という心理状態との混同",
+    "my": "သွေးပေါင်ထိုးကျပြီးအသက်အန္တရာယ်ရှိသောအခြေအနေ",
+    "id": "kondisi syok (penurunan tekanan darah drastis)",
+    "vi": "tình trạng sốc (tụt huyết áp nguy kịch)",
+    "en": "state of shock"
+  },
+  {
+    "term": "サマリー",
+    "reading": "さまりー",
+    "aliases": [
+      "退院サマリー",
+      "看護サマリー",
+      "申し送り書"
+    ],
+    "category": "申し送り略語",
+    "danger_level": "低",
+    "basic": "これまでの経過や現在の状態を要約した書類",
+    "point": "転院や退院など、次の担当者へ情報を正確に引き継ぐために重要",
+    "exception": "個人情報のため取り扱いには十分注意する",
+    "example_sentence": "退院に向けて、看護サマリーの作成をお願いします。",
+    "ng_translation": "単なる「短い文章（short text）」",
+    "my": "အခြေအနေအကျဉ်းချုပ်မှတ်တမ်း",
+    "id": "ringkasan medis (summary)",
+    "vi": "bản tóm tắt bệnh án",
+    "en": "medical summary"
+  },
+  {
+    "term": "車椅子駆動",
+    "reading": "くるまいすくどう",
+    "aliases": [
+      "自走",
+      "車椅子自走"
+    ],
+    "category": "回復期リハビリ用語",
+    "danger_level": "中",
+    "basic": "自分で車椅子のタイヤやハンドリムを回して移動すること",
+    "point": "麻痺側への巻き込みや、フットレストへの足の接触に注意",
+    "exception": "疲労で操作が雑になる時は声かけや介助を行う",
+    "example_sentence": "リハビリの成果で、病棟内は車椅子駆動が可能になりました。",
+    "ng_translation": "「車椅子を運転する（driving a wheelchair）」という車を運転するような表現",
+    "my": "ဘီးတပ်ကုလားထိုင်ကိုကိုယ်တိုင်မောင်းနှင်ခြင်း",
+    "id": "mengayuh kursi roda sendiri",
+    "vi": "tự lăn xe lăn",
+    "en": "propelling a wheelchair"
+  },
+  {
+    "term": "回復期",
+    "reading": "かいふくき",
+    "aliases": [
+      "回復期病棟",
+      "リハビリ期"
+    ],
+    "category": "回復期リハビリ用語",
+    "danger_level": "低",
+    "basic": "病気の危機を脱し、自宅へ戻るためのリハビリを集中して行う時期",
+    "point": "少しずつ「できること」を増やし、生活機能の向上を目指す",
+    "exception": "この時期の関わりが退院後の生活の質を大きく左右する",
+    "example_sentence": "回復期に入ったので、病棟での着替えもリハビリとして行いましょう。",
+    "ng_translation": "「病気が治った（cured）」という誤解",
+    "my": "ပြန်လည်ကျန်းမာလာသောကာလ",
+    "id": "fase pemulihan (fase rehabilitasi)",
+    "vi": "giai đoạn phục hồi",
+    "en": "recovery phase (rehabilitation phase)"
+  },
+  {
+    "term": "VS",
+    "reading": "ばいたる",
+    "aliases": [
+      "バイタル",
+      "バイタルサイン"
+    ],
+    "category": "申し送り略語",
+    "danger_level": "高",
+    "basic": "バイタルサイン（体温、脈拍、血圧、呼吸、酸素飽和度など）の略語",
+    "point": "異常値は事故や急変のサインとなるため速やかに報告する",
+    "exception": "申し送りや記録で頻繁に使用される",
+    "example_sentence": "入浴前に必ずVSを測定して記録してください。",
+    "ng_translation": "「VS（versus：対決）」という一般的な英語の略語との混同",
+    "my": "အသက်ရှင်မှုလက္ခဏာများ (VS)",
+    "id": "tanda-tanda vital (VS)",
+    "vi": "dấu hiệu sinh tồn (VS)",
+    "en": "vital signs (VS)"
+  },
+  {
+    "term": "様子観察",
+    "reading": "ようすかんさつ",
+    "aliases": [
+      "様子を見る",
+      "経過観察"
+    ],
+    "category": "外国人スタッフが誤解しやすい曖昧表現",
+    "danger_level": "中",
+    "basic": "すぐに処置はしないが、変化がないか注意深く見ること",
+    "point": "「何もしない」のではなく、異常があればすぐ報告する準備状態を指す",
+    "exception": "急変の兆候がある場合は様子観察にせず、ただちに報告する",
+    "example_sentence": "転倒後、外傷はありませんが念のため様子観察をお願いします。",
+    "ng_translation": "「ただ見るだけ（just look / do nothing）」という直訳",
+    "my": "အခြေအနေကိုဂရုတစိုက်စောင့်ကြည့်လေ့လာခြင်း",
+    "id": "observasi kondisi dengan saksama",
+    "vi": "theo dõi tình trạng cẩn thận",
+    "en": "careful observation"
+  },
+  {
+    "term": "寄り添う",
+    "reading": "よりそう",
+    "aliases": [
+      "受容する",
+      "共感する"
+    ],
+    "category": "外国人スタッフが誤解しやすい曖昧表現",
+    "danger_level": "低",
+    "basic": "相手の気持ちやペースに合わせて、心と体の距離を近づけること",
+    "point": "誰もが誰かの大切な人であるという尊厳を守る態度の基本",
+    "exception": "物理的に隣にいるだけでなく、相手の不安に共感する姿勢が大切",
+    "example_sentence": "不安が強いようなので、否定せずに気持ちに寄り添ってください。",
+    "ng_translation": "「物理的に隣に座る（sit next to）」という行動だけの直訳",
+    "my": "စိတ်ပိုင်းဆိုင်ရာနားလည်ဖေးမခြင်း",
+    "id": "mendampingi dengan empati",
+    "vi": "đồng hành và thấu cảm",
+    "en": "empathetic support"
+  },
+  {
+    "term": "促す",
+    "reading": "うながす",
+    "aliases": [
+      "声かけで促す",
+      "離床を促す"
+    ],
+    "category": "回復期リハビリ用語",
+    "danger_level": "低",
+    "basic": "無理やりさせるのではなく、本人が自分から行動するように手助けすること",
+    "point": "回復期において、本人の意欲を引き出し自立につなげるための関わり",
+    "exception": "強要（無理やりやらせる）とは全く違うことに注意する",
+    "example_sentence": "食後はすぐに横にならず、少し座っているよう促してください。",
+    "ng_translation": "「強制する（force）」や「急がせる（hurry）」という直訳",
+    "my": "ကိုယ်တိုင်လုပ်ရန်တိုက်တွန်းအားပေးခြင်း",
+    "id": "mendorong untuk melakukan sendiri",
+    "vi": "khuyến khích tự làm",
+    "en": "encouraging / prompting"
+  },
+  {
+    "term": "羞恥心への配慮",
+    "reading": "しゅうちしんへのはいりょ",
+    "aliases": [
+      "プライバシー保護",
+      "自尊心への配慮"
+    ],
+    "category": "外国人スタッフが誤解しやすい曖昧表現",
+    "danger_level": "中",
+    "basic": "裸を見られたり、下の世話をされる「恥ずかしい」気持ちを守ること",
+    "point": "バスタオルで隠す、ドアを閉めるなど、他人の目から守る工夫を必ず行う",
+    "exception": "同性による介助が望ましい場合もあるため、本人の希望を確認する",
+    "example_sentence": "おむつ交換の際は、カーテンを閉めて羞恥心への配慮を徹底してください。",
+    "ng_translation": "「恥ずかしがる（being shy）」という本人の性格の問題とする誤訳",
+    "my": "ရှက်ရွံ့မှုကိုနားလည်စောင့်ရှောက်ပေးခြင်း",
+    "id": "menjaga privasi dan rasa malu",
+    "vi": "tôn trọng sự riêng tư và e ngại",
+    "en": "consideration for privacy and dignity"
+  },
+  {
+    "term": "気付き",
+    "reading": "きづき",
+    "aliases": [
+      "異常の早期発見"
+    ],
+    "category": "外国人スタッフが誤解しやすい曖昧表現",
+    "danger_level": "高",
+    "basic": "「いつもと違う」「顔色が悪い」など、小さな変化にいち早く気づくこと",
+    "point": "毎日の関わりの中で、スタッフの観察力が問われる重要なスキル",
+    "exception": "気づいたことは一人で抱え込まず、必ずチームで共有・報告する",
+    "example_sentence": "日々のケアの中での、スタッフの小さな気付きが事故を防ぎます。",
+    "ng_translation": "「目が覚める（waking up）」という物理的な覚醒の直訳",
+    "my": "ပုံမှန်နှင့်မတူသောအပြောင်းအလဲကိုသတိပြုမိခြင်း",
+    "id": "kepekaan terhadap perubahan kondisi",
+    "vi": "nhận biết sự thay đổi nhỏ",
+    "en": "noticing subtle changes"
+  },
+  {
+    "term": "受容",
+    "reading": "じゅよう",
+    "aliases": [
+      "受け入れる",
+      "否定しない"
+    ],
+    "category": "認知症・BPSD関連",
+    "danger_level": "低",
+    "basic": "相手の言葉や感情を「間違っている」と否定せず、そのまま受け止めること",
+    "point": "帰宅願望や不安の訴えに対して、まずは「そうですね」と共感を示す",
+    "exception": "危険な行動まで許容する（許す）という意味ではない",
+    "example_sentence": "まずは本人の訴えを受容し、その後に気を逸らす対応をしてください。",
+    "ng_translation": "「我慢する（endure）」や「承諾する（agree）」という誤訳",
+    "my": "ငြင်းဆိုခြင်းမရှိဘဲနားလည်လက်ခံပေးခြင်း",
+    "id": "menerima perasaan tanpa menyangkal",
+    "vi": "tiếp nhận cảm xúc không phủ nhận",
+    "en": "acceptance of feelings"
+  },
+  {
+    "term": "お手洗い",
+    "reading": "おてあらい",
+    "aliases": [
+      "トイレ",
+      "便所"
+    ],
+    "category": "外国人スタッフが誤解しやすい曖昧表現",
+    "danger_level": "低",
+    "basic": "トイレ（排泄場所）の丁寧な言い方",
+    "point": "直接的な言葉を避け、相手のプライバシーと自尊心を守るために使う",
+    "exception": "認知症の方で言葉の意味が通じない場合は「トイレ」と分かりやすく言う",
+    "example_sentence": "食前にお手洗いへご案内しましょうか。",
+    "ng_translation": "「手を洗う場所（hand washing place）」という文字通りの直訳",
+    "my": "သန့်စင်ခန်း (အိမ်သာ)",
+    "id": "kamar kecil (toilet)",
+    "vi": "nhà vệ sinh (từ lịch sự)",
+    "en": "restroom / washroom"
+  },
+  {
+    "term": "穏やかに",
+    "reading": "おだやかに",
+    "aliases": [
+      "落ち着いて"
+    ],
+    "category": "認知症・BPSD関連",
+    "danger_level": "低",
+    "basic": "急がせたり声を荒げたりせず、ゆっくりと優しい態度で接すること",
+    "point": "スタッフの焦りや緊張は相手に伝わり、不穏を招く原因になるため注意する",
+    "exception": "緊急時は穏やかさよりも迅速な安全確保を優先する",
+    "example_sentence": "不穏になりやすいため、なるべく穏やかに関わってください。",
+    "ng_translation": "「静かにする（be quiet）」という行動の抑制と捉えられる直訳",
+    "my": "အေးဆေးတည်ငြိမ်စွာဆက်ဆံခြင်း",
+    "id": "bersikap tenang dan lembut",
+    "vi": "cư xử nhẹ nhàng điềm tĩnh",
+    "en": "calm and gentle approach"
+  },
+  {
+    "term": "異食",
+    "reading": "いしょく",
+    "aliases": [
+      "ゴミを食べる",
+      "誤食"
+    ],
+    "category": "医療安全関連",
+    "danger_level": "高",
+    "basic": "食べ物ではないもの（ティッシュや洗剤など）を口に入れてしまうこと",
+    "point": "窒息や中毒の危険があるため、手の届く範囲に危険物を置かない",
+    "exception": "認知症の方によく見られるため、環境整備を徹底する",
+    "example_sentence": "ティッシュの異食リスクがあるため、ゴミ箱は蓋付きにしてください。",
+    "ng_translation": "「食べる（eat）」だけの直訳",
+    "my": "စားစရာမဟုတ်သောအရာများကိုစားခြင်း",
+    "id": "memakan benda bukan makanan (pica)",
+    "vi": "ăn dị vật (ăn những thứ không phải thức ăn)",
+    "en": "pica (eating non-food items)"
+  },
+  {
+    "term": "ずり落ち",
+    "reading": "ずりおち",
+    "aliases": [
+      "滑り落ちる",
+      "姿勢崩れ"
+    ],
+    "category": "医療安全関連",
+    "danger_level": "中",
+    "basic": "車椅子やベッドから体が下の方へ滑って姿勢が崩れること",
+    "point": "転落事故や褥瘡（床ずれ）の原因になるため、正しい姿勢に座り直す介助を行う",
+    "exception": "クッションのズレやフットレストの高さが合っていないことが原因になりやすい",
+    "example_sentence": "車椅子からのずり落ちが見られるため、姿勢を直してください。",
+    "ng_translation": "「落ちる（fall）」だけの直訳",
+    "my": "အောက်သို့လျှောကျခြင်း",
+    "id": "merosot (dari kursi atau tempat tidur)",
+    "vi": "trượt người xuống (từ xe lăn hoặc giường)",
+    "en": "sliding down (from wheelchair or bed)"
+  },
+  {
+    "term": "ダブルチェック",
+    "reading": "だぶるちぇっく",
+    "aliases": [
+      "二人確認",
+      "複数確認"
+    ],
+    "category": "医療安全関連",
+    "danger_level": "低",
+    "basic": "ミスを防ぐため、2人の職員で別々に確認を行うこと",
+    "point": "薬の準備や重要な処置の前には必ず実施し、思い込みによる事故を防ぐ",
+    "exception": "形だけの確認にならず、それぞれが独立して確認することが重要",
+    "example_sentence": "内服薬の準備は、必ず他のスタッフとダブルチェックをお願いします。",
+    "ng_translation": "「2回見る（look twice）」という直訳",
+    "my": "လူနှစ်ယောက်စစ်ဆေးခြင်း",
+    "id": "pemeriksaan ganda (oleh dua orang berbeda)",
+    "vi": "kiểm tra chéo (hai người cùng kiểm tra)",
+    "en": "double check (by two staff members)"
+  },
+  {
+    "term": "危険予知",
+    "reading": "きけんよち",
+    "aliases": [
+      "KYT",
+      "リスク予測"
+    ],
+    "category": "医療安全関連",
+    "danger_level": "中",
+    "basic": "ケアを行う前に「どんな事故が起きそうか」を予測して対策すること",
+    "point": "転倒や誤嚥など、発生しうる事故を事前に防ぐための最も重要な思考",
+    "exception": "慣れた業務ほど事故が起きやすいため、常に意識する",
+    "example_sentence": "入浴介助の前に、床が滑りやすいという危険予知をしてください。",
+    "ng_translation": "「危ない（dangerous）」という直訳",
+    "my": "အန္တရာယ်ကိုကြိုတင်ခန့်မှန်းခြင်း",
+    "id": "prediksi bahaya (sebelum tindakan)",
+    "vi": "dự đoán nguy hiểm",
+    "en": "hazard prediction"
+  },
+  {
+    "term": "熱傷",
+    "reading": "ねっしょう",
+    "aliases": [
+      "やけど",
+      "低温熱傷"
+    ],
+    "category": "医療安全関連",
+    "danger_level": "高",
+    "basic": "熱湯や、熱いものに長時間触れることで起こる皮膚の損傷",
+    "point": "湯たんぽやカイロによる「低温熱傷」は高齢者に多いため特に注意する",
+    "exception": "発赤や水ぶくれを発見したら、すぐに冷やして看護師に報告する",
+    "example_sentence": "提供するお茶が熱すぎないか、熱傷予防のために確認してください。",
+    "ng_translation": "「熱い（hot）」という直訳",
+    "my": "မီးလောင်ဒဏ်ရာ (အပူလောင်ခြင်း)",
+    "id": "luka bakar",
+    "vi": "bỏng",
+    "en": "burn injury"
+  },
+  {
+    "term": "針刺し事故",
+    "reading": "はりさしじこ",
+    "aliases": [
+      "針刺し",
+      "血液曝露"
+    ],
+    "category": "医療安全関連",
+    "danger_level": "高",
+    "basic": "使用済みの注射針などを誤って自分の指や体に刺してしまう事故",
+    "point": "感染症（肝炎など）にかかるリスクが高いため、発生時は直ちに流水で洗い報告する",
+    "exception": "ゴミ袋の中に捨てられた針が刺さることもあるため、ゴミ回収時も注意する",
+    "example_sentence": "血糖測定の針を捨てる際は、針刺し事故に十分注意してください。",
+    "ng_translation": "「針（needle）」という直訳",
+    "my": "အပ်စူးမိသောမတော်တဆမှု",
+    "id": "insiden tertusuk jarum",
+    "vi": "tai nạn kim tiêm đâm",
+    "en": "needlestick injury"
+  },
+  {
+    "term": "内出血",
+    "reading": "ないしゅっけつ",
+    "aliases": [
+      "青あざ",
+      "皮下出血"
+    ],
+    "category": "医療安全関連",
+    "danger_level": "中",
+    "basic": "ぶつけたり転んだりして、皮膚の下で血が出ている状態（青あざ）",
+    "point": "清拭や入浴時に気づくことが多い。見つけたら「いつできたか」確認し報告する",
+    "exception": "薬の影響で、少し触れただけでも内出血ができやすい方がいる",
+    "example_sentence": "入浴介助中に足に新しい内出血を見つけました。",
+    "ng_translation": "「血が出る（bleeding）」という直訳",
+    "my": "အရေပြားအောက်သွေးထွက်ခြင်း (သွေးခြေဥခြင်း)",
+    "id": "memar (pendarahan di bawah kulit)",
+    "vi": "xuất huyết dưới da (bầm tím)",
+    "en": "internal bleeding (bruise)"
+  },
+  {
+    "term": "離設",
+    "reading": "りせつ",
+    "aliases": [
+      "無断外出",
+      "行方不明"
+    ],
+    "category": "医療安全関連",
+    "danger_level": "高",
+    "basic": "利用者が職員に知らせずに、施設や病院の外へ出てしまうこと",
+    "point": "交通事故や命に関わる重大な事故に直結するため、所在確認を徹底する",
+    "exception": "帰宅願望が強い方に起きやすいため、玄関や出口の施錠確認を行う",
+    "example_sentence": "離設リスクが高いため、定期的な見守りと所在確認をお願いします。",
+    "ng_translation": "「外に出る（go outside）」という直訳",
+    "my": "ခွင့်ပြုချက်မရှိဘဲအပြင်ထွက်သွားခြင်း",
+    "id": "keluar dari fasilitas tanpa izin (keluyuran)",
+    "vi": "tự ý rời khỏi cơ sở (đi lạc)",
+    "en": "elopement (leaving the facility unescorted)"
+  },
+  {
+    "term": "残薬",
+    "reading": "ざんやく",
+    "aliases": [
+      "飲み忘れ",
+      "薬の余り"
+    ],
+    "category": "医療安全関連",
+    "danger_level": "中",
+    "basic": "処方された薬が飲まれずに余っていること",
+    "point": "薬効が得られず病状悪化に繋がるため、服薬カレンダー等で管理し報告する",
+    "exception": "吐き出したり、隠したりしている場合もあるため服薬介助時に見守る",
+    "example_sentence": "引き出しに残薬が多数あったため、服薬管理の方法を見直します。",
+    "ng_translation": "「薬（medicine）」という直訳",
+    "my": "သောက်ရန်ကျန်နေသောဆေးများ",
+    "id": "obat yang tersisa (tidak diminum)",
+    "vi": "thuốc còn thừa (quên uống)",
+    "en": "leftover medication (missed doses)"
+  },
+  {
+    "term": "持ち込み薬",
+    "reading": "もちこみやく",
+    "aliases": [
+      "自己管理薬",
+      "持参薬"
+    ],
+    "category": "医療安全関連",
+    "danger_level": "高",
+    "basic": "入院や入所時に、自宅から持ってきた薬のこと",
+    "point": "病院で出す薬との重複や飲み合わせの危険があるため、必ず看護師・薬剤師へ提出する",
+    "exception": "家族が面会時に勝手に置いていくこともあるため注意する",
+    "example_sentence": "面会後、ベッドに持ち込み薬がないか確認してください。",
+    "ng_translation": "「自分の薬（own medicine）」という直訳",
+    "my": "အိမ်မှယူလာသောဆေးများ",
+    "id": "obat yang dibawa dari rumah",
+    "vi": "thuốc mang từ nhà vào",
+    "en": "medication brought from home"
   }
 ]
