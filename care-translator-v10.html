@@ -104,6 +104,24 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
 .qp-btn:hover{background:var(--accent);color:white}
 .qp-btn:active{transform:scale(.97)}
 
+/* ===== v10.1: 場面別定型文パネル ===== */
+.phrase-panel-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+.phrase-panel-overlay.open{display:flex}
+.phrase-panel{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:75vh;display:flex;flex-direction:column;animation:sheetUp .25s ease}
+.phrase-panel-header{padding:14px 18px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid var(--border)}
+.phrase-panel-title{font-size:15px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px}
+.phrase-panel-close{width:30px;height:30px;border:none;background:var(--surface2);border-radius:8px;cursor:pointer;font-size:14px;color:var(--text-muted)}
+.phrase-cat-tabs{display:flex;overflow-x:auto;padding:8px 12px;gap:6px;flex-shrink:0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.phrase-cat-tabs::-webkit-scrollbar{display:none}
+.phrase-cat-tab{padding:6px 14px;border:1.5px solid var(--border);background:white;border-radius:16px;font-family:var(--font-jp);font-size:12px;font-weight:500;color:var(--text-muted);cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0}
+.phrase-cat-tab.active{border-color:var(--accent);background:var(--accent-pale);color:var(--accent);font-weight:700}
+.phrase-grid{overflow-y:auto;padding:10px 14px 20px;display:flex;flex-direction:column;gap:7px}
+.phrase-btn{width:100%;padding:13px 16px;border:1.5px solid #e8e4f4;background:white;border-radius:12px;font-family:var(--font-jp);font-size:14px;font-weight:500;color:var(--text);cursor:pointer;text-align:left;transition:all .15s;box-shadow:0 1px 4px rgba(108,63,192,.06);display:flex;align-items:center;justify-content:space-between}
+.phrase-btn:hover{border-color:var(--accent);background:var(--accent-pale);color:var(--accent)}
+.phrase-btn:active{transform:scale(.98);background:var(--accent);color:white;border-color:var(--accent)}
+.phrase-btn-arrow{font-size:12px;color:var(--text-small);flex-shrink:0;margin-left:8px}
+.phrase-btn:hover .phrase-btn-arrow,.phrase-btn:active .phrase-btn-arrow{color:inherit}
+
 /* 受信モード overlay */
 .receive-overlay{display:none;position:fixed;inset:0;background:#0d1117;z-index:500;flex-direction:column}
 .receive-overlay.active{display:flex}
@@ -471,6 +489,7 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
   <div class="status-text" id="statusText">待機中</div>
   <button class="summary-btn" id="summaryBtn" onclick="openSummary()">📝 要点</button>
   <button class="icon-btn pc-btn" id="pcBtn" onclick="togglePcAudio()" title="PC内部音声（Whisper）">🖥️</button>
+  <button class="icon-btn" id="phrasePanelBtn" onclick="openPhrasePanel()" title="定型文" style="font-size:18px">💬</button>
   <button class="mic-btn idle" id="micBtn" onclick="toggleRecording()">🎤 開始</button>
 </div>
 
@@ -650,6 +669,18 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
   </div>
 </div>
 
+<!-- v10.1: 場面別定型文パネル -->
+<div class="phrase-panel-overlay" id="phrasePanelOverlay" onclick="if(event.target===this)closePhrasePanel()">
+  <div class="phrase-panel" onclick="event.stopPropagation()">
+    <div class="phrase-panel-header">
+      <div class="phrase-panel-title">💬 定型文</div>
+      <button class="phrase-panel-close" onclick="closePhrasePanel()">✕</button>
+    </div>
+    <div class="phrase-cat-tabs" id="phraseCatTabs"></div>
+    <div class="phrase-grid" id="phraseGrid"></div>
+  </div>
+</div>
+
 <!-- v10.2: 候補確認モーダル -->
 <div class="candidate-modal-overlay" id="candidateModalOverlay" style="display:none" onclick="onCandidateOverlayClick(event)">
   <div class="candidate-modal" onclick="event.stopPropagation()">
@@ -720,6 +751,74 @@ const RECEIVE_LANGS=[
 
 // TTS BCP47マッピング
 const TTS_LANG_MAP={my:'my',id:'id',vi:'vi',tl:'tl',zh:'zh-CN',ko:'ko',en:'en-US',hi:'hi',ja:'ja-JP'};
+
+// ===== v10.1: 場面別定型文 =====
+const DEFAULT_PHRASE_CATEGORIES = {
+  '基本声かけ': [
+    '少し待ってください',
+    'もう一度言ってください',
+    'わかりましたか？',
+    'ゆっくり動いてください',
+    'こちらに来てください',
+    'よくできました',
+    '今から始めます',
+    'お疲れ様でした',
+  ],
+  '排泄': [
+    'トイレに行きますか？',
+    'おむつを替えます',
+    'ズボンを下ろしますね',
+    'ズボンを上げますね',
+    '終わりましたか？',
+    '便が出ましたか？',
+    '尿が出ましたか？',
+  ],
+  '食事': [
+    '食事の時間です',
+    '食事はまだです',
+    'よく噛んで食べてください',
+    '飲み込んでから次を食べてください',
+    'お茶を飲みますか？',
+    '食欲はありますか？',
+    'アレルギーはありますか？',
+  ],
+  '移動': [
+    '車椅子に移りますね',
+    'ベッドに戻りますか？',
+    '立ち上がるのを手伝います',
+    'ゆっくり立ってください',
+    '今日は歩かないでください',
+    '手すりを持ってください',
+    'ゆっくり座ってください',
+  ],
+  '安全確認': [
+    'ナースコールを押してください',
+    'ベッド柵を上げますね',
+    '一人で動かないでください',
+    '滑るので気をつけてください',
+    '転ばないように注意してください',
+    '靴をはいてください',
+  ],
+  '痛み・体調': [
+    '痛みはありますか？',
+    'どこが痛いですか？',
+    '気分はどうですか？',
+    '熱を測りますね',
+    '血圧を測りますね',
+    '気分が悪いですか？',
+    '眠れましたか？',
+  ],
+  '申し送り': [
+    '今日の担当は私です',
+    '夜勤の時間です',
+    'お薬の時間です',
+    'バイタルを測ります',
+    '確認してください',
+    '記録をお願いします',
+    '変化があれば報告してください',
+  ],
+};
+let _activePhraseCategory = Object.keys(DEFAULT_PHRASE_CATEGORIES)[0];
 
 // クイックフレーズ定義
 const QUICK_PHRASES=[
@@ -852,6 +951,62 @@ function setReceiveLang(code, btn){
   document.querySelectorAll('.receive-lang-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderReceiveArea();
+}
+
+// ===== v10.1: 場面別定型文パネル =====
+function openPhrasePanel(){
+  const overlay = document.getElementById('phrasePanelOverlay');
+  overlay.classList.add('open');
+  renderPhraseCatTabs();
+  renderPhraseButtons(_activePhraseCategory);
+}
+
+function closePhrasePanel(){
+  document.getElementById('phrasePanelOverlay').classList.remove('open');
+}
+
+function renderPhraseCatTabs(){
+  const tabs = document.getElementById('phraseCatTabs');
+  tabs.innerHTML = '';
+  Object.keys(DEFAULT_PHRASE_CATEGORIES).forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'phrase-cat-tab' + (cat === _activePhraseCategory ? ' active' : '');
+    btn.textContent = cat;
+    btn.onclick = () => {
+      _activePhraseCategory = cat;
+      document.querySelectorAll('.phrase-cat-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderPhraseButtons(cat);
+    };
+    tabs.appendChild(btn);
+  });
+}
+
+function renderPhraseButtons(cat){
+  const grid = document.getElementById('phraseGrid');
+  grid.innerHTML = '';
+  (DEFAULT_PHRASE_CATEGORIES[cat] || []).forEach(phrase => {
+    const btn = document.createElement('button');
+    btn.className = 'phrase-btn';
+    btn.innerHTML = `<span>${escapeHtml(phrase)}</span><span class="phrase-btn-arrow">翻訳 →</span>`;
+    btn.onclick = () => sendPresetPhrase(phrase);
+    grid.appendChild(btn);
+  });
+}
+
+async function sendPresetPhrase(phrase){
+  closePhrasePanel();
+  // 研修動画・会議モードなら transcript に流す
+  if(state.mode === 'video' || state.mode === 'meeting'){
+    // 会議モードの場合はメインコンテンツ表示に切り替え
+    if(state.mode === 'meeting'){
+      // meeting サブモードに関わらず transcript に流す
+    }
+    await processEntry(phrase);
+  } else {
+    await processEntry(phrase);
+  }
+  showToast('💬 定型文を翻訳しました');
 }
 
 // ===== クイックフレーズ生成 =====
