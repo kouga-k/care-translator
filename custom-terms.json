@@ -5445,5 +5445,287 @@
     "id": "sistem absensi kerja (Zion)",
     "vi": "hệ thống quản lý chấm công (Zion)",
     "en": "attendance management system (Zion)"
+  },
+  {
+    "term": "結構です",
+    "reading": "けっこうです",
+    "aliases": [
+      "いいです"
+    ],
+    "category": "外国人スタッフが誤解しやすい曖昧表現",
+    "danger_level": "中",
+    "basic": "「いらない（No）」という意味で使われることが多い断りの言葉",
+    "point": "「素晴らしい（Yes）」の意味もあるため、お茶を勧めた際などにYesと誤解しないよう注意",
+    "exception": "本人の表情や手のジェスチャーも合わせて「Yes」か「No」か判断する",
+    "example_sentence": "「お茶はいかがですか？」「もう結構です（＝いりません）」",
+    "ng_translation": "「素晴らしい（excellent）」という肯定の意味だけで訳すこと",
+    "my": "ရပါပြီ (မလိုတော့ပါဟု ငြင်းဆိုခြင်း)",
+    "id": "tidak usah / sudah cukup (penolakan halus)",
+    "vi": "không cần đâu / đủ rồi (từ chối khéo)",
+    "en": "no thank you / I'm fine (as a polite refusal)"
+  },
+  {
+    "term": "大丈夫です",
+    "reading": "だいじょうぶです",
+    "aliases": [
+      "平気です",
+      "問題ないです"
+    ],
+    "category": "外国人スタッフが誤解しやすい曖昧表現",
+    "danger_level": "高",
+    "basic": "「問題ない（Yes）」と「助けはいらない（No）」の両方に使われる言葉",
+    "point": "転倒時に「大丈夫」と言われても鵜呑みにせず、必ず怪我がないか自分の目で確認する",
+    "exception": "介助を勧められて「大丈夫です」と言われた時は「不要（No）」の意味になる",
+    "example_sentence": "痛そうにしているのに「大丈夫です」と言う場合は、必ず看護師に報告してください。",
+    "ng_translation": "「安全である（safe）」という文字通りの直訳",
+    "my": "အဆင်ပြေပါတယ် / မလိုပါဘူး (အခြေအနေအရ အဓိပ္ပာယ်ပြောင်းလဲနိုင်သည်)",
+    "id": "tidak apa-apa / tidak perlu (tergantung konteks)",
+    "vi": "tôi ổn / không cần đâu (tùy theo ngữ cảnh)",
+    "en": "I'm okay / no need (meaning changes depending on context)"
+  },
+  {
+    "term": "キリキリ",
+    "reading": "きりきり",
+    "aliases": [
+      "お腹がキリキリする"
+    ],
+    "category": "音声認識誤変換・オノマトペ",
+    "danger_level": "高",
+    "basic": "お腹（胃）が針で刺されるように鋭く痛いことを表す言葉",
+    "point": "日本語特有の表現。利用者が痛みを訴えたら、すぐに場所と痛みの種類を看護師に報告する",
+    "exception": "頭痛には使わず、主に胃や腸の痛みに使う",
+    "example_sentence": "利用者様が「お腹がキリキリ痛い」と言っているので、看護師さんを呼んでください。",
+    "ng_translation": "「音が鳴る（making a sound）」という痛みを伴わない直訳",
+    "my": "ဗိုက်စူးအောင့်၍နာခြင်း (အပ်ဖြင့်ထိုးသကဲ့သို့နာကျင်မှု)",
+    "id": "nyeri perut yang tajam seperti ditusuk-tusuk",
+    "vi": "đau quặn thắt, đau nhói (thường ở dạ dày)",
+    "en": "sharp, stabbing pain (usually in the stomach)"
+  },
+  {
+    "term": "ガンガン",
+    "reading": "がんがん",
+    "aliases": [
+      "頭がガンガンする"
+    ],
+    "category": "音声認識誤変換・オノマトペ",
+    "danger_level": "高",
+    "basic": "頭の中で大きな音が響くように激しく痛いことを表す言葉",
+    "point": "発熱や脳の異常のサインの可能性があるため、バイタルサイン（VS）を測定する",
+    "exception": "工事の音など、実際の騒音を表す時にも使う",
+    "example_sentence": "「頭がガンガンする」という訴えがあるため、熱を測ります。",
+    "ng_translation": "「物を叩く音（banging sound）」という身体症状が含まれない直訳",
+    "my": "ခေါင်းထိုးကိုက်ခြင်း (တူဖြင့်ထုသကဲ့သို့ ပြင်းထန်သောခေါင်းကိုက်ခြင်း)",
+    "id": "sakit kepala berdenyut keras seperti dipukul",
+    "vi": "đau đầu như búa bổ",
+    "en": "pounding, throbbing headache"
+  },
+  {
+    "term": "召し上がる",
+    "reading": "めしあがる",
+    "aliases": [
+      "食べる",
+      "飲む"
+    ],
+    "category": "外国人スタッフが誤解しやすい曖昧表現",
+    "danger_level": "低",
+    "basic": "「食べる」「飲む」の丁寧な言い方（尊敬語）",
+    "point": "教科書で習う「食べる」と全く違う単語になるため、意味を紐づけて覚える",
+    "exception": "職員自身がご飯を食べる時には絶対に使わない",
+    "example_sentence": "食堂談話室で、ご家族と一緒におやつを召し上がっています。",
+    "ng_translation": "「上に上がる（go up）」という漢字からの誤解",
+    "my": "သုံးဆောင်သည် (စားသောက်သည်၏ ယဉ်ကျေးသောအသုံးအနှုန်း)",
+    "id": "makan / minum (bahasa penghormatan untuk pasien)",
+    "vi": "dùng bữa / ăn uống (cách nói kính trọng)",
+    "en": "eat / drink (honorific form used for patients/elders)"
+  },
+  {
+    "term": "お休みになる",
+    "reading": "おやすみになる",
+    "aliases": [
+      "寝る",
+      "休まれる"
+    ],
+    "category": "外国人スタッフが誤解しやすい曖昧表現",
+    "danger_level": "低",
+    "basic": "「寝る」「就寝する」の丁寧な言い方（尊敬語）",
+    "point": "「仕事の休憩（Break）」ではなく、「布団で寝ている（Sleep）」状態を指すことが多い",
+    "exception": "「休日になる」という意味ではないことに注意する",
+    "example_sentence": "〇〇様はもうお休みになられているので、静かに見守りをしてください。",
+    "ng_translation": "「会社を休む（take a day off）」という直訳",
+    "my": "အိပ်စက်သည် (အိပ်သည်၏ ယဉ်ကျေးသောအသုံးအနှုန်း)",
+    "id": "tidur / beristirahat di tempat tidur (bahasa penghormatan)",
+    "vi": "đi ngủ / nghỉ ngơi (cách nói kính trọng)",
+    "en": "sleep / go to bed (honorific form)"
+  },
+  {
+    "term": "あとで",
+    "reading": "あとで",
+    "aliases": [
+      "のちほど",
+      "手が空いたら"
+    ],
+    "category": "申し送り略語・曖昧表現",
+    "danger_level": "中",
+    "basic": "今すぐではなく、少し時間が経ってから（具体的な時間は決まっていない）",
+    "point": "職員同士の指示で使うと「いつやるか」で事故が起きるため、必ず「〇時〇分に」と言い直す",
+    "exception": "外国人スタッフへ指示を出す時は、この言葉を使わず具体的な時間を伝える",
+    "example_sentence": "「あとで」ではなく、「14時にバイタルを測ってください」と具体的に伝えます。",
+    "ng_translation": "「後ろで（behind）」という場所の直訳",
+    "my": "နောက်မှ (အချိန်အတိအကျမရှိပါ)",
+    "id": "nanti (tanpa waktu yang spesifik)",
+    "vi": "lát nữa / sau (không có thời gian cụ thể)",
+    "en": "later (without a specific timeframe)"
+  },
+  {
+    "term": "適当に",
+    "reading": "てきとうに",
+    "aliases": [
+      "いい塩梅で",
+      "いい感じに"
+    ],
+    "category": "申し送り略語・曖昧表現",
+    "danger_level": "中",
+    "basic": "「ちょうどよく、いい感じに合わせて」という具体的な数値がない指示",
+    "point": "外国人には日本の「ちょうどいい基準」が分からないため、温度や量などを数値で明確に教える",
+    "exception": "「いい加減に（真面目にやらない）」という意味もあるため、誤解を生みやすい",
+    "example_sentence": "エアコンの温度は「適当に」ではなく「25度に設定して」と指示してください。",
+    "ng_translation": "「ランダムに（randomly）」や「いい加減に（carelessly）」という直訳",
+    "my": "သင့်တော်သလိုလုပ်ပါ (တိကျသောညွှန်ကြားချက်မရှိပါ)",
+    "id": "secukupnya / senyamannya (tanpa ukuran pasti)",
+    "vi": "làm cho phù hợp / vừa phải (không có tiêu chuẩn cụ thể)",
+    "en": "appropriately / as you see fit (without specific instructions)"
+  },
+  {
+    "term": "上にあげて",
+    "reading": "うえにあげて",
+    "aliases": [
+      "上にして",
+      "上げて"
+    ],
+    "category": "外国人スタッフが誤解しやすい曖昧表現",
+    "danger_level": "高",
+    "basic": "「ベッドの頭を起こす」「身体を頭の方へずらす」「腕や足を上げる」の複数の意味を持つ指示",
+    "point": "意味を間違えると摩擦や転落の事故になるため「ベッドの頭を上げて」「身体を上にずらして」と主語を明確にする",
+    "exception": "外国人スタッフへ指示を出す時は、ジェスチャーを交えながら具体的な動作を伝える",
+    "example_sentence": "「上にあげて」ではなく「ベッドの頭の角度を30度まで上げて」と具体的に指示してください。",
+    "ng_translation": "「上に持ち上げる（lift up）」という物理的な動作への一律の直訳",
+    "my": "အပေါ်သို့တင်ပါ / ထောင်ပါ (အဓိပ္ပာယ်များစွာထွက်နိုင်သော ညွှန်ကြားချက်)",
+    "id": "naikkan ke atas (instruksi ambigu: bisa berarti menaikkan sandaran, menggeser badan, atau mengangkat tangan/kaki)",
+    "vi": "nâng lên / kéo lên trên (chỉ thị dễ gây nhầm lẫn do có nhiều nghĩa)",
+    "en": "raise it up / move it up (ambiguous instruction with multiple meanings)"
+  },
+  {
+    "term": "そわそわ",
+    "reading": "そわそわ",
+    "aliases": [
+      "落ち着きがない",
+      "そわそわする"
+    ],
+    "category": "音声認識誤変換・オノマトペ",
+    "danger_level": "中",
+    "basic": "落ち着きがなく、じっと座っていられない様子",
+    "point": "トイレに行きたいサイン（尿意・便意）であることが多いため、まずは否定せずにトイレに誘う",
+    "exception": "認知症の不穏（BPSD）の始まりの可能性もあるため、注意深く様子観察する",
+    "example_sentence": "〇〇様がそわそわし始めたので、お声かけしてトイレにお誘いしてみます。",
+    "ng_translation": "「ワクワクしている（excited）」というポジティブな感情の誤訳",
+    "my": "ဂနာမငြိမ်ဖြစ်ခြင်း (စိတ်မချမ်းသာဘဲ ဂနာမငြိမ်ဖြစ်နေသော အခြေအနေ)",
+    "id": "gelisah / tidak bisa diam (sering kali tanda ingin ke toilet)",
+    "vi": "bồn chồn / đứng ngồi không yên",
+    "en": "restless / fidgety (often a sign of needing the toilet)"
+  },
+  {
+    "term": "いい感じ",
+    "reading": "いいかんじ",
+    "aliases": [
+      "いい塩梅",
+      "順調"
+    ],
+    "category": "申し送り略語・曖昧表現",
+    "danger_level": "中",
+    "basic": "状態が良いこと、または量がちょうど良いことの曖昧な表現",
+    "point": "人によって「いい」の基準が違うため、必ず「何がどう良いのか」を数値や事実で伝える",
+    "exception": "記録や申し送りでは絶対に使わず、具体的な事実を書く",
+    "example_sentence": "「いい感じ」ではなく「熱が下がって顔色が良いです」と具体的に報告してください。",
+    "ng_translation": "「良い感情（good feeling）」という直訳",
+    "my": "အခြေအနေကောင်းသည် / အနေတော်ဖြစ်သည် (တိကျမှုမရှိသောစကားလုံး)",
+    "id": "kondisinya bagus / pas (tanpa ukuran pasti)",
+    "vi": "có vẻ ổn / vừa vặn (không có tiêu chuẩn cụ thể)",
+    "en": "looks good / just right (vague expression without concrete metrics)"
+  },
+  {
+    "term": "さらさら",
+    "reading": "さらさら",
+    "aliases": [
+      "水っぽい",
+      "水様便"
+    ],
+    "category": "音声認識誤変換・オノマトペ",
+    "danger_level": "高",
+    "basic": "水のように粘り気がない状態",
+    "point": "飲み物（とろみが足りず誤嚥リスク）や便（水様便で脱水リスク）の危険な異常を表す時に使う",
+    "exception": "「髪がさらさら」のような美容の意味では介護現場の記録に使わない",
+    "example_sentence": "お茶がさらさらでとろみがついていないため、誤嚥しないよう作り直してください。",
+    "ng_translation": "「音がする（rustling）」という別の意味のオノマトペとしての誤訳",
+    "my": "အရည်ကျဲကျဲဖြစ်နေခြင်း (ပျစ်ချွဲမှုမရှိခြင်း)",
+    "id": "cair / tidak kental (seperti air)",
+    "vi": "lỏng / loãng (như nước)",
+    "en": "watery / non-viscous (runny)"
+  },
+  {
+    "term": "ドロドロ",
+    "reading": "どろどろ",
+    "aliases": [
+      "泥状便",
+      "粘りが強い"
+    ],
+    "category": "音声認識誤変換・オノマトペ",
+    "danger_level": "中",
+    "basic": "水分が少なく粘り気が強い状態（「さらさら」の反対）",
+    "point": "便（泥状便）や、濃すぎる「とろみ茶」の異常を報告する時に使う",
+    "exception": "とろみが強すぎても喉に張り付いて窒息のリスクがあるため注意する",
+    "example_sentence": "便がドロドロだったため、量と合わせて看護師に報告しました。",
+    "ng_translation": "「溶けている（melting）」という直訳",
+    "my": "ပျစ်ချွဲချွဲဖြစ်နေခြင်း / ရွှံ့စေးကဲ့သို့ဖြစ်နေခြင်း",
+    "id": "kental / lembek (seperti lumpur)",
+    "vi": "đặc sệt / sền sệt",
+    "en": "thick / sludgy (viscous)"
+  },
+  {
+    "term": "ちゃんと",
+    "reading": "ちゃんと",
+    "aliases": [
+      "しっかりと",
+      "きっちりと"
+    ],
+    "category": "申し送り略語・曖昧表現",
+    "danger_level": "中",
+    "basic": "基準を満たして正しく行うこと（具体的な指示がない曖昧な言葉）",
+    "point": "人によって「ちゃんとの基準」が違うため、必ず「何回」「どこまで」と具体的に伝える",
+    "exception": "外国人スタッフに「ちゃんとやって」と怒るのは不適切であり、基準を教えるのが先決",
+    "example_sentence": "「ちゃんと掃除して」ではなく「アルコールで2回拭いて」と伝えます。",
+    "ng_translation": "「完璧に（perfectly）」という基準がない直訳",
+    "my": "သေချာစွာ / စနစ်တကျ (တိကျသောစံနှုန်းမရှိပါ)",
+    "id": "dengan benar / dengan baik (tanpa standar yang jelas)",
+    "vi": "đàng hoàng / cẩn thận (không có tiêu chuẩn rõ ràng)",
+    "en": "properly / correctly (without clear standards)"
+  },
+  {
+    "term": "トントンして",
+    "reading": "とんとんして",
+    "aliases": [
+      "背中を叩く",
+      "タッピング"
+    ],
+    "category": "音声認識誤変換・オノマトペ",
+    "danger_level": "中",
+    "basic": "背中などを軽くリズミカルに叩くこと",
+    "point": "むせた時に「背中を叩いて（タッピング）」と、寝かしつけの時に「優しく叩いて」の2つの意味がある",
+    "exception": "強く叩きすぎると痛みを伴い尊厳を傷つけるため、力加減に注意する",
+    "example_sentence": "むせ込んでいるので、背中を軽くトントンしてあげてください。",
+    "ng_translation": "「強く叩く（hit/strike）」という暴力的な意味を含む誤訳",
+    "my": "ကျောကိုဖြည်းညင်းစွာပုတ်ပေးခြင်း",
+    "id": "menepuk-nepuk ringan (biasanya di punggung)",
+    "vi": "vỗ nhẹ nhẹ (vào lưng)",
+    "en": "patting gently (usually on the back)"
   }
 ]
