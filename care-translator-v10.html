@@ -1688,10 +1688,11 @@ function applyAliasCorrections(text){
   let correctedText = text;
   const corrections = [];
   for(const term of getActiveTerms()){
-    const searchTargets = [...(term.aliases||[]), term.reading].filter(Boolean);
-    if(!searchTargets.length) continue;
+    // readingは同音異義語で誤爆するため使用しない。aliasesのみ使う。
+    const aliases = term.aliases || [];
+    if(!aliases.length) continue;
     const termNorm = normalizeForSearch(term.term);
-    for(const alias of searchTargets){
+    for(const alias of aliases){
       const aliasNorm = normalizeForSearch(alias);
       if(!aliasNorm || aliasNorm === termNorm) continue;
       // テキスト中にaliasが含まれ、正式termがまだない場合に補正
