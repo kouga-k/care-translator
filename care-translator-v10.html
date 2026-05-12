@@ -547,7 +547,10 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
           <button onclick="importCustomTerms()" style="flex:1;padding:8px;background:var(--accent);color:white;border:none;border-radius:8px;font-family:var(--font-jp);font-size:13px;cursor:pointer">📥 インポート</button>
           <button onclick="clearCustomTerms()" style="padding:8px 12px;background:var(--surface2);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;font-family:var(--font-jp);font-size:13px;cursor:pointer">🗑️ クリア</button>
         </div>
-        <div class="setting-hint" id="customTermsCount"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+          <div class="setting-hint" id="customTermsCount" style="flex:1;margin-top:0"></div>
+          <button onclick="openTermsListModal()" style="padding:4px 10px;background:white;border:1px solid var(--border);border-radius:8px;font-family:var(--font-jp);font-size:11px;cursor:pointer;color:var(--text-muted);white-space:nowrap">📋 一覧を見る</button>
+        </div>
       </div>
       <div class="setting-group">
         <div class="setting-label">文の整え方</div>
@@ -626,6 +629,46 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
+
+<!-- 用語一覧モーダル -->
+<div class="guide-modal-overlay" id="termsListModalOverlay" style="display:none" onclick="if(event.target===this)closeTermsListModal()">
+  <div class="guide-modal" onclick="event.stopPropagation()">
+    <div class="guide-modal-header">
+      <div class="guide-modal-title">📋 組み込み用語一覧</div>
+      <button class="guide-close-btn" onclick="closeTermsListModal()">✕</button>
+    </div>
+    <div style="margin-bottom:10px">
+      <input type="text" id="termsSearchInput" placeholder="用語・よみがな・説明で検索..."
+        oninput="filterTermsList()"
+        style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font-jp);font-size:14px;outline:none;box-sizing:border-box">
+    </div>
+    <div style="font-size:11px;color:var(--text-small);margin-bottom:8px" id="termsListCount"></div>
+    <div id="termsListBody" style="display:flex;flex-direction:column;gap:4px"></div>
+  </div>
+</div>
+
+<!-- 使い方ガイドモーダル -->
+<div class="guide-modal-overlay" id="guideModalOverlay" style="display:none" onclick="if(event.target===this)closeGuideModal()">
+  <div class="guide-modal" onclick="event.stopPropagation()">
+    <div class="guide-modal-header">
+      <div class="guide-modal-title">📖 使い方ガイド</div>
+      <button class="guide-close-btn" onclick="closeGuideModal()">✕</button>
+    </div>
+    <div class="guide-modal-subtitle">CareVoice の9つの機能・モードについて説明します</div>
+    <div class="guide-section-title">アプリモード</div>
+    <div class="guide-card"><div class="guide-card-head"><span class="guide-card-title">🎬 研修動画</span><span class="guide-card-tag auto">翻訳→研修モード自動</span></div><div class="guide-card-desc">研修・教育動画を流すときに使います。専門用語に自動で説明が付いた翻訳になります。</div></div>
+    <div class="guide-card"><div class="guide-card-head"><span class="guide-card-title">🤝 会議・指導</span><span class="guide-card-tag auto">翻訳→厳密モード自動</span></div><div class="guide-card-desc">申し送りや業務指示のときに使います。指示の強さや数値を一切変えずに翻訳します。</div></div>
+    <div class="guide-card"><div class="guide-card-head"><span class="guide-card-title">📡 配信</span><span class="guide-card-tag auto">翻訳→厳密モード自動</span></div><div class="guide-card-desc">遠隔地のスタッフへリアルタイムで翻訳を届けるときに使います。QRコードで接続します。</div></div>
+    <div class="guide-section-title">翻訳モード</div>
+    <div class="guide-card"><div class="guide-card-head"><span class="guide-card-title">🔒 厳密</span><span class="guide-card-tag tip">デフォルト</span></div><div class="guide-card-desc">申し送りや業務指示に最適。指示の強さ・数値・条件を絶対に変えません。<strong>迷ったらこのモード</strong>。</div></div>
+    <div class="guide-card"><div class="guide-card-head"><span class="guide-card-title">💬 自然会話</span></div><div class="guide-card-desc">利用者との日常会話・声かけに最適。自然で親しみやすい表現で翻訳します。</div></div>
+    <div class="guide-card"><div class="guide-card-head"><span class="guide-card-title">📖 研修</span></div><div class="guide-card-desc">研修・教育の場面に最適。専門用語に簡単な説明を添えて翻訳します。</div></div>
+    <div class="guide-section-title">安全機能</div>
+    <div class="guide-card"><div class="guide-card-head"><span class="guide-card-title">✅ 翻訳信頼度スコア</span></div><div class="guide-card-desc">翻訳の確かさを0〜100%で表示。<strong>緑(80%〜)</strong>は信頼度高、<strong>オレンジ(60〜79%)</strong>は要確認、<strong>赤(60%未満)</strong>は必ず確認を。</div></div>
+    <div class="guide-card"><div class="guide-card-head"><span class="guide-card-title">🚨 危険語警告</span><span class="guide-card-tag danger">要注意</span></div><div class="guide-card-desc">「禁食」「誤嚥」「転倒」「インスリン」などを検出すると赤い警告バーを表示します。必ず翻訳内容を声で確認してください。</div></div>
+    <div class="guide-card"><div class="guide-card-head"><span class="guide-card-title">🔍 候補確認</span><span class="guide-card-tag tip">v10.2</span></div><div class="guide-card-desc">音が似ている言葉（転倒・転棟・点灯など）や危険語を含む発話を認識したとき、翻訳前に候補を表示して確認を求めます。</div></div>
+  </div>
+</div>
 
 <!-- v10.2: 候補確認モーダル -->
 <div class="candidate-modal-overlay" id="candidateModalOverlay" style="display:none" onclick="onCandidateOverlayClick(event)">
@@ -1446,11 +1489,61 @@ function friendlyError(msg){
 
 // ===== v10: 翻訳モード =====
 const TRANS_MODE_MAP={video:'training',meeting:'strict',dist:'strict'};
-function setTransMode(mode,btn){
+const TRANS_MODE_NAMES={strict:'🔒 厳密',natural:'💬 自然会話',training:'📖 研修'};
+function setTransMode(mode){
   state.transMode=mode;
   localStorage.setItem('cv9TransMode',mode);
+  // 文の整え方を自動連動（裏で動作）
+  const levelMap={strict:'light',natural:'balanced',training:'readable'};
+  state.seimonLevel=levelMap[mode]||'balanced';
+  // ボタンのactive切替
   document.querySelectorAll('.trans-mode-btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById({strict:'tmStrict',natural:'tmNatural',training:'tmTraining'}[mode]);
   if(btn) btn.classList.add('active');
+  // バー背景色切替
+  const bar=document.getElementById('transModebar');
+  if(bar) bar.className='trans-mode-bar mode-'+mode;
+}
+// ガイドモーダル
+function openGuideModal(){
+  document.getElementById('guideModalOverlay').style.display='flex';
+}
+function closeGuideModal(){
+  document.getElementById('guideModalOverlay').style.display='none';
+}
+// 用語一覧モーダル
+function openTermsListModal(){
+  document.getElementById('termsListModalOverlay').style.display='flex';
+  document.getElementById('termsSearchInput').value='';
+  renderTermsList(getActiveTerms());
+}
+function closeTermsListModal(){
+  document.getElementById('termsListModalOverlay').style.display='none';
+}
+function filterTermsList(){
+  const q=document.getElementById('termsSearchInput').value.trim().toLowerCase();
+  const all=getActiveTerms();
+  if(!q){ renderTermsList(all); return; }
+  const filtered=all.filter(t=>
+    (t.term||'').includes(q)||
+    (t.reading||'').includes(q)||
+    (t.basic||'').toLowerCase().includes(q)||
+    (t.en||'').toLowerCase().includes(q)
+  );
+  renderTermsList(filtered);
+}
+function renderTermsList(terms){
+  document.getElementById('termsListCount').textContent=`${terms.length}件表示中（全${getActiveTerms().length}件）`;
+  document.getElementById('termsListBody').innerHTML=terms.map(t=>`
+    <div style="background:#faf8fe;border:1px solid #e8e4f4;border-radius:10px;padding:10px 14px">
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:2px">
+        <span style="font-size:15px;font-weight:700;color:#1a1a2e">${escapeHtml(t.term||'')}</span>
+        <span style="font-size:11px;color:#9b98a8">${escapeHtml(t.reading||'')}</span>
+      </div>
+      <div style="font-size:12px;color:#6b6880;line-height:1.5">${escapeHtml(t.basic||'')}</div>
+      ${t.point?`<div style="font-size:11px;color:#8b5cf6;margin-top:2px">💡 ${escapeHtml(t.point)}</div>`:''}
+    </div>
+  `).join('');
 }
 
 // ハルシネーションフィルター（v10強化版）
