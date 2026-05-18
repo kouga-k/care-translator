@@ -439,7 +439,7 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
     <div class="dist-title">📡 リアルタイム配信</div>
     <div class="dist-desc">
       録音した内容をFirebaseでリアルタイム配信します。<br>
-      外国人スタッフはQRコードを読んでスマホで受信できます。
+      相手のスマホでQRコードを読むと受信できます。
     </div>
     <div id="distSetup">
       <button class="dist-start-btn" onclick="startDistribution()">📡 配信を開始する</button>
@@ -493,8 +493,8 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
     </div>
     <div class="conv-input-area">
       <div class="conv-speaker-btns">
-        <button class="speaker-btn active-jp" id="speakerJp" onclick="selectSpeaker('jp')">🇯🇵 日本人スタッフ</button>
-        <button class="speaker-btn" id="speakerForeign" onclick="selectSpeaker('foreign')">🌏 外国人スタッフ</button>
+        <button class="speaker-btn active-jp" id="speakerJp" onclick="selectSpeaker('jp')">🇯🇵 日本語</button>
+        <button class="speaker-btn" id="speakerForeign" onclick="selectSpeaker('foreign')">🌏 母語</button>
       </div>
       <div class="conv-mic-area">
         <input class="conv-text-in" id="convTextIn" placeholder="テキスト入力...">
@@ -512,7 +512,7 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
       <div class="face-partner-text" id="faceResultText">翻訳結果がここに表示されます</div>
       <button class="face-speak-btn" onclick="speakFaceResult()">🔊 読み上げ</button>
     </div>
-    <div class="face-divider">▲ 外国人スタッフ側 ┃ 日本人スタッフ側 ▼</div>
+    <div class="face-divider">▲ 母語側 ┃ 日本語側 ▼</div>
     <!-- 自分側 -->
     <div class="face-status" id="faceMicStatus"></div>
     <button class="face-mic-btn" id="faceMicBtn" onclick="toggleFaceMic()">🎤 マイクで話す（自動翻訳）</button>
@@ -2441,7 +2441,7 @@ async function startDistribution(){
     const count=data?Object.keys(data).length:0;
     document.getElementById('distLiveCount').textContent=`📱 受信中: ${count}人`;
   });
-  showToast('📡 配信開始！QRを外国人スタッフに見せてください');
+  showToast('📡 配信開始！QRを相手に見せてください');
 }
 
 function stopDistribution(){
@@ -2666,7 +2666,7 @@ function renderConvMessages(){
   el.innerHTML=convMessages.map(m=>{
     const isJp=m.speaker==='jp';
     return`<div class="conv-msg ${isJp?'msg-jp':'msg-foreign'}">
-      <div class="conv-msg-header">${isJp?'🇯🇵 日本人スタッフ':'🌏 外国人スタッフ'}</div>
+      <div class="conv-msg-header">${isJp?'🇯🇵 日本語':'🌏 母語'}</div>
       <div class="conv-msg-original">${m.original}</div>
       <div class="conv-msg-translated">${m.translated}</div>
     </div>`;
