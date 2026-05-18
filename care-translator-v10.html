@@ -280,6 +280,36 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
 /* ===== v10: 用語バッジ（辞書訳適用表示） ===== */
 .term-badge.dict-applied{background:#e8f5e9;border-color:#a5d6a7;color:#2e7d32}
 
+/* ===== 用語インライン表示（機能A） ===== */
+.glossary-inline{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
+.glossary-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#f3e8ff;border:1px solid #d8b4fe;border-radius:20px;font-size:12px;color:#6b21a8;cursor:pointer;transition:all .2s}
+.glossary-chip:hover{background:#e9d5ff}
+.glossary-chip-reading{font-weight:600}
+.glossary-chip-sep{color:#c4b5fd;margin:0 1px}
+.glossary-chip-trans{color:#7c3aed}
+
+/* ===== 学習タブ（機能B） ===== */
+.learn-tab-btn{padding:14px 20px;border:none;background:none;font-family:var(--font-jp);font-size:14px;font-weight:500;color:#888;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;position:relative}
+.learn-tab-btn.active{color:#7c3aed;border-bottom-color:#7c3aed;font-weight:700}
+.learn-tab-count{position:absolute;top:8px;right:6px;min-width:18px;height:18px;line-height:18px;text-align:center;font-size:10px;font-weight:700;color:white;background:#7c3aed;border-radius:9px;padding:0 5px}
+#mode-learn{display:none;flex:1;flex-direction:column;overflow:hidden}
+#mode-learn.active{display:flex}
+.learn-cat-tabs{display:flex;overflow-x:auto;padding:8px 12px;gap:6px;flex-shrink:0;border-bottom:1px solid var(--border);background:white;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.learn-cat-tabs::-webkit-scrollbar{display:none}
+.learn-cat-tab{padding:6px 14px;border:1.5px solid var(--border);background:white;border-radius:16px;font-family:var(--font-jp);font-size:12px;font-weight:500;color:var(--text-muted);cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0}
+.learn-cat-tab.active{border-color:#7c3aed;background:#f3e8ff;color:#7c3aed;font-weight:700}
+.learn-list{flex:1;overflow-y:auto;padding:8px 12px}
+.learn-empty{text-align:center;padding:40px 20px;color:var(--text-small);font-size:14px}
+.learn-card{background:white;border:1px solid #ede9f8;border-radius:12px;padding:14px 16px;margin-bottom:8px;box-shadow:0 1px 6px rgba(108,63,192,.05)}
+.learn-card-term{font-size:17px;font-weight:700;color:var(--text)}
+.learn-card-reading{font-size:13px;color:var(--text-muted);margin-left:6px}
+.learn-card-desc{font-size:12px;color:var(--text-muted);margin-top:4px;line-height:1.5}
+.learn-card-trans{font-size:14px;font-weight:600;color:#7c3aed;margin-top:6px}
+.learn-card-cat{display:inline-block;font-size:10px;color:var(--text-small);background:var(--bg);border-radius:8px;padding:2px 8px;margin-top:6px}
+.learn-actions{padding:8px 12px;border-top:1px solid var(--border);background:white;flex-shrink:0;display:flex;gap:8px}
+.learn-action-btn{flex:1;padding:10px;border:1px solid var(--border);background:var(--surface2);border-radius:10px;font-family:var(--font-jp);font-size:13px;cursor:pointer;color:var(--text-muted);text-align:center;transition:all .2s}
+.learn-action-btn:hover{border-color:var(--accent);color:var(--accent)}
+
 /* Toast */
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:white;padding:10px 18px;border-radius:20px;font-size:13px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1}
@@ -363,6 +393,7 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
   <button class="mode-btn active" id="modeVideo" onclick="setMode('video',this)">🎬 研修動画</button>
   <button class="mode-btn" id="modeMeeting" onclick="setMode('meeting',this)">🤝 会議・指導</button>
   <button class="mode-btn dist-btn" id="modeDist" onclick="setMode('dist',this)">📡 配信</button>
+  <button class="mode-btn learn-tab-btn" id="modeLearn" onclick="setMode('learn',this)">📖 用語<span class="learn-tab-count" id="learnTabCount" style="display:none">0</span></button>
 </div>
 
 <!-- v10: 翻訳モードバー -->
@@ -417,6 +448,18 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
       <button class="dist-stop-btn" onclick="stopDistribution()">⏹ 配信を停止</button>
       <div class="dist-log" id="distLog"></div>
     </div>
+  </div>
+</div>
+
+<!-- 学習タブパネル -->
+<div id="mode-learn">
+  <div class="learn-cat-tabs" id="learnCatTabs"></div>
+  <div class="learn-list" id="learnList">
+    <div class="learn-empty">まだ用語が出てきていません。<br>録音を開始すると、出現した専門用語がここに蓄積されます。</div>
+  </div>
+  <div class="learn-actions">
+    <button class="learn-action-btn" onclick="clearLearnedTerms()">🗑️ クリア</button>
+    <button class="learn-action-btn" onclick="exportLearnedTerms()">📋 コピー</button>
   </div>
 </div>
 
@@ -697,6 +740,65 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
 </div>
 
 <script>
+// ===== 介護専門用語辞書（care-glossary.json v1.1 インライン） =====
+const CARE_GLOSSARY = [
+  {term:'移乗',reading:'いじょう',category:'介護・リハビリ',description:'ベッドから車いすなどに乗り移ること',translations:{en:'Transfer',my:'အိပ်ရာမှ ဘီးတပ်ကုလားထိုင်သို့ ရွှေ့ပြောင်းခြင်း',id:'transfer dari tempat tidur ke kursi roda',vi:'di chuyển từ giường sang xe lăn',hi:'बिस्तर से व्हीलचेयर में स्थानांतरण'}},
+  {term:'体位変換',reading:'たいいへんかん',category:'介護・リハビリ',description:'褥瘡予防のため定期的に体の向きを変えること',translations:{en:'Repositioning / Postural change',my:'အိပ်ရာတွင် ကိုယ်ခန္ဓာ ဦးတည်ရာကို ပြောင်းလဲခြင်း',id:'mengubah posisi tubuh untuk mencegah luka tekan',vi:'thay đổi tư thế để phòng loét',hi:'बेडसोर रोकने के लिए करवट बदलना'}},
+  {term:'端座位',reading:'たんざい',category:'介護・リハビリ',description:'ベッドの端に座った姿勢',translations:{en:'Sitting on the edge of the bed',my:'ကုတင်အစွန်တွင် ထိုင်ခြင်း',id:'duduk di tepi tempat tidur',vi:'ngồi ở mép giường',hi:'बिस्तर के किनारे बैठना'}},
+  {term:'仰臥位',reading:'ぎょうがい',category:'介護・リハビリ',description:'仰向けに寝た姿勢',translations:{en:'Supine position',my:'ပက်လက်အိပ်ခြင်း',id:'posisi telentang',vi:'tư thế nằm ngửa',hi:'पीठ के बल लेटना'}},
+  {term:'側臥位',reading:'そくがい',category:'介護・リハビリ',description:'横向きに寝た姿勢',translations:{en:'Lateral position / Side-lying',my:'ဘေးတိုက်အိပ်ခြင်း',id:'posisi miring',vi:'tư thế nằm nghiêng',hi:'करवट लेकर लेटना'}},
+  {term:'褥瘡',reading:'じょくそう',category:'医療・看護',description:'長時間同じ姿勢で皮膚が圧迫されてできる傷',translations:{en:'Bedsore / Pressure ulcer',my:'အိပ်ရာဒဏ်ရာ',id:'luka tekan / dekubitus',vi:'loét do tì đè',hi:'बेडसोर'}},
+  {term:'誤嚥',reading:'ごえん',category:'医療・看護',description:'食べ物や飲み物が気管に入ること',translations:{en:'Aspiration',my:'အစာ သို့မဟုတ် အရည် အသက်ရှူလမ်းကြောင်းထဲ ဝင်ခြင်း',id:'aspirasi - makanan/minuman masuk ke saluran napas',vi:'sặc - thức ăn/nước uống vào đường thở',hi:'भोजन/पेय श्वास नली में जाना'}},
+  {term:'嚥下',reading:'えんげ',category:'医療・看護',description:'食べ物を飲み込む動作',translations:{en:'Swallowing',my:'မျိုချခြင်း',id:'menelan',vi:'nuốt',hi:'निगलना'}},
+  {term:'転倒',reading:'てんとう',category:'介護・リハビリ',description:'倒れること・こけること',translations:{en:'Fall',my:'လဲကျခြင်း',id:'jatuh',vi:'té ngã',hi:'गिरना'}},
+  {term:'見守り',reading:'みまもり',category:'日常業務',description:'そばで安全を確認しながら見ていること',translations:{en:'Supervision / Watching over',my:'စောင့်ကြည့်ခြင်း',id:'mengawasi / memantau keselamatan',vi:'theo dõi / giám sát an toàn',hi:'निगरानी करना'}},
+  {term:'更衣',reading:'こうい',category:'介護・リハビリ',description:'衣服の着脱動作',translations:{en:'Changing clothes',my:'အဝတ်လဲခြင်း',id:'berpakaian / mengganti pakaian',vi:'thay quần áo',hi:'कपड़े बदलना'}},
+  {term:'整容',reading:'せいよう',category:'介護・リハビリ',description:'洗面・整髪・歯磨きなどの身だしなみ動作',translations:{en:'Grooming / Personal hygiene',my:'မျက်နှာသစ်၊ ဆံပင်ဖြီး၊ သွားတိုက်ခြင်း',id:'perawatan diri - cuci muka, sisir rambut, sikat gigi',vi:'vệ sinh cá nhân - rửa mặt, chải tóc, đánh răng',hi:'व्यक्तिगत साफ-सफाई - मुँह धोना, बाल बनाना, दाँत साफ करना'}},
+  {term:'排泄',reading:'はいせつ',category:'介護・リハビリ',description:'トイレに行くこと・尿や便を出すこと',translations:{en:'Toileting / Excretion',my:'အိမ်သာသွားခြင်း',id:'buang air kecil/besar',vi:'đi vệ sinh',hi:'शौच/पेशाब करना'}},
+  {term:'入浴',reading:'にゅうよく',category:'介護・リハビリ',description:'お風呂に入ること',translations:{en:'Bathing',my:'ရေချိုးခြင်း',id:'mandi',vi:'tắm',hi:'नहाना'}},
+  {term:'食介',reading:'しょっかい',also_known_as:'食事介助',category:'介護・リハビリ',description:'食事介助の略。食べるのを手伝うこと',translations:{en:'Meal assistance / Feeding',my:'အစားအသောက် ကူညီခြင်း',id:'membantu makan',vi:'hỗ trợ ăn uống',hi:'खाने में सहायता'}},
+  {term:'バイタル',reading:'ばいたる',category:'医療・看護',description:'体温・血圧・脈拍・呼吸数・SpO2などの測定',translations:{en:'Vital signs / Vitals',my:'အသက်ရှင်မှု လက္ခဏာများ တိုင်းတာခြင်း',id:'mengukur tanda-tanda vital',vi:'đo dấu hiệu sinh tồn',hi:'जीवन संकेत मापना'}},
+  {term:'血圧',reading:'けつあつ',category:'医療・看護',description:'動脈内の血液圧力',translations:{en:'Blood pressure (BP)',my:'သွေးပေါင်ချိန်',id:'tekanan darah',vi:'huyết áp',hi:'रक्तचाप'}},
+  {term:'点滴',reading:'てんてき',category:'医療・看護',description:'静脈内輸液。薬剤や水分を静脈から投与',translations:{en:'IV drip / Intravenous infusion',my:'သွေးကြောထဲသို့ ဆေးရည်ထိုးခြင်း',id:'infus',vi:'truyền dịch',hi:'ड्रिप / IV'}},
+  {term:'禁食',reading:'きんしょく',also_known_as:'絶食',category:'医療・看護',description:'手術前や検査前に食事を禁止すること（絶食）',translations:{en:'Fasting / NPO',my:'အစာမစားရ',id:'puasa / tidak boleh makan',vi:'nhịn ăn',hi:'खाना मना है'}},
+  {term:'認知症',reading:'にんちしょう',category:'医療・看護',description:'脳の障害により記憶・判断力が低下する疾患',translations:{en:'Dementia',my:'သတိပညာ ကျဆင်းခြင်း ရောဂါ',id:'demensia',vi:'chứng sa sút trí tuệ',hi:'मनोभ्रंश / डिमेंशिया'}},
+  {term:'片麻痺',reading:'かたまひ',category:'介護・リハビリ',description:'脳卒中後などに起こる半身の麻痺',translations:{en:'Hemiplegia',my:'ခန္ဓာကိုယ် တစ်ဖက်ခြမ်း သေခြင်း',id:'lumpuh separuh badan / hemiplegia',vi:'liệt nửa người',hi:'अर्धांगघात'}},
+  {term:'脳卒中',reading:'のうそっちゅう',category:'医療・看護',description:'脳梗塞・脳出血・くも膜下出血の総称',translations:{en:'Stroke',my:'လေဖြတ်ခြင်း',id:'stroke',vi:'đột quỵ',hi:'स्ट्रोक / मस्तिष्काघात'}},
+  {term:'ケアプラン',reading:'けあぷらん',category:'介護・リハビリ',description:'必要な介護サービスを記載した計画書',translations:{en:'Care plan',my:'ပြုစုစောင့်ရှောက်မှု အစီအစဉ်',id:'rencana perawatan',vi:'kế hoạch chăm sóc',hi:'देखभाल योजना'}},
+  {term:'申し送り',reading:'もうしおくり',category:'日常業務',description:'次の勤務者への引き継ぎ報告',translations:{en:'Handover / Shift report',my:'အလှည့်ကျ အစီရင်ခံခြင်း',id:'serah terima / laporan pergantian shift',vi:'bàn giao ca',hi:'शिफ्ट हैंडओवर'}},
+  {term:'SpO2',reading:'えすぴーおーつー',category:'医療・看護',description:'経皮的動脈血酸素飽和度。正常値は96〜100%',translations:{en:'SpO2 / Blood oxygen saturation',my:'သွေးထဲ အောက်စီဂျင် ပမာဏ',id:'saturasi oksigen darah',vi:'độ bão hòa oxy trong máu',hi:'रक्त ऑक्सीजन स्तर'}},
+  {term:'BPSD',reading:'びーぴーえすでぃー',category:'医療・看護',description:'認知症の行動・心理症状（徘徊・攻撃・幻覚など）',translations:{en:'BPSD',my:'သတိပညာကျဆင်းမှု၏ အပြုအမူနှင့် စိတ်ပိုင်းဆိုင်ရာ လက္ခဏာများ',id:'gejala perilaku dan psikologis demensia',vi:'triệu chứng hành vi và tâm lý của sa sút trí tuệ',hi:'डिमेंशिया के व्यवहारिक और मनोवैज्ञानिक लक्षण'}},
+  {term:'アレルギー',reading:'あれるぎー',category:'医療・看護',description:'特定物質に対する過敏反応',translations:{en:'Allergy',my:'ဓာတ်မတည့်ခြင်း',id:'alergi',vi:'dị ứng',hi:'एलर्जी'}},
+  {term:'処方',reading:'しょほう',category:'医療・看護',description:'医師が薬の種類・量・用法を指示すること',translations:{en:'Prescription',my:'ဆေးညွှန်း',id:'resep obat',vi:'đơn thuốc',hi:'दवा का नुस्खा'}},
+  {term:'コール',reading:'こーる',category:'日常業務',description:'患者がナースコールで呼ぶこと',translations:{en:'Nurse call',my:'သူနာပြုခေါ်စက် နှိပ်ခြင်း',id:'memanggil perawat dengan tombol panggil',vi:'bấm chuông gọi y tá',hi:'नर्स कॉल बटन दबाना'}},
+  {term:'おむつ交換',reading:'おむつこうかん',category:'介護・リハビリ',description:'おむつを取り替えること',translations:{en:'Diaper change',my:'ဒိုင်ပါ လဲခြင်း',id:'mengganti popok',vi:'thay tã',hi:'डायपर बदलना'}},
+  {term:'脱健着患',reading:'だっけんちゃっかん',category:'介護・リハビリ',description:'麻痺がある方の更衣の基本。「脱ぐ時は健康な側から、着る時は麻痺側から」',translations:{en:'Undress the healthy side first, dress the affected side first',my:'ကျန်းမာသောဘက်မှစ၍ချွတ်ပြီး၊ မသန်စွမ်းသောဘက်မှစ၍ဝတ်ဆင်ပါ',id:'Lepas pakaian dari sisi yang sehat, kenakan dari sisi yang lumpuh/sakit',vi:'Cởi quần áo từ bên khỏe trước, mặc từ bên liệt trước',hi:'स्वस्थ तरफ से पहले कपड़े उतारें, और प्रभावित (लकवाग्रस्त) तरफ से पहले पहनें'}},
+  {term:'健側',reading:'けんそく',category:'介護・リハビリ',description:'麻痺がない、健康に動かせる方の手足',translations:{en:'Unaffected side / Healthy side',my:'ကျန်းမာသောဘက်',id:'Sisi yang sehat',vi:'Bên khỏe',hi:'स्वस्थ पक्ष'}},
+  {term:'患側',reading:'かんそく',category:'介護・リハビリ',description:'麻痺やケガ、痛みがある方の手足',translations:{en:'Affected side / Paralyzed side',my:'မသန်စွမ်းသောဘက်',id:'Sisi yang sakit / lumpuh',vi:'Bên bệnh / Bên liệt',hi:'प्रभावित पक्ष / लकवाग्रस्त पक्ष'}},
+  {term:'報連相',reading:'ほうれんそう',category:'日常業務',description:'報告・連絡・相談の略。日本の職場で最も重要な基本ルール',translations:{en:'Ho-Ren-So (Report, Inform, Consult)',my:'အစီရင်ခံခြင်း၊ အကြောင်းကြားခြင်း၊ တိုင်ပင်ဆွေးနွေးခြင်း',id:'Ho-Ren-So (Melapor, Menginformasikan, Berkonsultasi)',vi:'Ho-Ren-So (Báo cáo, Liên lạc, Bàn bạc)',hi:'हो-रेन-सो (रिपोर्ट करना, सूचित करना, परामर्श करना)'}},
+  {term:'報告',reading:'ほうこく',category:'日常業務',description:'仕事の進み具合や結果を上司・リーダーに伝えること',translations:{en:'Report',my:'အစီရင်ခံခြင်း',id:'Melapor',vi:'Báo cáo',hi:'रिपोर्ट करना'}},
+  {term:'連絡',reading:'れんらく',category:'日常業務',description:'起きた事実や情報を、関係する人に知らせること',translations:{en:'Inform / Communicate',my:'အကြောင်းကြားခြင်း',id:'Menginformasikan / Memberitahu',vi:'Liên lạc / Thông báo',hi:'सूचित करना'}},
+  {term:'相談',reading:'そうだん',category:'日常業務',description:'わからない時や迷った時に、上司や先輩に意見を聞くこと',translations:{en:'Consult / Discuss',my:'တိုင်ပင်ဆွေးနွေးခြင်း',id:'Berkonsultasi',vi:'Thảo luận / Hỏi ý kiến',hi:'परामर्श करना'}},
+  {term:'ヒヤリハット',reading:'ひやりはっと',category:'日常業務',description:'重大な事故にはならなかったが、ヒヤッとしたりハッとした出来事',translations:{en:'Near-miss',my:'မတော်တဆဖြစ်လုနီးပါး အခြေအနေ',id:'Hampir celaka / Kejadian nyaris cedera',vi:'Tình huống suýt xảy ra tai nạn',hi:'बाल-बाल बचना / नियर मिस'}},
+  {term:'とろみ',reading:'とろみ',category:'介護・リハビリ',description:'誤嚥を防ぐため、飲み物や汁物につける粘り気',translations:{en:'Thickener / Thickened liquid',my:'အစားအစာပျစ်အောင်လုပ်ခြင်း',id:'Pengental (makanan/minuman)',vi:'Làm đặc (thức ăn/nước uống)',hi:'(भोजन/पेय को) गाढ़ा करना'}},
+  {term:'自立支援',reading:'じりつしえん',category:'介護・リハビリ',description:'利用者が自分でできることはやってもらい、できない部分をサポートする介護の基本',translations:{en:'Supporting independence',my:'ကိုယ့်ဘာသာရပ်တည်နိုင်ရန် ကူညီထောက်ပံ့ခြင်း',id:'Dukungan kemandirian',vi:'Hỗ trợ tự lập',hi:'आत्मनिर्भरता में सहायता'}},
+  {term:'声かけ',reading:'こえかけ',category:'日常業務',description:'利用者の体に触れる前や、何かをする前に言葉をかけること',translations:{en:'Verbal cue / Telling before acting',my:'ကြိုတင်အသိပေးပြောဆိုခြင်း',id:'Memberitahu sebelum melakukan tindakan',vi:'Báo trước / Giải thích trước khi làm',hi:'कुछ करने से पहले बताना'}},
+  {term:'夜勤 / 日勤',reading:'やきん / にっきん',category:'日常業務',description:'夜の勤務（夜勤）と、昼間の勤務（日勤）',translations:{en:'Night shift / Day shift',my:'ညဆိုင်း / နေ့ဆိုင်း',id:'Shift malam / Shift siang',vi:'Ca đêm / Ca ngày',hi:'नाइट शिफ्ट / डे शिफ्ट'}},
+  {term:'尊厳の保持',reading:'そんげんのほじ',category:'基本理念・知識',description:'利用者を一人の人間として尊重し、大切にすること',translations:{en:'Preservation of dignity',my:'ဂုဏ်သိက္ခာကို ထိန်းသိမ်းခြင်း',id:'Menjaga martabat (Menghargai martabat)',vi:'Giữ gìn nhân phẩm',hi:'गरिमा बनाए रखना'}},
+  {term:'自己決定',reading:'じこけってい',category:'基本理念・知識',description:'自分の生活やケアの方法を、利用者自身が自分で決めること',translations:{en:'Self-determination / Autonomy',my:'ကိုယ်တိုင်ဆုံးဖြတ်ခွင့်',id:'Menentukan pilihan sendiri',vi:'Tự quyết định',hi:'आत्मनिर्णय'}},
+  {term:'QOL',reading:'きゅーおーえる',category:'基本理念・知識',description:'生活の質。「その人らしく幸せに生きているか」の指標',translations:{en:'Quality of Life (QOL)',my:'ဘဝအရည်အသွေး',id:'Kualitas Hidup (QOL)',vi:'Chất lượng cuộc sống (QOL)',hi:'जीवन की गुणवत्ता (QOL)'}},
+  {term:'ADL',reading:'えーでぃーえる',category:'介護・リハビリ',description:'日常生活動作。食事、排泄、着替えなど、生活に必要な基本動作',translations:{en:'Activities of Daily Living (ADL)',my:'နေ့စဉ်ဘဝ လှုပ်ရှားမှုများ',id:'Aktivitas Kehidupan Sehari-hari (ADL)',vi:'Các hoạt động sinh hoạt hàng ngày (ADL)',hi:'दैनिक जीवन की गतिविधियाँ (ADL)'}},
+  {term:'廃用症候群',reading:'はいようしょうこうぐん',category:'医療・看護',description:'長期間寝たきりで動かないことで、心身の機能が衰えてしまうこと',translations:{en:'Disuse syndrome',my:'အသုံးမပြုခြင်းကြောင့် ဖြစ်ပေါ်သော ရောဂါလက္ခဏာစု',id:'Sindrom disuse (Penurunan fungsi tubuh karena tidak beraktivitas)',vi:'Hội chứng không sử dụng (Suy giảm do ít vận động)',hi:'निष्क्रियता सिंड्रोम (शारीरिक कार्य में गिरावट)'}},
+  {term:'ボディメカニクス',reading:'ぼでぃめかにくす',category:'介護・リハビリ',description:'骨や筋肉の仕組みを利用して、少ない力で安全に介助する技術',translations:{en:'Body mechanics',my:'ကိုယ်ခန္ဓာလှုပ်ရှားမှု ပညာရပ်',id:'Mekanika tubuh (Teknik gerak aman)',vi:'Cơ học cơ thể (Cách vận động an toàn)',hi:'शारीरिक यांत्रिकी'}},
+  {term:'受容と共感',reading:'じゅようときょうかん',category:'基本理念・知識',description:'相手の気持ちを否定せずに受け入れ（受容）、同じように感じること（共感）',translations:{en:'Acceptance and Empathy',my:'လက်ခံခြင်းနှင့် ကိုယ်ချင်းစာခြင်း',id:'Penerimaan dan Empati',vi:'Chấp nhận và Đồng cảm',hi:'स्वीकृति और सहानुभूति'}},
+];
+const GLOSSARY_LANGS = ['my','id','vi','hi','en'];
+const GLOSSARY_CATEGORIES = ['介護・リハビリ','医療・看護','日常業務','基本理念・知識'];
+
+// ===== 学習タブ用の蓄積データ =====
+let learnedTerms = JSON.parse(localStorage.getItem('cv10LearnedTerms')||'[]');
+let _activeLearnCat = 'すべて';
+
 // ===== 用語辞書 =====
 let TERMS_DB = [
   {term:'見守り',reading:'みまもり',basic:'そばで安全を確認する',point:'基本は手を出さない',exception:'危険時はすぐ介助する',my:'စောင့်ကြည့်ခြင်း',id:'Mengawasi',vi:'Theo dõi',en:'Monitoring',tl:'Pagmamasid',zh:'看护',ko:'돌봄',hi:'निगरानी'},
@@ -1084,17 +1186,21 @@ function setMode(mode, btn){
   const mc=document.getElementById('mainContent');
   const dm=document.getElementById('mode-dist');
   const mp=document.getElementById('mode-meeting-panel');
+  const lp=document.getElementById('mode-learn');
   if(mode==='dist'){
-    mc.style.display='none'; dm.style.display='block'; mp.style.display='none';
+    mc.style.display='none'; dm.style.display='block'; mp.style.display='none'; lp.classList.remove('active');
   } else if(mode==='meeting'){
-    mc.style.display='none'; dm.style.display='none'; mp.style.display='flex'; mp.style.flexDirection='column';
+    mc.style.display='none'; dm.style.display='none'; mp.style.display='flex'; mp.style.flexDirection='column'; lp.classList.remove('active');
+  } else if(mode==='learn'){
+    mc.style.display='none'; dm.style.display='none'; mp.style.display='none'; lp.classList.add('active');
+    renderLearnTab();
   } else {
-    mc.style.display=''; dm.style.display='none'; mp.style.display='none';
+    mc.style.display=''; dm.style.display='none'; mp.style.display='none'; lp.classList.remove('active');
   }
   // PC内部音声ボタンは会議・指導モードでは非表示
   const pcBtn=document.getElementById('pcBtn');
-  if(pcBtn) pcBtn.style.display=(mode==='meeting')?'none':'';
-  // アプリモード→翻訳モード自動連動
+  if(pcBtn) pcBtn.style.display=(mode==='meeting'||mode==='learn')?'none':'';
+  // アプリモード→翻訳モード自動連動（learnタブでは連動しない）
   const autoTM = TRANS_MODE_MAP[mode];
   if(autoTM){
     const tmb = document.querySelector(`.trans-mode-btn[onclick*="'${autoTM}'"]`);
@@ -1926,6 +2032,17 @@ function renderEntry(el, entry){
     }).join('')+'</div>';
   }
 
+  // 機能A: CARE_GLOSSARY用語の読み＋母語訳インライン表示
+  let glossaryInlineHtml='';
+  const glossaryMatched=matchGlossaryTerms(entry.seimon||entry.raw);
+  if(glossaryMatched.length && GLOSSARY_LANGS.includes(state.targetLang)){
+    glossaryInlineHtml='<div class="glossary-inline">'+glossaryMatched.map(g=>{
+      const trans=g.translations[state.targetLang]||'';
+      return trans?`<span class="glossary-chip" onclick="showGlossaryDetail('${escapeHtml(g.term)}')"><span class="glossary-chip-reading">${escapeHtml(g.reading)}</span><span class="glossary-chip-sep">|</span><span class="glossary-chip-trans">${escapeHtml(trans)}</span></span>`:'';
+    }).filter(Boolean).join('')+'</div>';
+    addToLearnedTerms(glossaryMatched);
+  }
+
   // タイムスタンプ
   const time=entry.ts?new Date(entry.ts).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}):'';
 
@@ -1934,6 +2051,7 @@ function renderEntry(el, entry){
 
   let html=dangerBar;
   if(transText) html+=`<div class="entry-trans">${escapeHtml(transText)}</div>`;
+  html+=glossaryInlineHtml;
   html+=`<div class="entry-jp">${seimonHtml}</div>`;
   html+=termsHtml;
   // aliases補正バッジ
@@ -2628,6 +2746,132 @@ function speakMeetingResult(text,lang){
   applySpeakSettings(utt, lang);
   speechSynthesis.cancel();speechSynthesis.speak(utt);
 }
+
+// ===== CARE_GLOSSARY 用語マッチング =====
+function matchGlossaryTerms(text){
+  if(!text) return [];
+  const matched=[];
+  const seen=new Set();
+  for(const g of CARE_GLOSSARY){
+    const targets=[g.term];
+    if(g.also_known_as) targets.push(g.also_known_as);
+    for(const t of targets){
+      if(text.includes(t) && !seen.has(g.term)){
+        matched.push(g);
+        seen.add(g.term);
+        break;
+      }
+    }
+  }
+  return matched;
+}
+
+// ===== CARE_GLOSSARY 詳細ポップアップ（既存termPopupを流用） =====
+function showGlossaryDetail(termName){
+  const g=CARE_GLOSSARY.find(x=>x.term===termName);
+  if(!g) return;
+  document.getElementById('termName').textContent=g.term;
+  document.getElementById('termReading').textContent='（'+g.reading+'）';
+  document.getElementById('termBasic').textContent=g.description;
+  document.getElementById('termPoint').textContent=g.also_known_as||'—';
+  document.getElementById('termException').textContent='—';
+  const trans=g.translations[state.targetLang];
+  document.getElementById('termTrans').textContent=trans?'🌐 '+trans:'';
+  document.getElementById('termPopup').classList.add('show');
+}
+
+// ===== 学習タブ: 用語蓄積 =====
+function addToLearnedTerms(glossaryItems){
+  let changed=false;
+  for(const g of glossaryItems){
+    if(!learnedTerms.some(l=>l.term===g.term)){
+      learnedTerms.push({term:g.term,reading:g.reading,category:g.category,description:g.description,translations:g.translations,also_known_as:g.also_known_as||null,ts:Date.now()});
+      changed=true;
+    }
+  }
+  if(changed){
+    localStorage.setItem('cv10LearnedTerms',JSON.stringify(learnedTerms));
+    updateLearnTabCount();
+  }
+}
+
+function updateLearnTabCount(){
+  const el=document.getElementById('learnTabCount');
+  if(!el) return;
+  if(learnedTerms.length>0){
+    el.textContent=learnedTerms.length;
+    el.style.display='';
+  } else {
+    el.style.display='none';
+  }
+}
+
+// ===== 学習タブ: レンダリング =====
+function renderLearnTab(){
+  renderLearnCatTabs();
+  renderLearnList();
+}
+
+function renderLearnCatTabs(){
+  const tabs=document.getElementById('learnCatTabs');
+  tabs.innerHTML='';
+  const cats=['すべて',...GLOSSARY_CATEGORIES];
+  cats.forEach(cat=>{
+    const btn=document.createElement('button');
+    btn.className='learn-cat-tab'+(cat===_activeLearnCat?' active':'');
+    const count=cat==='すべて'?learnedTerms.length:learnedTerms.filter(t=>t.category===cat).length;
+    btn.textContent=`${cat} (${count})`;
+    btn.onclick=()=>{
+      _activeLearnCat=cat;
+      document.querySelectorAll('.learn-cat-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderLearnList();
+    };
+    tabs.appendChild(btn);
+  });
+}
+
+function renderLearnList(){
+  const list=document.getElementById('learnList');
+  const filtered=_activeLearnCat==='すべて'?learnedTerms:learnedTerms.filter(t=>t.category===_activeLearnCat);
+  if(!filtered.length){
+    list.innerHTML='<div class="learn-empty">'+(_activeLearnCat==='すべて'?'まだ用語が出てきていません。<br>録音を開始すると、出現した専門用語がここに蓄積されます。':'このカテゴリの用語はまだありません。')+'</div>';
+    return;
+  }
+  list.innerHTML=filtered.map(t=>{
+    const trans=t.translations[state.targetLang]||'';
+    return `<div class="learn-card" onclick="showGlossaryDetail('${escapeHtml(t.term)}')">
+      <span class="learn-card-term">${escapeHtml(t.term)}</span><span class="learn-card-reading">（${escapeHtml(t.reading)}）</span>
+      <div class="learn-card-desc">${escapeHtml(t.description)}</div>
+      ${trans?`<div class="learn-card-trans">🌐 ${escapeHtml(trans)}</div>`:''}
+      <span class="learn-card-cat">${escapeHtml(t.category)}</span>
+    </div>`;
+  }).join('');
+}
+
+function clearLearnedTerms(){
+  if(!learnedTerms.length) return;
+  if(!confirm('学習した用語をすべてクリアしますか？')) return;
+  learnedTerms=[];
+  localStorage.removeItem('cv10LearnedTerms');
+  updateLearnTabCount();
+  renderLearnTab();
+  showToast('学習用語をクリアしました');
+}
+
+function exportLearnedTerms(){
+  if(!learnedTerms.length){showToast('エクスポートする用語がありません');return;}
+  const lang=state.targetLang;
+  const lines=learnedTerms.map(t=>{
+    const trans=t.translations[lang]||'';
+    return `${t.term}（${t.reading}）${trans?' → '+trans:''}  [${t.category}]`;
+  });
+  const text='【CareVoice 学習用語一覧】\n'+lines.join('\n');
+  navigator.clipboard.writeText(text).then(()=>showToast('📋 用語一覧をコピーしました')).catch(()=>{});
+}
+
+// 起動時にカウント表示
+updateLearnTabCount();
 
 async function initReceiveMode(code){
   const ok=await loadFirebase(); if(!ok) return;
