@@ -310,6 +310,16 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
 .learn-action-btn{flex:1;padding:10px;border:1px solid var(--border);background:var(--surface2);border-radius:10px;font-family:var(--font-jp);font-size:13px;cursor:pointer;color:var(--text-muted);text-align:center;transition:all .2s}
 .learn-action-btn:hover{border-color:var(--accent);color:var(--accent)}
 
+/* 手動追加フォーム */
+.learn-add-row{padding:8px 12px;border-bottom:1px solid var(--border);background:white;display:flex;gap:8px;flex-shrink:0}
+.learn-add-input{flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font-jp);font-size:14px;outline:none;transition:border-color .2s}
+.learn-add-input:focus{border-color:#7c3aed}
+.learn-add-input::placeholder{color:#bbb}
+.learn-add-btn{padding:10px 16px;border:none;background:#7c3aed;color:white;border-radius:10px;font-family:var(--font-jp);font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .2s}
+.learn-add-btn:active{opacity:.7}
+.learn-card.manual{border-left:3px solid #f59e0b;background:#fffbeb}
+.learn-card-unknown{font-size:11px;color:#d97706;margin-top:4px}
+
 /* Toast */
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:white;padding:10px 18px;border-radius:20px;font-size:13px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1}
@@ -453,6 +463,10 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
 
 <!-- 学習タブパネル -->
 <div id="mode-learn">
+  <div class="learn-add-row">
+    <input type="text" class="learn-add-input" id="learnAddInput" placeholder="分からない言葉を入力..." enterkeyhint="done">
+    <button class="learn-add-btn" onclick="addManualTerm()">＋追加</button>
+  </div>
   <div class="learn-cat-tabs" id="learnCatTabs"></div>
   <div class="learn-list" id="learnList">
     <div class="learn-empty">まだ用語が出てきていません。<br>録音を開始すると、出現した専門用語がここに蓄積されます。</div>
@@ -2815,7 +2829,9 @@ function renderLearnTab(){
 function renderLearnCatTabs(){
   const tabs=document.getElementById('learnCatTabs');
   tabs.innerHTML='';
-  const cats=['すべて',...GLOSSARY_CATEGORIES];
+  const hasManual=learnedTerms.some(t=>t.manual);
+  const cats=['すべて',...GLOSSARY_CATEGORIES,...(hasManual?['わからない言葉']:[])];
+
   cats.forEach(cat=>{
     const btn=document.createElement('button');
     btn.className='learn-cat-tab'+(cat===_activeLearnCat?' active':'');
@@ -2839,6 +2855,13 @@ function renderLearnList(){
     return;
   }
   list.innerHTML=filtered.map(t=>{
+    if(t.manual){
+      return `<div class="learn-card manual">
+        <span class="learn-card-term">${escapeHtml(t.term)}</span>
+        <div class="learn-card-unknown">❓ あとで先輩・同僚に聞いてみよう</div>
+        <span class="learn-card-cat">${escapeHtml(t.category)}</span>
+      </div>`;
+    }
     const trans=t.translations[state.targetLang]||'';
     return `<div class="learn-card" onclick="showGlossaryDetail('${escapeHtml(t.term)}')">
       <span class="learn-card-term">${escapeHtml(t.term)}</span><span class="learn-card-reading">（${escapeHtml(t.reading)}）</span>
@@ -2864,11 +2887,32 @@ function exportLearnedTerms(){
   const lang=state.targetLang;
   const lines=learnedTerms.map(t=>{
     const trans=t.translations[lang]||'';
+    if(t.manual) return `${t.term}  [❓ わからない言葉]`;
     return `${t.term}（${t.reading}）${trans?' → '+trans:''}  [${t.category}]`;
   });
   const text='【CareVoice 学習用語一覧】\n'+lines.join('\n');
   navigator.clipboard.writeText(text).then(()=>showToast('📋 用語一覧をコピーしました')).catch(()=>{});
 }
+
+// ===== 手動用語追加 =====
+function addManualTerm(){
+  const input=document.getElementById('learnAddInput');
+  const term=input.value.trim();
+  if(!term){input.focus();return;}
+  if(learnedTerms.some(l=>l.term===term)){
+    showToast('「'+term+'」は既に登録済みです');
+    input.value='';input.focus();return;
+  }
+  learnedTerms.push({term,reading:'',category:'わからない言葉',description:'',translations:{},manual:true,ts:Date.now()});
+  localStorage.setItem('cv10LearnedTerms',JSON.stringify(learnedTerms));
+  updateLearnTabCount();
+  renderLearnTab();
+  input.value='';
+  showToast('「'+term+'」を追加しました');
+}
+document.getElementById('learnAddInput').addEventListener('keydown',function(e){
+  if(e.key==='Enter'){e.preventDefault();addManualTerm();}
+});
 
 // 起動時にカウント表示
 updateLearnTabCount();
