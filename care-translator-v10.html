@@ -1690,7 +1690,34 @@ function checkAmbiguousPairs(text, alternatives) {
 }
 
 // 候補モーダル表示
+// ===== v10.2: ASR候補の医療語リランキング =====
+// 候補に医療語・危険語・医療数値が含まれるものを上位に。正解が第2/第3候補に埋もれるのを防ぐ。
+function medicalTermsInText(text){
+  if(!text) return [];
+  const found=new Set();
+  for(const t of getActiveTerms()){ if(t.term && t.term.length>=2 && text.includes(t.term)) found.add(t.term); }
+  for(const lvl of ['critical','important']){ for(const d of (DANGER_TERMS[lvl]||[])){ if(text.includes(d.term)) found.add(d.term); } }
+  return [...found];
+}
+function candidateMedicalScore(alt){
+  const text=(alt&&alt.transcript)||'';
+  let s=medicalTermsInText(text).length*10;
+  for(const d of (DANGER_TERMS.critical||[])){ if(text.includes(d.term)) s+=15; }
+  if(/\d+(?:\.\d+)?\s*(?:錠|単位|度|回|分|秒|時間|mmHg|ml|cc|mg|kg|g|℃|°|%)/.test(text)) s+=5;
+  return s;
+}
+function rerankCandidates(alts){
+  if(!alts || alts.length<2) return alts||[];
+  return alts.map((a,i)=>({a,i,score:candidateMedicalScore(a)}))
+    .sort((x,y)=> y.score-x.score || ((y.a.confidence||0)-(x.a.confidence||0)) || x.i-y.i)
+    .map(o=>o.a);
+}
+
 function showCandidateModal(alternatives, dangerInfo) {
+  // 医療語を含む候補を上位へ並べ替え（正解の埋もれ防止）
+  alternatives = rerankCandidates(alternatives);
+  // 並べ替え後のトップで危険語を再判定（例: ご縁→誤嚥 で危険バーを正しく出す）
+  dangerInfo = checkDangerousTerms((alternatives[0] && alternatives[0].transcript) || '');
   const overlay = document.getElementById('candidateModalOverlay');
   const list = document.getElementById('candidateList');
   const dangerDiv = document.getElementById('candidateModalDanger');
@@ -1724,8 +1751,10 @@ function showCandidateModal(alternatives, dangerInfo) {
     const btn = document.createElement('button');
     btn.className = 'candidate-btn' + (i === 0 ? ' selected' : '');
     const confPct = alt.confidence > 0 ? Math.round(alt.confidence * 100) : null;
+    const meds = medicalTermsInText(alt.transcript);
+    const medBadge = meds.length ? `<span style="font-size:10px;color:#6a1b9a;background:#f3e5f5;border-radius:8px;padding:1px 6px;margin-left:6px;vertical-align:middle">📚医療語</span>` : '';
     btn.innerHTML = `
-      <span class="candidate-btn-term">${escapeHtml(alt.transcript)}</span>
+      <span class="candidate-btn-term">${escapeHtml(alt.transcript)}${medBadge}</span>
       ${confPct ? `<span class="candidate-btn-conf">${confPct}%</span>` : ''}
     `;
     btn.onclick = () => {
@@ -1783,6 +1812,16 @@ function checkAndShowCandidates(text, alternatives) {
   if (danger.hasDanger || danger.hasImportant) {
     showCandidateModal(alternatives || [{transcript: text, confidence: 0}], danger);
     return;
+  }
+
+  // 2.5 トップより医療語スコアの高い候補がある → 正解が下位に埋もれている可能性。必ず確認
+  if (alternatives && alternatives.length > 1) {
+    const scored = alternatives.map(candidateMedicalScore);
+    const maxScore = Math.max(...scored);
+    if (maxScore > 0 && scored[0] < maxScore) {
+      showCandidateModal(alternatives, null);
+      return;
+    }
   }
 
   // 3. 信頼度の差が小さい or 曖昧語 → 候補表示
@@ -2050,6 +2089,10 @@ function checkRetention(entry){
   // --- 禁食の聞き間違い候補（自動置換せず強めの要確認）---
   if(detectKinshokuConfusion(src)){
     yellow.push('⚠️要確認: 「禁食(食事禁止)」の聞き間違いの可能性があります。食事の可否を必ず原文で確認してください');
+  }
+  // --- 介助の聞き間違い候補（方向語＋「解除」は「介助」の可能性）---
+  if(/(右側|左側|右|左|患側|健側)/.test(src) && /解除/.test(src) && !src.includes('介助')){
+    yellow.push('⚠️要確認: 「介助」が「解除」に聞き間違えられた可能性があります。動作内容を必ず確認してください');
   }
 
   const level=red.length?'red':yellow.length?'yellow':'none';
