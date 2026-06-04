@@ -1470,6 +1470,12 @@ function startMicRecognition(){
   rec.lang='ja-JP'; rec.continuous=true; rec.interimResults=true;
   rec.maxAlternatives=3; // v10.2: 複数候補を取得
   rec.onstart=()=>{
+    // onstartは音声認識サービスの起動。実際の集音開始前なので、まだ「準備中」のまま待たせる
+    if(!state.isRecording || state.pcAudioActive) return;
+    setStatusText('🎤 マイク接続中...');
+  };
+  rec.onaudiostart=()=>{
+    // 実際にマイク集音が始まった瞬間（URL横のマイクマーク出現とほぼ一致）＝ここで合図
     if(!state.isRecording || state.pcAudioActive) return;
     setStatusText('🎤 話してください');
     if(!micReadyNotified){
