@@ -243,6 +243,8 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
 /* ===== v10: 危険語カード ===== */
 .danger-bar{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#fff0f3;border:1px solid #ffcdd2;border-radius:8px;margin-bottom:8px;font-size:12px;color:#c62828;font-weight:600}
 .danger-bar .danger-icon{font-size:16px}
+.warn-bar{display:flex;align-items:flex-start;gap:6px;padding:6px 10px;background:#fff8e1;border:1px solid #ffe082;border-radius:8px;margin-bottom:8px;font-size:12px;color:#8d6e00;font-weight:600}
+.warn-bar .warn-icon{font-size:16px;flex-shrink:0}
 .danger-confirm-btns{display:flex;gap:6px;margin-top:6px}
 .danger-confirm-btn{padding:5px 12px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-jp)}
 .danger-confirm-btn.ok{background:#e8f5e9;color:#2e7d32}
@@ -1371,7 +1373,7 @@ function saveSettings(){
   if(fbRaw){
     fbRaw = fbRaw.replace(/^const\s+\w+\s*=\s*/, '').replace(/;\s*$/, '').trim();
     try{
-      const parsed = Function('return ('+fbRaw+')')();
+      const parsed = JSON.parse(fbRaw);
       state.firebaseConfig = parsed;
       localStorage.setItem('cv9Firebase', JSON.stringify(parsed));
     }catch(e){ showToast('Firebase設定の形式が不正です'); return; }
@@ -1397,7 +1399,7 @@ function startRecording(){
 function stopRecording(){
   state.isRecording=false;
   if(micBuffer.trim()) flushMicBuffer();
-  clearTimeout(micBufferTimer); micBufferTimer=null; micBuffer='';
+  clearTimeout(micBufferTimer); micBufferTimer=null; micBuffer=''; micBufferAlternatives=null;
   if(state.recognition){ try{state.recognition.stop();}catch(e){console.debug('recognition.stop:',e);} state.recognition=null; }
   stopPcAudioCapture();
   updateUI(false);
@@ -1416,6 +1418,7 @@ function updateUI(active){
 // ===== マイク音声認識 =====
 let micBuffer='';
 let micBufferTimer=null;
+let micBufferAlternatives=null; // v10: 最後のfinal結果の認識候補（confidence付き）を保持
 
 function getMicDelay(){ return state.mode==='video' ? 3500 : 4500; }
 
@@ -1423,8 +1426,8 @@ function flushMicBuffer(){
   clearTimeout(micBufferTimer); micBufferTimer=null;
   if(micBuffer.trim()){
     const text = micBuffer.trim();
-    const alts = micBuffer._alts || null;
-    micBuffer='';
+    const alts = micBufferAlternatives || null;
+    micBuffer=''; micBufferAlternatives=null;
     // v10.2: 候補チェックを経由してprocessEntryへ
     checkAndShowCandidates(text, alts);
   }
@@ -1434,7 +1437,7 @@ function startMicRecognition(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){ showToast('音声認識非対応です。Chromeをご使用ください'); return; }
   state.isRecording=true; updateUI(true);
-  micBuffer=''; clearTimeout(micBufferTimer);
+  micBuffer=''; micBufferAlternatives=null; clearTimeout(micBufferTimer);
   const es=document.getElementById('emptyState'); if(es) es.style.display='none';
   const rec=new SR();
   rec.lang='ja-JP'; rec.continuous=true; rec.interimResults=true;
@@ -1459,8 +1462,8 @@ function startMicRecognition(){
     }
     if(final.trim()){
       micBuffer+=(micBuffer?' ':'')+final.trim();
-      // 複数候補を一時保存
-      if(lastFinalAlternatives) micBuffer._alts=lastFinalAlternatives;
+      // 複数候補を一時保存（micBufferは文字列なのでプロパティ代入では消える→別変数で保持）
+      if(lastFinalAlternatives) micBufferAlternatives=lastFinalAlternatives;
       clearTimeout(micBufferTimer);
       micBufferTimer=setTimeout(flushMicBuffer, getMicDelay());
     }
@@ -1574,7 +1577,7 @@ function importCustomTerms(){
   const raw = document.getElementById('customTermsInput').value.trim();
   if(!raw){ showToast('JSONを入力してください'); return; }
   try{
-    const arr = Function('return ('+raw+')')();
+    const arr = JSON.parse(raw);
     if(!Array.isArray(arr)) throw new Error('配列形式で入力してください');
     customTerms = arr;
     localStorage.setItem('cv9CustomTerms', JSON.stringify(arr));
@@ -1625,6 +1628,7 @@ const CONFIDENCE_GAP_THRESHOLD = 0.25;
 
 // 候補モーダルの状態
 let _candidateSelected = null;
+let _candidateSelectedConf = null; // 選択中候補のconfidence（0/未取得はnull）
 let _candidateEditMode = false;
 
 // バイパスフレーズ判定
@@ -1657,6 +1661,7 @@ function showCandidateModal(alternatives, dangerInfo) {
   const editArea = document.getElementById('candidateEditArea');
 
   _candidateSelected = alternatives[0].transcript;
+  _candidateSelectedConf = alternatives[0].confidence > 0 ? alternatives[0].confidence : null;
   _candidateEditMode = false;
   editArea.value = _candidateSelected;
   editArea.classList.remove('show');
@@ -1689,6 +1694,7 @@ function showCandidateModal(alternatives, dangerInfo) {
       document.querySelectorAll('.candidate-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
       _candidateSelected = alt.transcript;
+      _candidateSelectedConf = alt.confidence > 0 ? alt.confidence : null;
       document.getElementById('candidateEditArea').value = alt.transcript;
     };
     list.appendChild(btn);
@@ -1706,10 +1712,13 @@ function toggleCandidateEdit() {
 
 function confirmCandidate() {
   const area = document.getElementById('candidateEditArea');
+  const edited = _candidateEditMode && area.value.trim() !== _candidateSelected;
   const text = _candidateEditMode ? area.value.trim() : _candidateSelected;
+  // 手入力で修正＝人が目視確認したとみなし高信頼。候補そのまま選択時はその候補のconfidence
+  const meta = { asrConfidence: edited ? 0.95 : _candidateSelectedConf };
   document.getElementById('candidateModalOverlay').style.display = 'none';
-  _candidateSelected = null; _candidateEditMode = false;
-  if (text) processEntry(text);
+  _candidateSelected = null; _candidateSelectedConf = null; _candidateEditMode = false;
+  if (text) processEntry(text, meta);
 }
 
 function onCandidateOverlayClick(e) {
@@ -1723,8 +1732,13 @@ function onCandidateOverlayClick(e) {
 
 // 音声認識結果の候補チェック（flushMicBuffer→processEntryの間に挟む）
 function checkAndShowCandidates(text, alternatives) {
+  // 認識トップ候補のconfidence（0や未取得は不明として扱い、既定値へフォールバック）
+  const topConf = (alternatives && alternatives[0] && alternatives[0].confidence > 0)
+    ? alternatives[0].confidence : null;
+  const autoMeta = { asrConfidence: topConf };
+
   // 1. バイパスフレーズ → 即翻訳
-  if (isBypassPhrase(text)) { processEntry(text); return; }
+  if (isBypassPhrase(text)) { processEntry(text, autoMeta); return; }
 
   // 2. 危険語 → 必ず確認
   const danger = checkDangerousTerms(text);
@@ -1745,7 +1759,7 @@ function checkAndShowCandidates(text, alternatives) {
   }
 
   // 4. 問題なし → 自動確定
-  processEntry(text);
+  processEntry(text, autoMeta);
 }
 
 // ===== v10: 危険語辞書 =====
@@ -1815,16 +1829,29 @@ function checkDangerousTerms(text){
 
 // ===== v10: 翻訳信頼度計算 =====
 function calculateTrustScore(params){
-  const {asrConfidence=0.8,termMatchRate=0.5,hasDangerTerms=false,correctionCount=0,targetLang}=params;
+  const {asrConfidence=0.8,termMatchRate=0.5,hasDangerTerms=false,correctionCount=0,fixedTermOverrideCount=0,targetLang}=params;
   const langBaseline={en:1.0,id:0.95,vi:0.9,zh:0.9,ko:0.9,my:0.75,tl:0.8,hi:0.75}[targetLang]||0.8;
   let score=(asrConfidence*0.30)+(termMatchRate*0.25)+(langBaseline*0.25)+((1-Math.min(correctionCount*0.15,0.5))*0.20);
-  if(hasDangerTerms) score*=0.9;
+  // 危険語を含む翻訳は、確認優先のため安全側に減点する（設計書基準 ×0.85）
+  if(hasDangerTerms) score*=0.85;
+  // v10: 固定訳補強ペナルティ（AIが重要語を訳し漏れた痕跡＝1語ごとに-5%、上限-15%）
+  const fixedTermPenalty=Math.min(fixedTermOverrideCount*0.05,0.15);
+  score-=fixedTermPenalty;
   score=Math.round(Math.max(0,Math.min(1,score))*100);
   return {
     score,
     level:score>=85?'high':score>=65?'medium':'low',
-    breakdown:{asrConfidence:Math.round(asrConfidence*100),termMatchRate:Math.round(termMatchRate*100),langBaseline:Math.round(langBaseline*100),correctionPenalty:correctionCount}
+    breakdown:{asrConfidence:Math.round(asrConfidence*100),termMatchRate:Math.round(termMatchRate*100),langBaseline:Math.round(langBaseline*100),correctionPenalty:correctionCount,fixedTermOverrideCount,fixedTermPenalty:Math.round(fixedTermPenalty*100)}
   };
+}
+
+// ===== v10: 用語の対象言語固定訳を取得（フラット/ネスト両対応の防御的共通化）=====
+// TERMS_DB・custom-terms.json はフラット構造（term.en, term.my…）。
+// CARE_GLOSSARY 形式はネスト構造（term.translations.en…）。
+// 現行の補強辞書はフラットなので挙動は従来と同じだが、将来ネスト型のカスタム用語が
+// 入っても拾えるよう両対応にしている。Phase 12-B層も同じロジックでここを使う。
+function getFixedTranslation(term, langCode){
+  return term.translations?.[langCode] || term[langCode] || '';
 }
 
 // ===== v10: 固定訳の強制上書き =====
@@ -1836,16 +1863,116 @@ function applyFixedTermsForce(translations, seimon){
   const result={...translations};
   for(const lang of DIST_LANGS){
     for(const t of matched){
-      const fixed=t[lang.code];
-      if(fixed && result[lang.code] && !result[lang.code].includes(fixed)){
-        overrides.push({term:t.term,lang:lang.code,fixed});
+      const fixed=getFixedTranslation(t, lang.code);
+      if(!fixed) continue;
+      const current=result[lang.code]||'';
+      if(current && !current.includes(fixed)){
+        result[lang.code]=current+' ['+fixed+']';
+        overrides.push({term:t.term,lang:lang.code,fixed,previous:current,action:'appended'});
+      } else if(!current){
+        result[lang.code]=fixed;
+        overrides.push({term:t.term,lang:lang.code,fixed,previous:'',action:'filled'});
       }
     }
   }
   return {translations:result,overrides};
 }
 
-// ===== v10: 文脈管理 =====
+function checkTranslationSafety(entry){
+  const warnings=[];
+  if(entry.termOverrides?.length){
+    const terms=[...new Set(entry.termOverrides.map(o=>o.term))].join('、');
+    warnings.push('固定訳を補強しました: '+terms);
+  }
+  if(entry.danger?.hasDanger){
+    const translated=entry.translations?.[state.targetLang]||entry.translation||'';
+    if(!translated.trim()) warnings.push('危険語を含む発言ですが翻訳結果が空です');
+  }
+  return {hasWarning:warnings.length>0,warnings};
+}
+
+// ===== Phase 12: 翻訳結果側の保持チェック =====
+// 「自動採点」ではなく「危ない欠落を見つける」。赤は機械的に確実なものだけ、判定不能は黄。
+const RETENTION_DIRECTION=['右','左','患側','健側'];
+const RETENTION_DATETIME=['今日','明日','朝','昼','夕','夜','食前','食後','眠前','起床時','就寝前','朝食','昼食','夕食'];
+const RETENTION_NEGATION=['しないで','ないで','ません','てはいけ','禁止','不可','控え','避け','だめ','ダメ','やめて'];
+
+function checkRetention(entry){
+  const src=entry.seimon||entry.raw||'';
+  const translated=entry.translations?.[state.targetLang]||entry.translation||'';
+  const red=[], yellow=[];
+  if(!translated.trim()) return {level:'none',red,yellow}; // 空翻訳は別系統(checkTranslationSafety)が担当
+
+  // --- A層: 数字（言語をまたいでも数字。確実判定可）---
+  // 赤は「単位付き数字」(1錠/2単位/37.5度/30分…)に限定。裸の数字(1人など)は黄に留め、誤った赤を避ける。
+  // 単位は長いものを先に並べる（mmHg を mm より先に）。単位付き/裸はマッチ位置で分離する（値比較だと1錠と1人が混同するため）。
+  const UNIT='mmHg|kg|cm|mm|ml|ｍｌ|mg|ｍｇ|cc|錠|回|度|℃|°|時間|分|秒|時|単位|グラム|キロ|g|%|％|パーセント|個|包|袋|滴|本';
+  const unitRe=new RegExp('\\d+(?:\\.\\d+)?\\s*(?:'+UNIT+')','g');
+  const unitRanges=[], unitNums=[];
+  for(const m of src.matchAll(unitRe)){
+    unitRanges.push([m.index, m.index+m[0].length]);
+    unitNums.push(m[0].match(/\d+(?:\.\d+)?/)[0]);
+  }
+  const bareNums=[];
+  for(const m of src.matchAll(/\d+(?:\.\d+)?/g)){
+    const inUnit=unitRanges.some(([a,b])=>m.index>=a && m.index<b);
+    if(!inUnit) bareNums.push(m[0]);
+  }
+  if(unitNums.length){
+    const uniqUnit=[...new Set(unitNums)];
+    const missing=uniqUnit.filter(n=>!translated.includes(n));
+    if(missing.length===uniqUnit.length){
+      red.push('用量・数値が翻訳結果から欠落しています（原文: '+uniqUnit.join('・')+'）');
+    }else if(missing.length){
+      yellow.push('一部の数値が見当たりません（'+missing.join('・')+'）。用量・回数・体温を確認してください');
+    }
+  }
+  // 単位なしの裸の数字は欠落しても黄まで（人数・番号など用量と限らないため）
+  const bareMissing=[...new Set(bareNums.filter(n=>!translated.includes(n)))];
+  if(bareMissing.length) yellow.push('要確認: 数字「'+bareMissing.join('・')+'」が訳に保たれているか確認してください');
+
+  // --- B層: 危険語のうち辞書に対象言語固定訳がある語は照合 / 無ければC層(黄)---
+  const terms=getActiveTerms();
+  if(entry.danger?.hasDanger){
+    for(const d of (entry.danger.critical||[])){
+      const term=d.term;
+      const dict=terms.find(t=>t.term===term);
+      const fixed=dict?getFixedTranslation(dict,state.targetLang):'';
+      if(fixed){
+        if(!translated.includes(fixed)) red.push('危険語「'+term+'」の訳（'+fixed+'）が翻訳結果に見当たりません');
+        // 含まれていればOK（補強で付与済みのことが多い）
+      }else{
+        yellow.push('要確認: 危険語「'+term+'」が訳に反映されているか確認してください');
+      }
+    }
+  }
+
+  // --- 左右・患健（辞書照合可なら照合、無ければ黄）---
+  for(const w of RETENTION_DIRECTION){
+    if(!src.includes(w)) continue;
+    const dict=terms.find(t=>t.term===w);
+    const fixed=dict?getFixedTranslation(dict,state.targetLang):'';
+    if(fixed){
+      if(!translated.includes(fixed)) red.push('方向「'+w+'」の訳が翻訳結果に見当たりません');
+    }else{
+      yellow.push('要確認: 方向「'+w+'」が訳に保たれているか確認してください');
+    }
+  }
+
+  // --- C層: 日時（照合不能 → 黄）---
+  const dts=RETENTION_DATETIME.filter(w=>src.includes(w));
+  if(dts.length) yellow.push('要確認: 時間条件「'+dts.join('・')+'」が訳に保たれているか確認してください');
+
+  // --- C層: 否定・禁止（初期版は崩れ検知が困難なため一律 黄）---
+  if(RETENTION_NEGATION.some(w=>src.includes(w))){
+    yellow.push('要確認: 否定・禁止表現を含みます。翻訳先で「してはいけない」意味が保たれているか確認してください');
+  }
+
+  const level=red.length?'red':yellow.length?'yellow':'none';
+  return {level,red,yellow};
+}
+
+// ===== v10: 譁・ц邂｡逅・=====
 const contextWindow={
   currentTopic:null,
   recentMedicalTerms:[],
@@ -2030,8 +2157,10 @@ async function translateEntry(raw, id){
 }
 
 // ===== v10: 3段階字幕 processEntry =====
-async function processEntry(raw){
+async function processEntry(raw, meta={}){
   if(isHallucination(raw)) return;
+  // ASR実測confidence（0〜1）。未取得・0は既定値0.8へフォールバック
+  const asrConf = (typeof meta.asrConfidence==='number' && meta.asrConfidence>0) ? meta.asrConfidence : 0.8;
   if(state.interimId){
     const el=document.getElementById('entry-'+state.interimId);
     if(el) el.remove(); state.interimId=null;
@@ -2070,8 +2199,12 @@ async function processEntry(raw){
   // 固定訳の強制上書き
   if(entry.translations){
     const fix=applyFixedTermsForce(entry.translations, entry.seimon||entry.raw);
+    entry.translations=fix.translations;
+    entry.translation=entry.translations[state.targetLang]||entry.translation;
     entry.termOverrides=fix.overrides;
   }
+  entry.translationSafety=checkTranslationSafety(entry);
+  entry.retention=checkRetention(entry);
 
   // 用語マッチ率計算
   const allTerms=getActiveTerms();
@@ -2080,11 +2213,16 @@ async function processEntry(raw){
                       matchedTerms.length>0?1:0.5;
 
   // 信頼度計算
+  // 補強された用語の種類数（言語数ではなくユニークなterm数で数える）
+  const fixedTermOverrideCount=entry.termOverrides?.length
+    ? new Set(entry.termOverrides.map(o=>o.term)).size : 0;
+
   entry.trustScore=calculateTrustScore({
-    asrConfidence:0.8,
+    asrConfidence:asrConf,
     termMatchRate:Math.min(termMatchRate,1),
     hasDangerTerms:entry.danger.hasDanger,
     correctionCount:entry.corrections?.length||0,
+    fixedTermOverrideCount,
     targetLang:state.targetLang
   });
 
@@ -2139,6 +2277,18 @@ function renderEntry(el, entry){
   }
 
   // 整文テキスト（推測修正のハイライト付き）
+  if(entry.translationSafety?.hasWarning){
+    dangerBar+=`<div class="danger-bar"><span class="danger-icon">⚠️</span> 翻訳後チェック: ${escapeHtml(entry.translationSafety.warnings.join(' / '))}</div>`;
+  }
+
+  // Phase 12: 保持チェック（赤=確実な欠落 / 黄=要確認）
+  if(entry.retention?.red?.length){
+    dangerBar+=`<div class="danger-bar"><span class="danger-icon">🚨</span> 欠落の可能性: ${escapeHtml(entry.retention.red.join(' / '))}</div>`;
+  }
+  if(entry.retention?.yellow?.length){
+    dangerBar+=`<div class="warn-bar"><span class="warn-icon">⚠️</span> ${escapeHtml(entry.retention.yellow.join(' / '))}</div>`;
+  }
+
   let seimonHtml=escapeHtml(entry.seimon||entry.raw);
   if(entry.corrections?.length){
     for(const c of entry.corrections){
@@ -2234,6 +2384,9 @@ function showTrustDetail(id){
   </div>`).join('');
   if(bd.correctionPenalty>0){
     barsHtml+=`<div class="trust-bar-row"><span class="trust-bar-label">推測修正</span><span style="color:#e94560;font-weight:600">-${bd.correctionPenalty}件のAI修正</span></div>`;
+  }
+  if(bd.fixedTermPenalty>0){
+    barsHtml+=`<div class="trust-bar-row"><span class="trust-bar-label">固定訳補強</span><span style="color:#e94560;font-weight:600">-${bd.fixedTermPenalty}%（${bd.fixedTermOverrideCount}語をAIが訳し漏れ）</span></div>`;
   }
   document.getElementById('trustDetailBars').innerHTML=barsHtml;
 
@@ -2364,6 +2517,10 @@ ${transModeHint}
 ・見守り/介助/移乗等の専門用語はそのまま残す
 ・話の流れを落とさない、要約しない
 ・termsは文中の介護医療専門用語のみ（なければ空配列）
+
+【数値の保持（重要）】
+・用量・回数・体温・血圧・時間などの数値は、翻訳文でも必ず半角アラビア数字のまま保持する（例: 1錠→1, 37.5度→37.5）
+・数字を語句化しない（one/一 等にしない）。単位や左右・否定の意味も省略しない
 
 【音声認識の誤変換修正（高確信度のみ）】
 ・体位↔大尉/退位 → 身体の文脈なら「体位」
