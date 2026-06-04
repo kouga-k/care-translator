@@ -1287,6 +1287,30 @@ function showToast(msg, ms=3000){
   t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), ms);
 }
+function setStatusText(text){
+  const el=document.getElementById('statusText');
+  if(el) el.textContent=text;
+}
+function playMicReadyCue(){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC) return;
+    const ctx=new AC();
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.type='sine';
+    osc.frequency.value=880;
+    gain.gain.setValueAtTime(0.0001,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.06,ctx.currentTime+0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.18);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime+0.2);
+    setTimeout(()=>ctx.close().catch(()=>{}),350);
+  }catch(e){
+    console.debug('mic ready cue:',e);
+  }
+}
 function scrollToBottom(){
   const ta=document.getElementById('transcriptArea');
   ta.scrollTop=ta.scrollHeight;
@@ -1408,7 +1432,7 @@ function stopRecording(){
 function updateUI(active){
   document.getElementById('statusDot').classList.toggle('active', active);
   document.getElementById('statusText').textContent = active
-    ? (state.pcAudioActive ? '🖥️ PC音声録音中...' : '🎤 録音中...')
+    ? (state.pcAudioActive ? '🖥️ PC音声録音中...' : '🎤 マイク準備中...')
     : (state.entries.length>0 ? '停止中' : '待機中');
   const btn=document.getElementById('micBtn');
   btn.className='mic-btn '+(active?'recording':'idle');
@@ -1437,11 +1461,25 @@ function startMicRecognition(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){ showToast('音声認識非対応です。Chromeをご使用ください'); return; }
   state.isRecording=true; updateUI(true);
+  setStatusText('🎤 マイク準備中... 合図が出るまでお待ちください');
+  showToast('🎤 マイク準備中です。合図が出たら話してください', 1600);
+  let micReadyNotified=false;
   micBuffer=''; micBufferAlternatives=null; clearTimeout(micBufferTimer);
   const es=document.getElementById('emptyState'); if(es) es.style.display='none';
   const rec=new SR();
   rec.lang='ja-JP'; rec.continuous=true; rec.interimResults=true;
   rec.maxAlternatives=3; // v10.2: 複数候補を取得
+  rec.onstart=()=>{
+    if(!state.isRecording || state.pcAudioActive) return;
+    setStatusText('🎤 話してください');
+    if(!micReadyNotified){
+      micReadyNotified=true;
+      showToast('🎤 話してください', 1200);
+      playMicReadyCue();
+    }
+  };
+  rec.onspeechstart=()=>{ if(state.isRecording && !state.pcAudioActive) setStatusText('🎤 聞き取り中...'); };
+  rec.onspeechend=()=>{ if(state.isRecording && !state.pcAudioActive) setStatusText('🎤 処理中...'); };
   rec.onresult=e=>{
     let interim='', final='';
     let lastFinalAlternatives=null;
