@@ -1891,6 +1891,47 @@ function checkTranslationSafety(entry){
   return {hasWarning:warnings.length>0,warnings};
 }
 
+// ===== Phase 12-pre: 日本語数値の正規化（漢数字→アラビア数字）=====
+// ASRは「一錠」「三十分」「三十七点五度」のように漢数字を出すことがあり、数字保持チェックが効かない。
+// 誤変換(一般→1般 等)を避けるため、カウンター(錠/単位/人/分/度…)が直後に続く数詞だけを変換する。
+function _kanjiSeqToArabic(s){
+  const num={'〇':0,'零':0,'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9};
+  const pow={'十':10,'百':100,'千':1000};
+  let total=0,current=0;
+  for(const ch of s){
+    if(/[0-9]/.test(ch)) current=current*10+Number(ch);
+    else if(/[０-９]/.test(ch)) current=current*10+(ch.charCodeAt(0)-0xFF10);
+    else if(ch in num) current=current*10+num[ch];
+    else if(ch in pow){ total+=(current||1)*pow[ch]; current=0; }
+  }
+  return total+current;
+}
+function _convNumRun(run){
+  if(!/[〇零一二三四五六七八九十百千]/.test(run)){ // 既にアラビア（全角含む）
+    return run.replace(/[０-９]/g,d=>String.fromCharCode(d.charCodeAt(0)-0xFEE0)).replace(/[点・．]/g,'.');
+  }
+  const parts=run.split(/[点・．]/);
+  const intPart=parts[0]?_kanjiSeqToArabic(parts[0]):0;
+  if(parts.length===1) return String(intPart);
+  const fd={'〇':'0','零':'0','一':'1','二':'2','三':'3','四':'4','五':'5','六':'6','七':'7','八':'8','九':'9'};
+  const frac=parts.slice(1).join('').split('').map(c=>fd[c]!==undefined?fd[c]:(/[0-9０-９]/.test(c)?c:'')).join('');
+  return intPart+(frac?'.'+frac:'');
+}
+const NUM_COUNTER='錠|単位|人|名|分|秒|時間|時|度|回|個|本|滴|包|袋|枚|杯|割|倍|歳|才|ml|ｍｌ|mL|cc|cm|mm|mmHg|kg|キロ|グラム|g|mg|ｍｇ|℃|°|%|％';
+const NUM_RUN_RE=new RegExp('([〇零一二三四五六七八九十百千０-９0-9点・．.]+)(?=\\s*(?:'+NUM_COUNTER+'))','g');
+function normalizeJapaneseNumbers(text){
+  if(!text) return text;
+  return text.replace(NUM_RUN_RE, m=>_convNumRun(m));
+}
+
+// 禁食(食事禁止)の聞き間違い候補（人食/金食/飲食で…等）。自動置換せず強めの要確認のみ。
+const KINSHOKU_CONFUSE=['人食','金食','勤食','菌食','禁色','近食','きんしょく'];
+function detectKinshokuConfusion(src){
+  if(KINSHOKU_CONFUSE.some(w=>src.includes(w))) return true;
+  if(/飲食(で|に|を|の|です|して|にして)/.test(src)) return true; // 「飲食でお願いします」等
+  return false;
+}
+
 // ===== Phase 12: 翻訳結果側の保持チェック =====
 // 「自動採点」ではなく「危ない欠落を見つける」。赤は機械的に確実なものだけ、判定不能は黄。
 const RETENTION_DIRECTION=['右','左','患側','健側'];
@@ -1966,6 +2007,11 @@ function checkRetention(entry){
   // --- C層: 否定・禁止（初期版は崩れ検知が困難なため一律 黄）---
   if(RETENTION_NEGATION.some(w=>src.includes(w))){
     yellow.push('要確認: 否定・禁止表現を含みます。翻訳先で「してはいけない」意味が保たれているか確認してください');
+  }
+
+  // --- 禁食の聞き間違い候補（自動置換せず強めの要確認）---
+  if(detectKinshokuConfusion(src)){
+    yellow.push('⚠️要確認: 「禁食(食事禁止)」の聞き間違いの可能性があります。食事の可否を必ず原文で確認してください');
   }
 
   const level=red.length?'red':yellow.length?'yellow':'none';
@@ -2161,6 +2207,9 @@ async function processEntry(raw, meta={}){
   if(isHallucination(raw)) return;
   // ASR実測confidence（0〜1）。未取得・0は既定値0.8へフォールバック
   const asrConf = (typeof meta.asrConfidence==='number' && meta.asrConfidence>0) ? meta.asrConfidence : 0.8;
+  // 漢数字→アラビア数字の正規化（一錠→1錠 等）。真のASR出力は _trueRaw として保持
+  const _trueRaw=raw;
+  raw=normalizeJapaneseNumbers(raw);
   if(state.interimId){
     const el=document.getElementById('entry-'+state.interimId);
     if(el) el.remove(); state.interimId=null;
@@ -2190,7 +2239,7 @@ async function processEntry(raw, meta={}){
     entry={id,raw:processText,seimon:processText,translation:'',translations:{},terms:[],corrections:[],engine:'none'};
   }
   entry.aliasCorrections = aliasCorrections;
-  entry.originalRaw = raw;
+  entry.originalRaw = _trueRaw;
   entry.ts=ts;
 
   // 危険語チェック
