@@ -199,7 +199,12 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
 .trans-mode-btn{padding:5px 12px;border:1.5px solid var(--border);background:white;border-radius:16px;font-family:var(--font-jp);font-size:11px;cursor:pointer;color:var(--text-muted);font-weight:500;transition:all .2s;white-space:nowrap}
 .trans-mode-btn.active{border-color:var(--accent);background:var(--accent-pale);color:var(--accent);font-weight:700}
 
-/* ===== v10.2: 候補確認モーダル ===== */
+/* ===== v10.3: 別候補チップ（タップで差し替え再翻訳） ===== */
+.alt-chips{margin-top:6px;font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.alt-chip{font-size:11px;background:#f5f3fc;color:var(--text-muted);border:1px solid var(--border);border-radius:10px;padding:2px 8px;cursor:pointer;font-family:var(--font-jp);transition:all .15s}
+.alt-chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-pale)}
+
+/* ===== v10.2: 候補確認モーダル（v10.3で発動廃止・コードは残置） ===== */
 .candidate-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px}
 .candidate-modal{background:white;border-radius:20px;padding:24px 20px;width:100%;max-width:400px;box-shadow:0 8px 40px rgba(0,0,0,.25);animation:slideUp .2s ease}
 .candidate-modal-title{font-size:13px;font-weight:700;color:var(--text-small);letter-spacing:1px;margin-bottom:4px;text-align:center}
@@ -386,6 +391,23 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
 .face-mic-btn{width:100%;padding:14px;border:none;border-radius:10px;background:var(--accent);color:white;font-family:var(--font-jp);font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px;transition:all .2s}
 .face-text-input{width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:var(--font-jp);font-size:15px;resize:none;outline:none;background:var(--bg);margin-bottom:8px}
 .face-translate-btn{width:100%;padding:10px;border:none;border-radius:8px;background:var(--surface2);color:var(--text-muted);font-family:var(--font-jp);font-size:14px;cursor:pointer;border:1px solid var(--border)}
+/* ===== v10.4: スマホ最適化（基本スタイルを上書きするため必ず末尾に置く） ===== */
+/* 狭い画面：タブ4つ（研修動画/会議・指導/配信/用語）を横スクロールなしで収める */
+@media(max-width:480px){
+  .mode-bar{padding:0 6px}
+  .mode-btn{padding:12px 9px;font-size:13px}
+  .alt-chip{font-size:13px;padding:8px 12px;border-radius:16px}
+  .entry-copy-btn{padding:7px 12px;font-size:13px}
+  .trust-badge{padding:5px 10px;font-size:12px}
+  .term-badge{padding:6px 10px}
+}
+/* タッチ端末：画面幅に関わらず指で押せるサイズに（マウス時は従来のコンパクト表示のまま） */
+@media(pointer:coarse){
+  .alt-chip{font-size:13px;padding:8px 12px;border-radius:16px}
+  .entry-copy-btn{padding:7px 12px;font-size:13px}
+  .trust-badge{padding:5px 10px;font-size:12px}
+  .term-badge{padding:6px 10px}
+}
 </style>
 </head>
 <body>
@@ -603,28 +625,9 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
     </div>
     <div class="modal-body">
       <div class="setting-group">
-        <div class="setting-label">翻訳エンジン</div>
-        <div class="seg-btns" id="engineBtns">
-          <button class="seg-btn active" id="engineGemini" onclick="setEngine('gemini',this)">Gemini</button>
-          <button class="seg-btn" id="engineClaude" onclick="setEngine('claude',this)">Claude</button>
-          <button class="seg-btn" id="engineGoogle" onclick="setEngine('google',this)">Google</button>
-          <button class="seg-btn" id="engineMymemory" onclick="setEngine('mymemory',this)">MyMemory</button>
-        </div>
-      </div>
-      <div class="setting-group">
         <div class="setting-label">Gemini API Key <span class="engine-badge">整文・翻訳・要点</span></div>
         <input class="setting-input" id="geminiKeyInput" type="password" placeholder="AIzaSy...">
         <div class="setting-hint">✨ <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com</a> で無料取得</div>
-      </div>
-      <div class="setting-group">
-        <div class="setting-label">Claude API Key <span class="engine-badge">Anthropic</span></div>
-        <input class="setting-input" id="claudeKeyInput" type="password" placeholder="sk-ant-...">
-        <div class="setting-hint">🤖 <a href="https://console.anthropic.com/" target="_blank" style="color:var(--accent)">console.anthropic.com</a> で取得</div>
-      </div>
-      <div class="setting-group">
-        <div class="setting-label">Google翻訳 API Key <span class="engine-badge">Cloud Translation</span></div>
-        <input class="setting-input" id="googleKeyInput" type="password" placeholder="AIzaSy...">
-        <div class="setting-hint">🌐 Google Cloud Console → Cloud Translation API</div>
       </div>
       <div class="setting-group">
         <div class="setting-label">Whisper API Key <span class="engine-badge">PC音声用</span></div>
@@ -757,7 +760,7 @@ body{font-family:var(--font-jp);background:var(--bg);color:var(--text);height:10
     <div class="guide-section-title">安全機能</div>
     <div class="guide-card"><div class="guide-card-head"><span class="guide-card-title">✅ 翻訳信頼度スコア</span></div><div class="guide-card-desc">翻訳の確かさを0〜100%で表示。<strong>緑(80%〜)</strong>は信頼度高、<strong>オレンジ(60〜79%)</strong>は要確認、<strong>赤(60%未満)</strong>は必ず確認を。</div></div>
     <div class="guide-card"><div class="guide-card-head"><span class="guide-card-title">🚨 危険語警告</span><span class="guide-card-tag danger">要注意</span></div><div class="guide-card-desc">「禁食」「誤嚥」「転倒」「インスリン」などを検出すると赤い警告バーを表示します。必ず翻訳内容を声で確認してください。</div></div>
-    <div class="guide-card"><div class="guide-card-head"><span class="guide-card-title">🔍 候補確認</span><span class="guide-card-tag tip">v10.2</span></div><div class="guide-card-desc">音が似ている言葉（転倒・転棟・点灯など）や危険語を含む発話を認識したとき、翻訳前に候補を表示して確認を求めます。</div></div>
+    <div class="guide-card"><div class="guide-card-head"><span class="guide-card-title">🔁 別候補の差し替え</span><span class="guide-card-tag tip">v10.3</span></div><div class="guide-card-desc">音声認識の複数候補から医療用語を含むものを自動採用するため、翻訳は止まりません。認識が違っていたら、字幕の下の「🔁 別候補」をタップするとその場で翻訳し直せます。AIが文脈で修正した語は色付きで表示されます。</div></div>
   </div>
 </div>
 
@@ -1093,12 +1096,10 @@ let _renderReceiveId=0;
 // ===== 初期化 =====
 (function init(){
   state.geminiKey = localStorage.getItem('cv9Gemini') || localStorage.getItem('cv8Gemini') || '';
-  state.claudeKey = localStorage.getItem('cv9Claude') || '';
-  state.googleKey = localStorage.getItem('cv9Google') || '';
   state.whisperKey = localStorage.getItem('cv9Whisper') || localStorage.getItem('cv8Whisper') || '';
   state.targetLang = localStorage.getItem('cv9Lang') || localStorage.getItem('cv8Lang') || 'my';
   state.seimonLevel = localStorage.getItem('cv9Level') || localStorage.getItem('cv8Level') || 'balanced';
-  state.engine = localStorage.getItem('cv9Engine') || 'gemini';
+  state.engine = 'gemini'; // v10.4: Gemini一本化（安全層が全対応する唯一のエンジン）
   state.transMode = localStorage.getItem('cv9TransMode') || 'strict';
   state.ttsRate = parseFloat(localStorage.getItem('cv9TtsRate')||'1.0');
   state.ttsVoiceMap = JSON.parse(localStorage.getItem('cv9TtsVoiceMap')||'{}');
@@ -1109,16 +1110,10 @@ let _renderReceiveId=0;
   initBuiltinTerms(); // custom-terms.jsonを非同期で読み込みTERMS_DBにマージ
   document.getElementById('langSelect').value = state.targetLang;
   document.getElementById('geminiKeyInput').value = state.geminiKey;
-  document.getElementById('claudeKeyInput').value = state.claudeKey;
-  document.getElementById('googleKeyInput').value = state.googleKey;
   document.getElementById('whisperKeyInput').value = state.whisperKey;
   if(state.firebaseConfig) document.getElementById('firebaseConfigInput').value = JSON.stringify(state.firebaseConfig, null, 2);
   const lBtn = document.getElementById('level' + state.seimonLevel.charAt(0).toUpperCase() + state.seimonLevel.slice(1));
   if(lBtn){ document.querySelectorAll('#settingsModal .seg-btns:last-of-type .seg-btn').forEach(b=>b.classList.remove('active')); lBtn.classList.add('active'); }
-  // エンジン選択ボタン初期化
-  document.querySelectorAll('#engineBtns .seg-btn').forEach(b=>b.classList.remove('active'));
-  const eBtn=document.getElementById('engine'+state.engine.charAt(0).toUpperCase()+state.engine.slice(1));
-  if(eBtn) eBtn.classList.add('active');
 
   // 翻訳モードボタン初期化
   document.querySelectorAll('.trans-mode-btn').forEach(b=>b.classList.remove('active'));
@@ -1159,8 +1154,8 @@ let _renderReceiveId=0;
   const params = new URLSearchParams(location.search);
   if(params.get('mode') === 'receive' && params.get('session')){
     initReceiveMode(params.get('session'));
-  } else if(!state.geminiKey && !state.claudeKey){
-    setTimeout(()=>showToast('⚙️ 設定からAPIキーを入力してください（なくても動きます）', 4000), 800);
+  } else if(!state.geminiKey){
+    setTimeout(()=>showToast('⚙️ 設定からGemini APIキーを入力してください（無料で取得できます）', 4000), 800);
   }
 })();
 
@@ -1366,13 +1361,8 @@ function changeLang(lang){ state.targetLang=lang; localStorage.setItem('cv9Lang'
 function setLevel(level, btn){
   state.seimonLevel=level;
   document.querySelectorAll('#settingsModal .seg-btns').forEach(grp=>{
-    if(grp.id!=='engineBtns') grp.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
+    grp.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
   });
-  if(btn) btn.classList.add('active');
-}
-function setEngine(eng, btn){
-  state.engine=eng;
-  document.querySelectorAll('#engineBtns .seg-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
 }
 function openSettings(){
@@ -1390,8 +1380,6 @@ function openSettings(){
 function closeSettings(){ document.getElementById('settingsModal').classList.remove('open'); }
 function saveSettings(){
   state.geminiKey = document.getElementById('geminiKeyInput').value.trim();
-  state.claudeKey = document.getElementById('claudeKeyInput').value.trim();
-  state.googleKey = document.getElementById('googleKeyInput').value.trim();
   state.whisperKey = document.getElementById('whisperKeyInput').value.trim();
   let fbRaw = document.getElementById('firebaseConfigInput').value.trim();
   if(fbRaw){
@@ -1403,11 +1391,8 @@ function saveSettings(){
     }catch(e){ showToast('Firebase設定の形式が不正です'); return; }
   }
   if(state.geminiKey) localStorage.setItem('cv9Gemini', state.geminiKey);
-  if(state.claudeKey) localStorage.setItem('cv9Claude', state.claudeKey);
-  if(state.googleKey) localStorage.setItem('cv9Google', state.googleKey);
   if(state.whisperKey) localStorage.setItem('cv9Whisper', state.whisperKey);
   localStorage.setItem('cv9Level', state.seimonLevel);
-  localStorage.setItem('cv9Engine', state.engine);
   localStorage.setItem('cv9TransMode', state.transMode);
   localStorage.setItem('cv9TtsRate', state.ttsRate);
   localStorage.setItem('cv9TtsVoiceMap', JSON.stringify(state.ttsVoiceMap));
@@ -1805,44 +1790,19 @@ function onCandidateOverlayClick(e) {
 
 // 音声認識結果の候補チェック（flushMicBuffer→processEntryの間に挟む）
 function checkAndShowCandidates(text, alternatives) {
-  // 認識トップ候補のconfidence（0や未取得は不明として扱い、既定値へフォールバック）
-  const topConf = (alternatives && alternatives[0] && alternatives[0].confidence > 0)
-    ? alternatives[0].confidence : null;
-  const autoMeta = { asrConfidence: topConf };
-
-  // 1. バイパスフレーズ → 即翻訳
-  if (isBypassPhrase(text)) { processEntry(text, autoMeta); return; }
-
-  // 2. 危険語 → 必ず確認
-  const danger = checkDangerousTerms(text);
-  if (danger.hasDanger || danger.hasImportant) {
-    showCandidateModal(alternatives || [{transcript: text, confidence: 0}], danger);
-    return;
-  }
-
-  // 2.5 トップより医療語スコアの高い候補がある → 正解が下位に埋もれている可能性。必ず確認
-  if (alternatives && alternatives.length > 1) {
-    const scored = alternatives.map(candidateMedicalScore);
-    const maxScore = Math.max(...scored);
-    if (maxScore > 0 && scored[0] < maxScore) {
-      showCandidateModal(alternatives, null);
-      return;
-    }
-  }
-
-  // 3. 信頼度の差が小さい or 曖昧語 → 候補表示
-  if (alternatives && alternatives.length > 1) {
-    const top = alternatives[0].confidence || 0;
-    const second = alternatives[1].confidence || 0;
-    const gap = top - second;
-    if ((gap < CONFIDENCE_GAP_THRESHOLD && top > 0) || checkAmbiguousPairs(text, alternatives)) {
-      showCandidateModal(alternatives, null);
-      return;
-    }
-  }
-
-  // 4. 問題なし → 自動確定
-  processEntry(text, autoMeta);
+  // v10.3: 候補確認モーダルは全廃。医療語リランキングで最良候補を自動採用し、翻訳を止めない。
+  // 正確性の担保は次の多層で行う：
+  //   (1) 医療語リランキング（正解候補の自動選択）
+  //   (2) Gemini整文に別候補を提示 → 文脈で正しい語を選び corrections で可視化
+  //   (3) 危険語の赤バー（Phase 3）・保持チェック（Phase 12）
+  //   (4) 字幕の「🔁 別候補」チップでワンタップ差し替え再翻訳
+  const ranked = rerankCandidates(alternatives || [{transcript: text, confidence: 0}]);
+  const bestText = ranked[0].transcript;
+  const bestConf = ranked[0].confidence > 0 ? ranked[0].confidence : null;
+  // 採用しなかった候補（空・重複を除く）→ Geminiへの提示と「別候補」チップに使う
+  const altTexts = [...new Set(ranked.slice(1).map(a => (a.transcript || '').trim()))]
+    .filter(t => t && t !== bestText);
+  processEntry(bestText, { asrConfidence: bestConf, asrAlternatives: altTexts });
 }
 
 // ===== v10: 危険語辞書 =====
@@ -2242,51 +2202,27 @@ function isHallucination(text){
 }
 
 // ===== v10: 翻訳処理（自動フォールバック付き） =====
-async function translateEntry(raw, id){
-  const engines=[];
-  if(state.engine==='gemini' && state.geminiKey) engines.push('gemini');
-  else if(state.engine==='claude' && state.claudeKey) engines.push('claude');
-  else if(state.engine==='google' && state.googleKey) engines.push('google');
-  // フォールバック順序を追加
-  if(!engines.includes('gemini') && state.geminiKey) engines.push('gemini');
-  if(!engines.includes('claude') && state.claudeKey) engines.push('claude');
-  if(!engines.includes('google') && state.googleKey) engines.push('google');
-  engines.push('mymemory');
-
-  for(let i=0;i<engines.length;i++){
-    const eng=engines[i];
+async function translateEntry(raw, id, asrAlts=[]){
+  // v10.4: Gemini一本化。他エンジンへの自動フォールバックは廃止。
+  // 理由：corrections可視化・別候補の文脈選択・固定訳プロンプト・低リソース言語2段階翻訳は
+  // Geminiのみ対応。安全層が脱落した訳を黙って出すより、失敗を明示して再試行する方が安全。
+  if(!state.geminiKey){
+    showToast('⚙️ Gemini APIキーが未設定です（設定から無料で登録できます）');
+    return {id,raw,seimon:raw,translation:'',translations:{},terms:[],corrections:[],engine:'none'};
+  }
+  let lastErr=null;
+  for(let attempt=0;attempt<2;attempt++){
     try{
-      let result;
-      if(eng==='gemini'){
-        const r=await geminiProcess(raw);
-        result={id,raw,...r,engine:'gemini'};
-      } else if(eng==='claude'){
-        const r=await claudeTranslate(raw);
-        result={id,raw,...r,engine:'claude'};
-      } else if(eng==='google'){
-        const translations={};
-        await Promise.all(DIST_LANGS.map(async l=>{
-          try{translations[l.code]=await googleTranslate(raw,l.code);}catch(e){translations[l.code]=raw;}
-        }));
-        result={id,raw,seimon:raw,translation:translations[state.targetLang]||raw,translations,terms:[],corrections:[],engine:'google'};
-      } else {
-        const translations={};
-        await Promise.all(DIST_LANGS.map(async l=>{
-          try{translations[l.code]=await myMemoryTranslate(raw,l.code);}catch(e){translations[l.code]=raw;}
-        }));
-        result={id,raw,seimon:raw,translation:translations[state.targetLang]||raw,translations,terms:[],corrections:[],engine:'mymemory'};
-      }
-      if(i>0) showToast(`⚠️ ${state.engine}が使えないため${eng}で翻訳しました`);
-      if(i>0) result.fallback=true;
-      return result;
+      const r=await geminiProcess(raw, asrAlts);
+      return {id,raw,...r,engine:'gemini'};
     }catch(e){
-      console.warn(`${eng} failed:`,e.message);
-      if(i===engines.length-1){
-        showToast(friendlyError(e.message));
-        return {id,raw,seimon:raw,translation:'（翻訳できませんでした）',translations:{},terms:[],corrections:[],engine:'none'};
-      }
+      lastErr=e;
+      console.warn(`gemini failed (attempt ${attempt+1}):`,e.message);
+      if(attempt===0) await new Promise(r2=>setTimeout(r2,800)); // 一時的な失敗向けに1回だけ自動リトライ
     }
   }
+  showToast(friendlyError(lastErr?.message||''));
+  return {id,raw,seimon:raw,translation:'',translations:{},terms:[],corrections:[],engine:'none'};
 }
 
 // ===== v10: 3段階字幕 processEntry =====
@@ -2311,22 +2247,31 @@ async function processEntry(raw, meta={}){
   const aliasCorrections = aliasResult.corrections;
 
   // === Stage 1: 仮字幕表示 ===
-  const el=document.createElement('div'); el.className='entry stage1'; el.id='entry-'+id;
+  // v10.3: meta.replaceId があれば既存エントリをその場で差し替え（別候補での再翻訳）
+  let el=null;
+  if(meta.replaceId){
+    el=document.getElementById('entry-'+meta.replaceId);
+    const oldIdx=state.entries.findIndex(en=>en.id===meta.replaceId);
+    if(oldIdx>=0) state.entries.splice(oldIdx,1);
+  }
+  if(!el){ el=document.createElement('div'); area.appendChild(el); }
+  el.className='entry stage1'; el.id='entry-'+id;
   const aliasBadgeHtml = aliasCorrections.length
     ? `<span style="font-size:11px;color:#2e7d32;background:#e8f5e9;border-radius:10px;padding:2px 7px;margin-left:6px;vertical-align:middle">📚 ${aliasCorrections.map(c=>`${escapeHtml(c.alias)}→${escapeHtml(c.canonical)}`).join('、')}</span>`
     : '';
   el.innerHTML=`<div class="entry-interim-text">⋯ ${escapeHtml(processText)}${aliasBadgeHtml}</div><div class="stage-progress"><div class="stage-progress-bar"></div></div>`;
-  area.appendChild(el); maybeScroll();
+  maybeScroll();
 
   // === Stage 2: 翻訳中表示 ===
   let entry;
   try{
-    entry=await translateEntry(processText, id);
+    entry=await translateEntry(processText, id, meta.asrAlternatives||[]);
   }catch(e){
     entry={id,raw:processText,seimon:processText,translation:'',translations:{},terms:[],corrections:[],engine:'none'};
   }
   entry.aliasCorrections = aliasCorrections;
   entry.originalRaw = _trueRaw;
+  entry.asrAlternatives = meta.asrAlternatives||[];
   entry.ts=ts;
 
   // 危険語チェック
@@ -2391,9 +2336,13 @@ function escapeHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 // ===== v10: renderEntry（信頼度・危険語・推測修正表示） =====
 function renderEntry(el, entry){
   const matched=getActiveTerms().filter(t=>(entry.seimon||entry.raw).includes(t.term));
-  const engineLabel=entry.engine==='mymemory'?'<span class="engine-badge">MyMemory</span>':
-                    entry.engine==='claude'?'<span class="engine-badge">Claude</span>':
-                    entry.engine==='google'?'<span class="engine-badge">Google</span>':
+  // エンジン表示：Geminiも明示し、フォールバック時は背景色を変えて分かりやすく
+  const _eBg=entry.fallback?'background:#fff3e0;color:#e65100':'';
+  const _ePfx=entry.fallback?'⚠️ FB: ':'';
+  const engineLabel=entry.engine==='gemini'?`<span class="engine-badge" style="${_eBg}">${_ePfx}Gemini</span>`:
+                    entry.engine==='mymemory'?`<span class="engine-badge" style="background:#fff3e0;color:#e65100">${_ePfx}MyMemory</span>`:
+                    entry.engine==='claude'?`<span class="engine-badge" style="${_eBg}">${_ePfx}Claude</span>`:
+                    entry.engine==='google'?`<span class="engine-badge" style="${_eBg}">${_ePfx}Google</span>`:
                     entry.engine==='none'?'<span class="engine-badge" style="background:#ffebee;color:#c62828">失敗</span>':'';
 
   const isDanger=entry.danger?.hasDanger;
@@ -2415,6 +2364,11 @@ function renderEntry(el, entry){
   // 整文テキスト（推測修正のハイライト付き）
   if(entry.translationSafety?.hasWarning){
     dangerBar+=`<div class="danger-bar"><span class="danger-icon">⚠️</span> 翻訳後チェック: ${escapeHtml(entry.translationSafety.warnings.join(' / '))}</div>`;
+  }
+
+  // v10.4: 翻訳失敗の明示＋再試行（劣化エンジンへ黙って逃げない）
+  if(entry.engine==='none'){
+    dangerBar+=`<div class="warn-bar"><span class="warn-icon">⚠️</span> 翻訳できませんでした <button class="alt-chip" onclick="retryTranslate(${entry.id})">🔄 再試行</button></div>`;
   }
 
   // Phase 12: 保持チェック（赤=確実な欠落 / 黄=要確認）
@@ -2487,8 +2441,35 @@ function renderEntry(el, entry){
   if(transText) html+=`<button class="entry-copy-btn" onclick="copyEntryTrans(${entry.id})">📋</button>`;
   html+=`</div>`;
 
+  // v10.3: 別候補チップ（認識が違っていたらタップでその場差し替え再翻訳）
+  if(entry.asrAlternatives?.length){
+    html+=`<div class="alt-chips">認識違い？ `+entry.asrAlternatives.map((t,i)=>
+      `<button class="alt-chip" onclick="switchToAlternative(${entry.id},${i})" title="この候補で翻訳し直す">🔁 ${escapeHtml(t)}</button>`
+    ).join('')+`</div>`;
+  }
+
   el.innerHTML=html;
   appendToTopPane(entry);
+}
+
+// v10.4: 翻訳失敗エントリの再試行（同じ位置で再翻訳）
+async function retryTranslate(id){
+  const e=state.entries.find(x=>x.id===id);
+  if(!e) return;
+  showToast('🔄 翻訳をやり直します');
+  await processEntry(e.originalRaw||e.raw, { asrAlternatives:e.asrAlternatives||[], replaceId:id });
+}
+
+// v10.3: 別候補での差し替え再翻訳（同じ位置のエントリを置き換える）
+async function switchToAlternative(id, altIndex){
+  const e=state.entries.find(x=>x.id===id);
+  if(!e || !e.asrAlternatives || !e.asrAlternatives[altIndex]) return;
+  const newText=e.asrAlternatives[altIndex];
+  // 差し替え後の別候補リスト＝元の採用テキスト＋選ばなかった候補（重複・空を除く）
+  const newAlts=[...new Set([e.originalRaw||e.raw, ...e.asrAlternatives.filter((_,i)=>i!==altIndex)])]
+    .filter(t=>t && t!==newText);
+  showToast('🔁 別候補で翻訳し直します');
+  await processEntry(newText, { asrAlternatives:newAlts, replaceId:id });
 }
 
 // v10: コピーボタン
@@ -2608,7 +2589,7 @@ ${contextHint}【翻訳する文章】${newText}
 }
 
 // ===== Gemini API（v10強化版） =====
-async function geminiProcess(raw){
+async function geminiProcess(raw, asrAlts=[]){
   const levelHint={
     light:'口ぐせ・言い直しのみ削除、それ以外は極力そのまま',
     balanced:'読みやすく整えるが意味・流れは保持',
@@ -2667,6 +2648,11 @@ ${transModeHint}
 ・褥瘡↔熟想 → 皮膚の文脈なら「褥瘡」
 ・拘縮↔口述 → 関節の文脈なら「拘縮」
 迷った場合は修正しないこと。
+${(asrAlts&&asrAlts.length)?`
+【音声認識の別候補】
+音声認識は上記テキストの他に、次の別候補も出力しました：
+${asrAlts.map((t,i)=>`候補${i+2}:「${t}」`).join('\n')}
+介護・医療の文脈および上記の専門用語から判断して、別候補の方が明らかに正しい場合のみ、その語を採用してseimonに反映し、必ずcorrectionsに記録すること。確信が持てない場合は採用テキストのまま。`:''}
 
 【低リソース言語の翻訳】
 ミャンマー語・タガログ語・ヒンディー語は、まず英語に翻訳してからその英語をベースに翻訳すること。固定訳ルールがある用語はそちらを優先。${fixedRules}${ctxHint}`;
